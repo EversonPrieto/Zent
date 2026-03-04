@@ -4,7 +4,11 @@ import { WorkspaceGuard } from 'src/workspaces/workspace.guard';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
+import { ApiTags, ApiBearerAuth, ApiSecurity} from '@nestjs/swagger';
 
+@ApiTags('Tasks')
+@ApiBearerAuth()
+@ApiSecurity('workspace-id')
 @UseGuards(JwtAuthGuard, WorkspaceGuard)
 @Controller('tasks')
 export class TasksController {
