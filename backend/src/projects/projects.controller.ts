@@ -3,7 +3,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { WorkspaceGuard } from 'src/workspaces/workspace.guard';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { ApiTags, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiSecurity, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Projects')
 @ApiBearerAuth()
@@ -13,6 +13,7 @@ import { ApiTags, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 export class ProjectsController {
   constructor(private service: ProjectsService) {}
 
+  @ApiOperation({ summary: 'Criar um novo projeto' })
   @Post()
   create(@Req() req: any, @Body() dto: CreateProjectDto) {
     return this.service.create(req.workspaceId, dto);
