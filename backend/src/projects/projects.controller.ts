@@ -3,7 +3,11 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { WorkspaceGuard } from 'src/workspaces/workspace.guard';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { ApiTags, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
 
+@ApiTags('Projects')
+@ApiBearerAuth()
+@ApiSecurity('workspace-id')
 @UseGuards(JwtAuthGuard, WorkspaceGuard)
 @Controller('projects')
 export class ProjectsController {

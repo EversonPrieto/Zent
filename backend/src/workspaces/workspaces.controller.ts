@@ -10,9 +10,13 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
+import { ApiTags, ApiBearerAuth, ApiSecurity } from '@nestjs/swagger';
+import { WorkspaceGuard } from './workspace.guard';
 
-
-@UseGuards(JwtAuthGuard)
+@ApiTags('Workspaces')
+@ApiBearerAuth()
+@ApiSecurity('workspace-id')
+@UseGuards(JwtAuthGuard, WorkspaceGuard)
 @Controller('workspaces')
 export class WorkspacesController {
     constructor(private service: WorkspacesService) { }
