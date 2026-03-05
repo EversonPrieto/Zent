@@ -1,36 +1,55 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { WorkspaceGuard } from 'src/workspaces/workspace.guard';
+import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { WorkspaceGuard } from '../workspaces/workspace.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+
+import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { TasksService } from './tasks.service';
-import { ApiTags, ApiBearerAuth, ApiSecurity} from '@nestjs/swagger';
+import { MoveTaskDto } from './dto/move-task.dto';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
 @ApiSecurity('workspace-id')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
+@UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(private service: TasksService) {}
 
+  @ApiOperation({ summary: 'Criar task no workspace atual' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Post()
   create(@Req() req: any, @Body() dto: CreateTaskDto) {
     return this.service.create(req.workspaceId, dto);
   }
 
+  @ApiOperation({ summary: 'Listar tasks (filtros + paginação)' })
   @Get()
   list(@Req() req: any, @Query() query: any) {
     return this.service.list(req.workspaceId, query);
   }
 
+  @ApiOperation({ summary: 'Buscar task por id' })
   @Get(':id')
   get(@Req() req: any, @Param('id') id: string) {
     return this.service.get(req.workspaceId, id);
   }
 
+  @ApiOperation({ summary: 'Atualizar task (status, priority, assignee, position...)' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Patch(':id')
   update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateTaskDto) {
     return this.service.update(req.workspaceId, id, dto);
+  }
+
+  @ApiOperation({ summary: 'Mover task no Kanban (status + ordenação via position)' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Patch(':id/move')
+  move(@Req() req: any, @Param('id') id: string, @Body() dto: MoveTaskDto) {
+    return this.service.move(req.workspaceId, id, dto);
   }
 }
