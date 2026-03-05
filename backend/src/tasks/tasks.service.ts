@@ -1,8 +1,15 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { TaskPriority, TaskStatus } from '@prisma/client';
+
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { TaskPriority, TaskStatus } from '@prisma/client';
+import { MoveTaskDto } from './dto/move-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -98,6 +105,80 @@ export class TasksService {
         priority: dto.priority,
         assigneeId: dto.assigneeId === undefined ? undefined : dto.assigneeId,
         position: dto.position,
+      },
+    });
+  }
+
+  async move(workspaceId: string, taskId: string, dto: MoveTaskDto) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true, status: true, position: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    if (dto.beforeId && dto.beforeId === taskId) {
+      throw new BadRequestException('beforeId não pode ser o próprio id da task.');
+    }
+    if (dto.afterId && dto.afterId === taskId) {
+      throw new BadRequestException('afterId não pode ser o próprio id da task.');
+    }
+    if (dto.beforeId && dto.afterId && dto.beforeId === dto.afterId) {
+      throw new BadRequestException('beforeId e afterId não podem ser iguais.');
+    }
+
+    const getNeighbor = async (id: string) => {
+      const neighbor = await this.prisma.task.findFirst({
+        where: {
+          id,
+          projectId: task.projectId,
+          status: dto.status,
+          project: { workspaceId },
+        },
+        select: { id: true, position: true },
+      });
+
+      if (!neighbor) {
+        throw new BadRequestException(`Task vizinha inválida: ${id}`);
+      }
+      return neighbor;
+    };
+
+    const before = dto.beforeId ? await getNeighbor(dto.beforeId) : null;
+    const after = dto.afterId ? await getNeighbor(dto.afterId) : null;
+
+    let newPosition: number;
+
+    if (before && after) {
+      if (before.position >= after.position) {
+        throw new BadRequestException(
+          'Ordem inválida: beforeId precisa ter position menor que afterId.',
+        );
+      }
+      newPosition = (before.position + after.position) / 2;
+    } else if (before) {
+      newPosition = before.position + 1024;
+    } else if (after) {
+      newPosition = after.position / 2;
+    } else {
+      const last = await this.prisma.task.findFirst({
+        where: {
+          projectId: task.projectId,
+          status: dto.status,
+          project: { workspaceId },
+        },
+        orderBy: { position: 'desc' },
+        select: { position: true },
+      });
+
+      newPosition = last ? last.position + 1024 : 1024;
+    }
+
+    return this.prisma.task.update({
+      where: { id: task.id },
+      data: {
+        status: dto.status,
+        position: newPosition,
       },
     });
   }
