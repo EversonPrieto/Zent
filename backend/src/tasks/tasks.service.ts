@@ -5,15 +5,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { TaskPriority, TaskStatus } from '@prisma/client';
+import { ActivityType, TaskPriority, TaskStatus } from '@prisma/client';
 
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { MoveTaskDto } from './dto/move-task.dto';
+import { ActivityService } from 'src/activity/activity.service';
 
 @Injectable()
 export class TasksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private activity: ActivityService,
+  ) {}
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
     const project = await this.prisma.project.findFirst({
@@ -21,23 +25,50 @@ export class TasksService {
       select: { id: true },
     });
 
-    if (!project) throw new ForbiddenException('Projeto não pertence a este workspace.');
+    if (!project) {
+      throw new ForbiddenException('Projeto não pertence a este workspace.');
+    }
   }
 
-  async create(workspaceId: string, dto: CreateTaskDto) {
+  async create(workspaceId: string, dto: CreateTaskDto, userId?: string) {
     await this.ensureProjectInWorkspace(dto.projectId, workspaceId);
 
-    return this.prisma.task.create({
+    const status = dto.status ?? TaskStatus.TODO;
+
+    const last = await this.prisma.task.findFirst({
+      where: {
+        projectId: dto.projectId,
+        status,
+        project: { workspaceId },
+      },
+      orderBy: { position: 'desc' },
+      select: { position: true },
+    });
+
+    const position = dto.position ?? (last ? last.position + 1024 : 1024);
+
+    const task = await this.prisma.task.create({
       data: {
         projectId: dto.projectId,
         title: dto.title,
         description: dto.description,
-        status: dto.status ?? TaskStatus.TODO,
+        status,
         priority: dto.priority ?? TaskPriority.MEDIUM,
         assigneeId: dto.assigneeId,
-        position: dto.position ?? 0,
+        position,
       },
     });
+
+    await this.activity.create({
+      type: ActivityType.TASK_CREATED,
+      description: `Task "${task.title}" foi criada`,
+      workspaceId,
+      projectId: task.projectId,
+      taskId: task.id,
+      userId,
+    });
+
+    return task;
   }
 
   async list(workspaceId: string, query: any) {
@@ -89,14 +120,15 @@ export class TasksService {
     return task;
   }
 
-  async update(workspaceId: string, id: string, dto: UpdateTaskDto) {
+  async update(workspaceId: string, id: string, dto: UpdateTaskDto, userId?: string) {
     const exists = await this.prisma.task.findFirst({
       where: { id, project: { workspaceId } },
-      select: { id: true },
+      select: { id: true, title: true, projectId: true },
     });
+
     if (!exists) throw new NotFoundException('Task não encontrada.');
 
-    return this.prisma.task.update({
+    const updatedTask = await this.prisma.task.update({
       where: { id },
       data: {
         title: dto.title,
@@ -107,12 +139,23 @@ export class TasksService {
         position: dto.position,
       },
     });
+
+    await this.activity.create({
+      type: ActivityType.TASK_UPDATED,
+      description: `Task "${updatedTask.title}" foi atualizada`,
+      workspaceId,
+      projectId: updatedTask.projectId,
+      taskId: updatedTask.id,
+      userId,
+    });
+
+    return updatedTask;
   }
 
-  async move(workspaceId: string, taskId: string, dto: MoveTaskDto) {
+  async move(workspaceId: string, taskId: string, dto: MoveTaskDto, userId?: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true, status: true, position: true },
+      select: { id: true, title: true, projectId: true, status: true, position: true },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
@@ -141,6 +184,7 @@ export class TasksService {
       if (!neighbor) {
         throw new BadRequestException(`Task vizinha inválida: ${id}`);
       }
+
       return neighbor;
     };
 
@@ -174,12 +218,23 @@ export class TasksService {
       newPosition = last ? last.position + 1024 : 1024;
     }
 
-    return this.prisma.task.update({
+    const updatedTask = await this.prisma.task.update({
       where: { id: task.id },
       data: {
         status: dto.status,
         position: newPosition,
       },
     });
+
+    await this.activity.create({
+      type: ActivityType.TASK_MOVED,
+      description: `Task "${task.title}" foi movida para ${dto.status}`,
+      workspaceId,
+      projectId: task.projectId,
+      taskId: task.id,
+      userId,
+    });
+
+    return updatedTask;
   }
 }

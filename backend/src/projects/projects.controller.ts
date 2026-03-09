@@ -23,7 +23,7 @@ export class ProjectsController {
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Post()
   create(@Req() req: any, @Body() dto: CreateProjectDto) {
-    return this.service.create(req.workspaceId, dto);
+    return this.service.create(req.workspaceId, dto, req.user.sub);
   }
 
   @ApiOperation({ summary: 'Listar projetos do workspace atual' })
