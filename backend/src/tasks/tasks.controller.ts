@@ -24,7 +24,7 @@ export class TasksController {
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Post()
   create(@Req() req: any, @Body() dto: CreateTaskDto) {
-    return this.service.create(req.workspaceId, dto);
+    return this.service.create(req.workspaceId, dto, req.user.sub);
   }
 
   @ApiOperation({ summary: 'Listar tasks (filtros + paginação)' })
@@ -43,13 +43,13 @@ export class TasksController {
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Patch(':id')
   update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateTaskDto) {
-    return this.service.update(req.workspaceId, id, dto);
+    return this.service.update(req.workspaceId, id, dto, req.user.sub);
   }
 
   @ApiOperation({ summary: 'Mover task no Kanban (status + ordenação via position)' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Patch(':id/move')
   move(@Req() req: any, @Param('id') id: string, @Body() dto: MoveTaskDto) {
-    return this.service.move(req.workspaceId, id, dto);
+    return this.service.move(req.workspaceId, id, dto, req.user.sub);
   }
 }

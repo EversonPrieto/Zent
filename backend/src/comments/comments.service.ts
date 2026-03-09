@@ -1,41 +1,74 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ActivityType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { ActivityService } from 'src/activity/activity.service';
 
 @Injectable()
 export class CommentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private activity: ActivityService,
+  ) {}
 
-  async create(workspaceId: string, userId: string, taskId: string, dto: CreateCommentDto) {
-
+  async create(
+    workspaceId: string,
+    userId: string,
+    taskId: string,
+    dto: CreateCommentDto,
+  ) {
     const task = await this.prisma.task.findFirst({
       where: {
         id: taskId,
-        project: { workspaceId }
-      }
+        project: { workspaceId },
+      },
+      select: {
+        id: true,
+        title: true,
+        projectId: true,
+      },
     });
 
-    if (!task) throw new ForbiddenException('Task não pertence a este workspace');
+    if (!task) {
+      throw new ForbiddenException('Task não pertence a este workspace');
+    }
 
-    return this.prisma.comment.create({
+    const comment = await this.prisma.comment.create({
       data: {
         content: dto.content,
         taskId,
-        userId
-      }
+        userId,
+      },
     });
+
+    await this.activity.create({
+      type: ActivityType.COMMENT_CREATED,
+      description: `Comentário adicionado na task "${task.title}"`,
+      workspaceId,
+      projectId: task.projectId,
+      taskId: task.id,
+      userId,
+    });
+
+    return comment;
   }
 
   async list(workspaceId: string, taskId: string) {
-
     const task = await this.prisma.task.findFirst({
       where: {
         id: taskId,
-        project: { workspaceId }
-      }
+        project: { workspaceId },
+      },
+      select: { id: true },
     });
 
-    if (!task) throw new ForbiddenException();
+    if (!task) {
+      throw new ForbiddenException('Task não pertence a este workspace');
+    }
 
     return this.prisma.comment.findMany({
       where: { taskId },
@@ -45,32 +78,37 @@ export class CommentsService {
           select: {
             id: true,
             name: true,
-            avatarUrl: true
-          }
-        }
-      }
+            avatarUrl: true,
+          },
+        },
+      },
     });
   }
 
   async delete(workspaceId: string, commentId: string, userId: string) {
-
     const comment = await this.prisma.comment.findFirst({
       where: {
         id: commentId,
         task: {
-          project: { workspaceId }
-        }
-      }
+          project: { workspaceId },
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
     });
 
-    if (!comment) throw new NotFoundException();
+    if (!comment) {
+      throw new NotFoundException('Comentário não encontrado');
+    }
 
     if (comment.userId !== userId) {
       throw new ForbiddenException('Você não pode apagar este comentário');
     }
 
     await this.prisma.comment.delete({
-      where: { id: commentId }
+      where: { id: commentId },
     });
 
     return { message: 'Comentário removido' };
