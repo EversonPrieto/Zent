@@ -25,10 +25,15 @@ export async function api(path: string, options: RequestOptions = {}) {
     headers,
   });
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    const error = await response.json().catch(() => null);
-    throw new Error(error?.message || 'Erro na requisição');
+    const message = Array.isArray(data?.message)
+      ? data.message.join(', ')
+      : data?.message || 'Erro na requisição';
+
+    throw new Error(message);
   }
 
-  return response.json();
+  return data;
 }
