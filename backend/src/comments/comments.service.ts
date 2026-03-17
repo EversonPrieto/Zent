@@ -43,6 +43,15 @@ export class CommentsService {
         taskId,
         userId,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
     });
 
     await this.activity.create({
