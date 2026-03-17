@@ -17,7 +17,7 @@ export class TasksService {
   constructor(
     private prisma: PrismaService,
     private activity: ActivityService,
-  ) {}
+  ) { }
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
     const project = await this.prisma.project.findFirst({
@@ -236,5 +236,27 @@ export class TasksService {
     });
 
     return updatedTask;
+  }
+  
+  async delete(workspaceId: string, id: string) {
+    const exists = await this.prisma.task.findFirst({
+      where: {
+        id,
+        project: { workspaceId },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!exists) {
+      throw new NotFoundException('Task não encontrada.');
+    }
+
+    await this.prisma.task.delete({
+      where: { id },
+    });
+
+    return { message: 'Task removida com sucesso.' };
   }
 }

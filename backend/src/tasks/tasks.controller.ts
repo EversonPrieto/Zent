@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
@@ -18,7 +18,7 @@ import { MoveTaskDto } from './dto/move-task.dto';
 @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
 @Controller('tasks')
 export class TasksController {
-  constructor(private service: TasksService) {}
+  constructor(private service: TasksService) { }
 
   @ApiOperation({ summary: 'Criar task no workspace atual' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
@@ -51,5 +51,11 @@ export class TasksController {
   @Patch(':id/move')
   move(@Req() req: any, @Param('id') id: string, @Body() dto: MoveTaskDto) {
     return this.service.move(req.workspaceId, id, dto, req.user.sub);
+  }
+  @ApiOperation({ summary: 'Remover task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Delete(':id')
+  delete(@Req() req: any, @Param('id') id: string) {
+    return this.service.delete(req.workspaceId, id);
   }
 }
