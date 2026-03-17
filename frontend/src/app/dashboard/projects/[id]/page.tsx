@@ -109,9 +109,8 @@ function ColumnEndDropZone({ id }: { id: string }) {
   return (
     <div
       ref={setNodeRef}
-      className={`mt-3 h-12 rounded-xl border border-dashed transition ${
-        isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
-      }`}
+      className={`mt-3 h-12 rounded-xl border border-dashed transition ${isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
+        }`}
     />
   );
 }
@@ -146,9 +145,8 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-2xl border p-4 transition ${
-        isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
-      }`}
+      className={`rounded-2xl border p-4 transition ${isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
+        }`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold">{column.label}</h2>
@@ -469,6 +467,10 @@ export default function ProjectBoardPage() {
               ),
             );
             setSelectedTask(updatedTask);
+          }}
+          onDeleted={(taskId) => {
+            setTasks((prev) => prev.filter((task) => task.id !== taskId));
+            setSelectedTask(null);
           }}
         />
       </div>

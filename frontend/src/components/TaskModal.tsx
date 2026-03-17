@@ -19,11 +19,23 @@ type Task = {
   updatedAt: string;
 };
 
+type Comment = {
+  id: string;
+  content: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+  } | null;
+};
+
 type Props = {
   task: Task | null;
   workspaceId: string;
   onClose: () => void;
   onSaved: (task: Task) => void;
+  onDeleted?: (taskId: string) => void;
 };
 
 const statusOptions: TaskStatus[] = [
@@ -45,6 +57,7 @@ export default function TaskModal({
   workspaceId,
   onClose,
   onSaved,
+  onDeleted,
 }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -52,6 +65,9 @@ export default function TaskModal({
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
   useEffect(() => {
     if (!task) return;
@@ -62,6 +78,43 @@ export default function TaskModal({
     setPriority(task.priority);
     setError('');
   }, [task]);
+
+  useEffect(() => {
+    if (!task) {
+      setComments([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadComments() {
+      try {
+        setCommentsLoading(true);
+
+        const data = await api(`/tasks/${currentTask.id}/comments`, {
+          workspaceId,
+        });
+
+        if (!cancelled) {
+          setComments(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setComments([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setCommentsLoading(false);
+        }
+      }
+    }
+
+    loadComments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [task, workspaceId]);
 
   if (!task) return null;
 
@@ -100,12 +153,16 @@ export default function TaskModal({
 
     try {
       setLoading(true);
+      setError('');
 
       await api(`/tasks/${currentTask.id}`, {
         method: 'DELETE',
         workspaceId,
       });
 
+      setComments([]);
+      setNewComment('');
+      onDeleted?.(currentTask.id);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao deletar task');
@@ -114,9 +171,45 @@ export default function TaskModal({
     }
   }
 
+  async function handleAddComment() {
+    if (!newComment.trim()) return;
+
+    try {
+      setError('');
+
+      const created = await api(`/tasks/${currentTask.id}/comments`, {
+        method: 'POST',
+        workspaceId,
+        body: JSON.stringify({
+          content: newComment,
+        }),
+      });
+
+      setComments((prev) => [...prev, created]);
+      setNewComment('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar comentário');
+    }
+  }
+
+  async function handleDeleteComment(commentId: string) {
+    try {
+      setError('');
+
+      await api(`/comments/${commentId}`, {
+        method: 'DELETE',
+        workspaceId,
+      });
+
+      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao deletar comentário');
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-2xl rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">Detalhes da task</h2>
@@ -187,7 +280,7 @@ export default function TaskModal({
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-2">
             <button
               onClick={handleDelete}
               className="text-sm text-red-400 hover:text-red-300"
@@ -209,6 +302,59 @@ export default function TaskModal({
                 className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-60"
               >
                 {loading ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+
+          <div className="border-t border-zinc-800 pt-4">
+            <h3 className="mb-3 font-semibold">Comentários</h3>
+
+            {commentsLoading ? (
+              <p className="text-sm text-zinc-400">Carregando comentários...</p>
+            ) : (
+              <div className="max-h-60 space-y-3 overflow-y-auto">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="rounded-lg bg-zinc-800 p-3">
+                    <div className="flex items-center justify-between text-xs text-zinc-400">
+                      <span>{comment.user?.name ?? 'Usuário'}</span>
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        deletar
+                      </button>
+                    </div>
+                    <p className="mt-1 text-sm">{comment.content}</p>
+                  </div>
+                ))}
+
+                {comments.length === 0 && (
+                  <p className="text-sm text-zinc-500">
+                    Ainda não há comentários nesta task.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="mt-4 flex gap-2">
+              <input
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddComment();
+                  }
+                }}
+                placeholder="Escreva um comentário..."
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm outline-none focus:border-zinc-500"
+              />
+
+              <button
+                onClick={handleAddComment}
+                className="rounded-lg bg-white px-3 py-2 text-sm text-black"
+              >
+                Enviar
               </button>
             </div>
           </div>
