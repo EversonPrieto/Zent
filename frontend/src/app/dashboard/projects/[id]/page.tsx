@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   PointerSensor,
   closestCorners,
   useDroppable,
@@ -19,6 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { api } from '../../../../lib/api';
+import TaskModal from '../../../../components/TaskModal';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
@@ -46,7 +46,13 @@ const columns: { key: TaskStatus; label: string }[] = [
   { key: 'DONE', label: 'Concluído' },
 ];
 
-function SortableTaskCard({ task }: { task: Task }) {
+function SortableTaskCard({
+  task,
+  onClick,
+}: {
+  task: Task;
+  onClick: (task: Task) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -74,6 +80,10 @@ function SortableTaskCard({ task }: { task: Task }) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(task);
+      }}
       className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-start justify-between gap-3">
@@ -100,9 +110,7 @@ function ColumnEndDropZone({ id }: { id: string }) {
     <div
       ref={setNodeRef}
       className={`mt-3 h-12 rounded-xl border border-dashed transition ${
-        isOver
-          ? 'border-green-500 bg-green-500/10'
-          : 'border-zinc-700'
+        isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
       }`}
     />
   );
@@ -111,9 +119,21 @@ function ColumnEndDropZone({ id }: { id: string }) {
 function KanbanColumn({
   column,
   tasks,
+  creatingStatus,
+  setCreatingStatus,
+  newTaskTitle,
+  setNewTaskTitle,
+  onCreateTask,
+  onTaskClick,
 }: {
   column: { key: TaskStatus; label: string };
   tasks: Task[];
+  creatingStatus: TaskStatus | null;
+  setCreatingStatus: (status: TaskStatus | null) => void;
+  newTaskTitle: string;
+  setNewTaskTitle: (value: string) => void;
+  onCreateTask: (status: TaskStatus) => void;
+  onTaskClick: (task: Task) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.key,
@@ -127,9 +147,7 @@ function KanbanColumn({
     <div
       ref={setNodeRef}
       className={`rounded-2xl border p-4 transition ${
-        isOver
-          ? 'border-zinc-500 bg-zinc-800'
-          : 'border-zinc-800 bg-zinc-900'
+        isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
       }`}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -145,7 +163,11 @@ function KanbanColumn({
       >
         <div className="space-y-3 min-h-[250px]">
           {tasks.map((task) => (
-            <SortableTaskCard key={task.id} task={task} />
+            <SortableTaskCard
+              key={task.id}
+              task={task}
+              onClick={onTaskClick}
+            />
           ))}
 
           {tasks.length === 0 && (
@@ -157,6 +179,51 @@ function KanbanColumn({
           <ColumnEndDropZone id={`${column.key}-end`} />
         </div>
       </SortableContext>
+
+      {creatingStatus === column.key ? (
+        <div className="mt-3">
+          <input
+            autoFocus
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onCreateTask(column.key);
+              if (e.key === 'Escape') {
+                setCreatingStatus(null);
+                setNewTaskTitle('');
+              }
+            }}
+            placeholder="Nome da task..."
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 p-2 text-sm outline-none focus:border-zinc-500"
+          />
+
+          <div className="mt-2 flex gap-2">
+            <button
+              onClick={() => onCreateTask(column.key)}
+              className="rounded-md bg-white px-3 py-1 text-sm text-black"
+            >
+              Criar
+            </button>
+
+            <button
+              onClick={() => {
+                setCreatingStatus(null);
+                setNewTaskTitle('');
+              }}
+              className="px-3 py-1 text-sm text-zinc-400"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setCreatingStatus(column.key)}
+          className="mt-3 text-sm text-zinc-400 hover:text-white"
+        >
+          + Nova task
+        </button>
+      )}
     </div>
   );
 }
@@ -177,6 +244,10 @@ export default function ProjectBoardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [creatingStatus, setCreatingStatus] = useState<TaskStatus | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -188,8 +259,15 @@ export default function ProjectBoardPage() {
     const wsId = localStorage.getItem('zent_workspace_id');
     const workspaceRaw = localStorage.getItem('zent_workspace');
 
-    if (!token) return router.push('/login');
-    if (!wsId) return router.push('/dashboard');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    if (!wsId) {
+      router.push('/dashboard');
+      return;
+    }
 
     setWorkspaceId(wsId);
 
@@ -197,11 +275,13 @@ export default function ProjectBoardPage() {
       try {
         const parsed = JSON.parse(workspaceRaw);
         setWorkspaceName(parsed.name ?? '');
-      } catch {}
+      } catch {
+        setWorkspaceName('');
+      }
     }
 
     loadTasks(wsId);
-  }, [projectId]);
+  }, [projectId, router]);
 
   async function loadTasks(ws: string) {
     try {
@@ -218,17 +298,49 @@ export default function ProjectBoardPage() {
     }
   }
 
+  async function createTask(status: TaskStatus) {
+    if (!newTaskTitle.trim()) return;
+
+    try {
+      const created = await api('/tasks', {
+        method: 'POST',
+        workspaceId,
+        body: JSON.stringify({
+          title: newTaskTitle,
+          status,
+          projectId,
+        }),
+      });
+
+      setTasks((prev) =>
+        [...prev, created].sort((a, b) => a.position - b.position),
+      );
+      setNewTaskTitle('');
+      setCreatingStatus(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar task');
+    }
+  }
+
   const grouped = useMemo(() => {
     return {
-      TODO: tasks.filter(t => t.status === 'TODO').sort((a, b) => a.position - b.position),
-      IN_PROGRESS: tasks.filter(t => t.status === 'IN_PROGRESS').sort((a, b) => a.position - b.position),
-      IN_REVIEW: tasks.filter(t => t.status === 'IN_REVIEW').sort((a, b) => a.position - b.position),
-      DONE: tasks.filter(t => t.status === 'DONE').sort((a, b) => a.position - b.position),
+      TODO: tasks
+        .filter((t) => t.status === 'TODO')
+        .sort((a, b) => a.position - b.position),
+      IN_PROGRESS: tasks
+        .filter((t) => t.status === 'IN_PROGRESS')
+        .sort((a, b) => a.position - b.position),
+      IN_REVIEW: tasks
+        .filter((t) => t.status === 'IN_REVIEW')
+        .sort((a, b) => a.position - b.position),
+      DONE: tasks
+        .filter((t) => t.status === 'DONE')
+        .sort((a, b) => a.position - b.position),
     };
   }, [tasks]);
 
   function getDestinationStatus(overId: string): TaskStatus | null {
-    if (columns.some(col => col.key === overId)) return overId as TaskStatus;
+    if (columns.some((col) => col.key === overId)) return overId as TaskStatus;
     if (overId.endsWith('-end')) return overId.replace('-end', '') as TaskStatus;
     return findTaskStatus(tasks, overId);
   }
@@ -239,23 +351,23 @@ export default function ProjectBoardPage() {
     destinationStatus: TaskStatus,
     overId: string,
   ) {
-    const activeTask = currentTasks.find(t => t.id === activeId);
+    const activeTask = currentTasks.find((t) => t.id === activeId);
     if (!activeTask) return currentTasks;
 
-    const remaining = currentTasks.filter(t => t.id !== activeId);
+    const remaining = currentTasks.filter((t) => t.id !== activeId);
 
     const destinationTasks = remaining
-      .filter(t => t.status === destinationStatus)
+      .filter((t) => t.status === destinationStatus)
       .sort((a, b) => a.position - b.position);
 
-    const movedTask = { ...activeTask, status: destinationStatus };
+    const movedTask: Task = { ...activeTask, status: destinationStatus };
 
-    let newDestinationTasks;
+    let newDestinationTasks: Task[];
 
-    if (columns.some(col => col.key === overId) || overId.endsWith('-end')) {
+    if (columns.some((col) => col.key === overId) || overId.endsWith('-end')) {
       newDestinationTasks = [...destinationTasks, movedTask];
     } else {
-      const index = destinationTasks.findIndex(t => t.id === overId);
+      const index = destinationTasks.findIndex((t) => t.id === overId);
       newDestinationTasks = [
         ...destinationTasks.slice(0, index),
         movedTask,
@@ -264,7 +376,7 @@ export default function ProjectBoardPage() {
     }
 
     return [
-      ...remaining.filter(t => t.status !== destinationStatus),
+      ...remaining.filter((t) => t.status !== destinationStatus),
       ...newDestinationTasks.map((t, i) => ({ ...t, position: (i + 1) * 1024 })),
     ];
   }
@@ -285,7 +397,7 @@ export default function ProjectBoardPage() {
     setTasks(next);
 
     const list = next
-      .filter(t => t.status === destinationStatus)
+      .filter((t) => t.status === destinationStatus)
       .sort((a, b) => a.position - b.position);
 
     let before: Task | null = null;
@@ -294,7 +406,7 @@ export default function ProjectBoardPage() {
     if (overId.endsWith('-end')) {
       before = list.length > 1 ? list[list.length - 2] : null;
     } else {
-      const i = list.findIndex(t => t.id === activeId);
+      const i = list.findIndex((t) => t.id === activeId);
       before = i > 0 ? list[i - 1] : null;
       after = i < list.length - 1 ? list[i + 1] : null;
     }
@@ -317,15 +429,48 @@ export default function ProjectBoardPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white px-4 py-8">
       <div className="mx-auto max-w-7xl">
-        <h1 className="text-2xl font-bold mb-6">{workspaceName}</h1>
+        <h1 className="mb-6 text-2xl font-bold">{workspaceName}</h1>
 
-        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-          <div className="grid gap-4 lg:grid-cols-4">
-            {columns.map(col => (
-              <KanbanColumn key={col.key} column={col} tasks={grouped[col.key]} />
-            ))}
-          </div>
-        </DndContext>
+        {loading ? <p>Carregando board...</p> : null}
+        {error ? <p className="mb-4 text-red-400">{error}</p> : null}
+
+        {!loading && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="grid gap-4 lg:grid-cols-4">
+              {columns.map((col) => (
+                <KanbanColumn
+                  key={col.key}
+                  column={col}
+                  tasks={grouped[col.key]}
+                  creatingStatus={creatingStatus}
+                  setCreatingStatus={setCreatingStatus}
+                  newTaskTitle={newTaskTitle}
+                  setNewTaskTitle={setNewTaskTitle}
+                  onCreateTask={createTask}
+                  onTaskClick={setSelectedTask}
+                />
+              ))}
+            </div>
+          </DndContext>
+        )}
+
+        <TaskModal
+          task={selectedTask}
+          workspaceId={workspaceId}
+          onClose={() => setSelectedTask(null)}
+          onSaved={(updatedTask) => {
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === updatedTask.id ? updatedTask : task,
+              ),
+            );
+            setSelectedTask(updatedTask);
+          }}
+        />
       </div>
     </main>
   );
