@@ -30,6 +30,18 @@ type Comment = {
   } | null;
 };
 
+type Activity = {
+  id: string;
+  type: string;
+  description: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+  } | null;
+};
+
 type Props = {
   task: Task | null;
   workspaceId: string;
@@ -65,9 +77,13 @@ export default function TaskModal({
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
+
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
 
   useEffect(() => {
     if (!task) return;
@@ -110,6 +126,43 @@ export default function TaskModal({
     }
 
     loadComments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [task, workspaceId]);
+
+  useEffect(() => {
+    if (!task) {
+      setActivities([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadActivities() {
+      try {
+        setActivitiesLoading(true);
+
+        const data = await api(`/activity?taskId=${currentTask.id}`, {
+          workspaceId,
+        });
+
+        if (!cancelled) {
+          setActivities(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setActivities([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setActivitiesLoading(false);
+        }
+      }
+    }
+
+    loadActivities();
 
     return () => {
       cancelled = true;
@@ -161,6 +214,7 @@ export default function TaskModal({
       });
 
       setComments([]);
+      setActivities([]);
       setNewComment('');
       onDeleted?.(currentTask.id);
       onClose();
@@ -187,6 +241,14 @@ export default function TaskModal({
 
       setComments((prev) => [...prev, created]);
       setNewComment('');
+
+      // recarrega activity pra já aparecer o log novo
+      try {
+        const activityData = await api(`/activity?taskId=${currentTask.id}`, {
+          workspaceId,
+        });
+        setActivities(activityData);
+      } catch {}
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar comentário');
     }
@@ -357,6 +419,36 @@ export default function TaskModal({
                 Enviar
               </button>
             </div>
+          </div>
+
+          <div className="border-t border-zinc-800 pt-4">
+            <h3 className="mb-3 font-semibold">Atividade</h3>
+
+            {activitiesLoading ? (
+              <p className="text-sm text-zinc-400">Carregando atividade...</p>
+            ) : (
+              <div className="max-h-52 space-y-3 overflow-y-auto">
+                {activities.map((activity) => (
+                  <div key={activity.id} className="rounded-lg bg-zinc-800 p-3">
+                    <p className="text-sm text-zinc-300">
+                      <span className="font-medium text-white">
+                        {activity.user?.name ?? 'Sistema'}
+                      </span>{' '}
+                      {activity.description}
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      {new Date(activity.createdAt).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                ))}
+
+                {activities.length === 0 && (
+                  <p className="text-sm text-zinc-500">
+                    Nenhuma atividade ainda.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
