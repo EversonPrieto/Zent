@@ -21,9 +21,12 @@ export class ActivityService {
     });
   }
 
-  async listByWorkspace(workspaceId: string) {
+  async listByWorkspace(workspaceId: string, taskId?: string) {
     return this.prisma.activityLog.findMany({
-      where: { workspaceId },
+      where: {
+        workspaceId,
+        ...(taskId ? { taskId } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: 50,
       include: {
