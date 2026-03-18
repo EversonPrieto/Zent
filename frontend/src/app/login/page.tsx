@@ -2,11 +2,13 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { api } from '../../lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,16 +26,28 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data?.message || 'Falha no login');
+        const message = Array.isArray(data?.message)
+          ? data.message.join(', ')
+          : data?.message || 'Falha no login';
+
+        throw new Error(message);
       }
 
       localStorage.setItem('zent_token', data.accessToken);
       localStorage.setItem('zent_user', JSON.stringify(data.user));
 
-      router.push('/dashboard');
+      const workspaces = await api('/workspaces');
+
+      if (workspaces.length > 0) {
+        localStorage.setItem('zent_workspace_id', workspaces[0].id);
+        localStorage.setItem('zent_workspace', JSON.stringify(workspaces[0]));
+        router.push('/dashboard/projects');
+      } else {
+        router.push('/onboarding/workspace');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar');
     } finally {
@@ -55,6 +69,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="voce@email.com"
             />
           </div>
 
@@ -65,6 +80,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Sua senha"
             />
           </div>
 
