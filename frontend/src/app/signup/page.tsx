@@ -40,58 +40,80 @@ export default function SignupPage() {
     passwordChecks.number &&
     passwordChecks.symbol;
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+async function handleSubmit(e: FormEvent) {
+  e.preventDefault();
+  setError('');
+  setSuccess('');
 
-    if (!passwordIsValid) {
-      setError(
-        'A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e símbolo.',
-      );
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
-      });
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message = Array.isArray(data?.message)
-          ? data.message.join(', ')
-          : data?.message || 'Erro ao criar conta';
-
-        throw new Error(message);
-      }
-
-      setSuccess('Conta criada com sucesso! Redirecionando para o login...');
-      setTimeout(() => {
-        router.push('/login');
-      }, 1200);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
-    } finally {
-      setLoading(false);
-    }
+  if (!passwordIsValid) {
+    setError(
+      'A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e símbolo.',
+    );
+    return;
   }
+
+  if (password !== confirmPassword) {
+    setError('As senhas não coincidem.');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const signupResponse = await fetch(`${API_URL}/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+      }),
+    });
+
+    const signupData = await signupResponse.json().catch(() => null);
+
+    if (!signupResponse.ok) {
+      const message = Array.isArray(signupData?.message)
+        ? signupData.message.join(', ')
+        : signupData?.message || 'Erro ao criar conta';
+
+      throw new Error(message);
+    }
+
+    const loginResponse = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const loginData = await loginResponse.json().catch(() => null);
+
+    if (!loginResponse.ok) {
+      const message = Array.isArray(loginData?.message)
+        ? loginData.message.join(', ')
+        : loginData?.message || 'Conta criada, mas falha no login automático';
+
+      throw new Error(message);
+    }
+
+    localStorage.setItem('zent_token', loginData.accessToken);
+    localStorage.setItem('zent_user', JSON.stringify(loginData.user));
+
+    setSuccess('Conta criada com sucesso! Entrando...');
+    router.push('/dashboard');
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Erro ao criar conta');
+  } finally {
+    setLoading(false);
+  }
+}
 
   function checkClass(valid: boolean) {
     return valid ? 'text-green-400' : 'text-zinc-500';
