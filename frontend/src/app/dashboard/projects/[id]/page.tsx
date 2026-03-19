@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { api } from '../../../../lib/api';
 import TaskModal from '../../../../components/TaskModal';
+import CreateTaskModal from '../../../../components/CreateTaskModal';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
@@ -93,7 +94,7 @@ function SortableTaskCard({
         </span>
       </div>
 
-      <p className="mt-2 text-sm text-zinc-400">
+      <p className="mt-2 text-sm text-zinc-400 break-words whitespace-pre-wrap">
         {task.description || 'Sem descrição'}
       </p>
     </div>
@@ -109,8 +110,9 @@ function ColumnEndDropZone({ id }: { id: string }) {
   return (
     <div
       ref={setNodeRef}
-      className={`mt-3 h-12 rounded-xl border border-dashed transition ${isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
-        }`}
+      className={`mt-3 h-12 rounded-xl border border-dashed transition ${
+        isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
+      }`}
     />
   );
 }
@@ -118,21 +120,13 @@ function ColumnEndDropZone({ id }: { id: string }) {
 function KanbanColumn({
   column,
   tasks,
-  creatingStatus,
-  setCreatingStatus,
-  newTaskTitle,
-  setNewTaskTitle,
-  onCreateTask,
   onTaskClick,
+  onOpenCreateModal,
 }: {
   column: { key: TaskStatus; label: string };
   tasks: Task[];
-  creatingStatus: TaskStatus | null;
-  setCreatingStatus: (status: TaskStatus | null) => void;
-  newTaskTitle: string;
-  setNewTaskTitle: (value: string) => void;
-  onCreateTask: (status: TaskStatus) => void;
   onTaskClick: (task: Task) => void;
+  onOpenCreateModal: (status: TaskStatus) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.key,
@@ -145,8 +139,9 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-2xl border p-4 transition ${isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
-        }`}
+      className={`rounded-2xl border p-4 transition ${
+        isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
+      }`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold">{column.label}</h2>
@@ -178,50 +173,12 @@ function KanbanColumn({
         </div>
       </SortableContext>
 
-      {creatingStatus === column.key ? (
-        <div className="mt-3">
-          <input
-            autoFocus
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onCreateTask(column.key);
-              if (e.key === 'Escape') {
-                setCreatingStatus(null);
-                setNewTaskTitle('');
-              }
-            }}
-            placeholder="Nome da task..."
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 p-2 text-sm outline-none focus:border-zinc-500"
-          />
-
-          <div className="mt-2 flex gap-2">
-            <button
-              onClick={() => onCreateTask(column.key)}
-              className="rounded-md bg-white px-3 py-1 text-sm text-black"
-            >
-              Criar
-            </button>
-
-            <button
-              onClick={() => {
-                setCreatingStatus(null);
-                setNewTaskTitle('');
-              }}
-              className="px-3 py-1 text-sm text-zinc-400"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setCreatingStatus(column.key)}
-          className="mt-3 text-sm text-zinc-400 hover:text-white"
-        >
-          + Nova task
-        </button>
-      )}
+      <button
+        onClick={() => onOpenCreateModal(column.key)}
+        className="mt-3 text-sm text-zinc-400 hover:text-white"
+      >
+        + Nova task
+      </button>
     </div>
   );
 }
@@ -242,9 +199,9 @@ export default function ProjectBoardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [creatingStatus, setCreatingStatus] = useState<TaskStatus | null>(null);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [createTaskStatus, setCreateTaskStatus] = useState<TaskStatus>('TODO');
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -296,28 +253,9 @@ export default function ProjectBoardPage() {
     }
   }
 
-  async function createTask(status: TaskStatus) {
-    if (!newTaskTitle.trim()) return;
-
-    try {
-      const created = await api('/tasks', {
-        method: 'POST',
-        workspaceId,
-        body: JSON.stringify({
-          title: newTaskTitle,
-          status,
-          projectId,
-        }),
-      });
-
-      setTasks((prev) =>
-        [...prev, created].sort((a, b) => a.position - b.position),
-      );
-      setNewTaskTitle('');
-      setCreatingStatus(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar task');
-    }
+  function openCreateTaskModal(status: TaskStatus) {
+    setCreateTaskStatus(status);
+    setShowCreateTaskModal(true);
   }
 
   const grouped = useMemo(() => {
@@ -375,7 +313,10 @@ export default function ProjectBoardPage() {
 
     return [
       ...remaining.filter((t) => t.status !== destinationStatus),
-      ...newDestinationTasks.map((t, i) => ({ ...t, position: (i + 1) * 1024 })),
+      ...newDestinationTasks.map((t, i) => ({
+        ...t,
+        position: (i + 1) * 1024,
+      })),
     ];
   }
 
@@ -425,9 +366,20 @@ export default function ProjectBoardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white px-4 py-8">
+    <main className="min-h-screen bg-zinc-950 px-4 py-8 text-white">
       <div className="mx-auto max-w-7xl">
-        <h1 className="mb-6 text-2xl font-bold">{workspaceName}</h1>
+        <div className="mb-8">
+          <button
+            onClick={() => router.push('/dashboard/projects')}
+            className="mb-4 text-sm text-zinc-400 hover:text-white"
+          >
+            ← Voltar para projetos
+          </button>
+
+          <p className="text-sm text-zinc-400">Workspace</p>
+          <h1 className="text-3xl font-bold">{workspaceName || 'Projeto'}</h1>
+          <p className="mt-2 text-zinc-400">Board Kanban do projeto</p>
+        </div>
 
         {loading ? <p>Carregando board...</p> : null}
         {error ? <p className="mb-4 text-red-400">{error}</p> : null}
@@ -444,12 +396,8 @@ export default function ProjectBoardPage() {
                   key={col.key}
                   column={col}
                   tasks={grouped[col.key]}
-                  creatingStatus={creatingStatus}
-                  setCreatingStatus={setCreatingStatus}
-                  newTaskTitle={newTaskTitle}
-                  setNewTaskTitle={setNewTaskTitle}
-                  onCreateTask={createTask}
                   onTaskClick={setSelectedTask}
+                  onOpenCreateModal={openCreateTaskModal}
                 />
               ))}
             </div>
@@ -473,6 +421,21 @@ export default function ProjectBoardPage() {
             setSelectedTask(null);
           }}
         />
+
+        {showCreateTaskModal && workspaceId !== '' && (
+          <CreateTaskModal
+            workspaceId={workspaceId}
+            projectId={projectId}
+            initialStatus={createTaskStatus}
+            onClose={() => setShowCreateTaskModal(false)}
+            onCreated={(createdTask) => {
+              setTasks((prev) =>
+                [...prev, createdTask].sort((a, b) => a.position - b.position),
+              );
+              setShowCreateTaskModal(false);
+            }}
+          />
+        )}
       </div>
     </main>
   );
