@@ -106,8 +106,6 @@ export default function SignupPage() {
             localStorage.setItem('zent_token', loginData.accessToken);
             localStorage.setItem('zent_user', JSON.stringify(loginData.user));
 
-
-            // 🔥 NOVO (ESSENCIAL)
             const workspaces = await fetch(`${API_URL}/workspaces`, {
                 headers: {
                     Authorization: `Bearer ${loginData.accessToken}`,
