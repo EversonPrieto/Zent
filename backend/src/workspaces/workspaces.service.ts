@@ -2,10 +2,11 @@ import { Injectable, ForbiddenException, NotFoundException, ConflictException } 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { Role } from '@prisma/client';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class WorkspacesService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService, private cloudinary: CloudinaryService) { }
 
     async create(userId: string, dto: CreateWorkspaceDto) {
         return this.prisma.$transaction(async (tx) => {
@@ -97,7 +98,7 @@ export class WorkspacesService {
             role: workspace.members[0]?.role ?? 'MEMBER',
         }));
     }
-    
+
     async delete(workspaceId: string, userId: string) {
         const membership = await this.prisma.workspaceMember.findFirst({
             where: {
@@ -361,5 +362,55 @@ export class WorkspacesService {
         });
 
         return { message: 'Membro removido com sucesso.' };
+    }
+    
+    async updateLogo(
+        workspaceId: string,
+        userId: string,
+        file: Express.Multer.File,
+    ) {
+        const membership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId,
+            },
+            select: {
+                role: true,
+            },
+        });
+
+        if (!membership) {
+            throw new ForbiddenException('Você não pertence a este workspace.');
+        }
+
+        if (!['OWNER', 'ADMIN'].includes(membership.role)) {
+            throw new ForbiddenException('Você não tem permissão para editar este workspace.');
+        }
+
+        const uploaded = await this.cloudinary.uploadImage(file);
+
+        const workspace = await this.prisma.workspace.update({
+            where: { id: workspaceId },
+            data: {
+                logoUrl: uploaded.secure_url,
+            },
+            select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                members: {
+                    where: { userId },
+                    select: { role: true },
+                    take: 1,
+                },
+            },
+        });
+
+        return {
+            id: workspace.id,
+            name: workspace.name,
+            logoUrl: workspace.logoUrl,
+            role: workspace.members[0]?.role ?? 'MEMBER',
+        };
     }
 }

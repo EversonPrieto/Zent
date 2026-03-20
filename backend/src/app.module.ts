@@ -9,11 +9,13 @@ import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { CommentsModule } from './comments/comments.module';
 import { ActivityModule } from './activity/activity.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    CloudinaryModule,
     AuthModule,
     WorkspacesModule,
     ProjectsModule,
