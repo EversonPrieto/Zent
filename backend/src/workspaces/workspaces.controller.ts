@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { InviteMemberDto } from './dto/invite-member.dto';
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -45,5 +46,19 @@ export class WorkspacesController {
     @Body('name') name: string,
   ) {
     return this.service.update(workspaceId, req.user.sub, name);
+  }
+  
+  @Post('members')
+  inviteMember(
+    @Req() req: any,
+    @Headers('x-workspace-id') workspaceId: string,
+    @Body() dto: InviteMemberDto,
+  ) {
+    return this.service.inviteMember(
+      workspaceId,
+      req.user.sub,
+      dto.email,
+      dto.role,
+    );
   }
 }
