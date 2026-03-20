@@ -99,4 +99,12 @@ export class WorkspacesController {
       memberId,
     );
   }
+  
+  @Delete(':workspaceId')
+  deleteWorkspace(
+    @Req() req: any,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.service.delete(workspaceId, req.user.sub);
+  }
 }
