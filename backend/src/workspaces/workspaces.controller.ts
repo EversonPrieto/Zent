@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Patch,
   Post,
   Req,
@@ -13,6 +15,7 @@ import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { InviteMemberDto } from './dto/invite-member.dto';
+import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 
 @ApiTags('Workspaces')
 @ApiBearerAuth()
@@ -68,5 +71,32 @@ export class WorkspacesController {
     @Headers('x-workspace-id') workspaceId: string,
   ) {
     return this.service.listMembers(workspaceId, req.user.sub);
+  }
+  @Patch('members/:memberId')
+  updateMemberRole(
+    @Req() req: any,
+    @Headers('x-workspace-id') workspaceId: string,
+    @Param('memberId') memberId: string,
+    @Body() dto: UpdateMemberRoleDto,
+  ) {
+    return this.service.updateMemberRole(
+      workspaceId,
+      req.user.sub,
+      memberId,
+      dto.role,
+    );
+  }
+
+  @Delete('members/:memberId')
+  removeMember(
+    @Req() req: any,
+    @Headers('x-workspace-id') workspaceId: string,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.service.removeMember(
+      workspaceId,
+      req.user.sub,
+      memberId,
+    );
   }
 }

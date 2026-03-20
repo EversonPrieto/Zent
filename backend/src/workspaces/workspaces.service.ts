@@ -170,7 +170,7 @@ export class WorkspacesService {
             user: membership.user,
         };
     }
-    
+
     async listMembers(workspaceId: string, userId: string) {
         const membership = await this.prisma.workspaceMember.findFirst({
             where: {
@@ -202,5 +202,141 @@ export class WorkspacesService {
                 },
             },
         });
+    }
+    
+    async updateMemberRole(
+        workspaceId: string,
+        requesterUserId: string,
+        memberId: string,
+        role: 'ADMIN' | 'MEMBER' | 'VIEWER',
+    ) {
+        const requester = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId: requesterUserId,
+            },
+            select: {
+                id: true,
+                role: true,
+            },
+        });
+
+        if (!requester) {
+            throw new ForbiddenException('Você não pertence a este workspace.');
+        }
+
+        if (!['OWNER', 'ADMIN'].includes(requester.role)) {
+            throw new ForbiddenException('Você não tem permissão para alterar membros.');
+        }
+
+        const target = await this.prisma.workspaceMember.findFirst({
+            where: {
+                id: memberId,
+                workspaceId,
+            },
+            select: {
+                id: true,
+                role: true,
+                userId: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true,
+                    },
+                },
+            },
+        });
+
+        if (!target) {
+            throw new NotFoundException('Membro não encontrado.');
+        }
+
+        if (target.userId === requesterUserId) {
+            throw new ForbiddenException('Você não pode alterar sua própria role.');
+        }
+
+        if (requester.role === 'ADMIN') {
+            if (target.role === 'OWNER' || target.role === 'ADMIN') {
+                throw new ForbiddenException('Você não pode alterar este membro.');
+            }
+        }
+
+        const updated = await this.prisma.workspaceMember.update({
+            where: { id: memberId },
+            data: { role },
+            select: {
+                id: true,
+                role: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true,
+                    },
+                },
+            },
+        });
+
+        return updated;
+    }
+
+    async removeMember(
+        workspaceId: string,
+        requesterUserId: string,
+        memberId: string,
+    ) {
+        const requester = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId: requesterUserId,
+            },
+            select: {
+                id: true,
+                role: true,
+            },
+        });
+
+        if (!requester) {
+            throw new ForbiddenException('Você não pertence a este workspace.');
+        }
+
+        if (!['OWNER', 'ADMIN'].includes(requester.role)) {
+            throw new ForbiddenException('Você não tem permissão para remover membros.');
+        }
+
+        const target = await this.prisma.workspaceMember.findFirst({
+            where: {
+                id: memberId,
+                workspaceId,
+            },
+            select: {
+                id: true,
+                role: true,
+                userId: true,
+            },
+        });
+
+        if (!target) {
+            throw new NotFoundException('Membro não encontrado.');
+        }
+
+        if (target.userId === requesterUserId) {
+            throw new ForbiddenException('Você não pode remover a si mesmo.');
+        }
+
+        if (requester.role === 'ADMIN') {
+            if (target.role === 'OWNER' || target.role === 'ADMIN') {
+                throw new ForbiddenException('Você não pode remover este membro.');
+            }
+        }
+
+        await this.prisma.workspaceMember.delete({
+            where: { id: memberId },
+        });
+
+        return { message: 'Membro removido com sucesso.' };
     }
 }
