@@ -57,4 +57,44 @@ export class WorkspacesService {
             role: membership.role,
         };
     }
+
+    async update(workspaceId: string, userId: string, name: string) {
+        const membership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId,
+            },
+            select: {
+                role: true,
+            },
+        });
+
+        if (!membership) {
+            throw new ForbiddenException('Você não pertence a este workspace.');
+        }
+
+        if (!['OWNER', 'ADMIN'].includes(membership.role)) {
+            throw new ForbiddenException('Você não tem permissão para editar este workspace.');
+        }
+
+        return this.prisma.workspace.update({
+            where: { id: workspaceId },
+            data: { name },
+            select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                members: {
+                    where: { userId },
+                    select: { role: true },
+                    take: 1,
+                },
+            },
+        }).then((workspace) => ({
+            id: workspace.id,
+            name: workspace.name,
+            logoUrl: workspace.logoUrl,
+            role: workspace.members[0]?.role ?? 'MEMBER',
+        }));
+    }
 }
