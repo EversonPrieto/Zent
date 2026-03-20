@@ -47,7 +47,7 @@ export class WorkspacesController {
   ) {
     return this.service.update(workspaceId, req.user.sub, name);
   }
-  
+
   @Post('members')
   inviteMember(
     @Req() req: any,
@@ -60,5 +60,13 @@ export class WorkspacesController {
       dto.email,
       dto.role,
     );
+  }
+
+  @Get('members')
+  listMembers(
+    @Req() req: any,
+    @Headers('x-workspace-id') workspaceId: string,
+  ) {
+    return this.service.listMembers(workspaceId, req.user.sub);
   }
 }

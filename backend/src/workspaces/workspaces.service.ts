@@ -170,4 +170,37 @@ export class WorkspacesService {
             user: membership.user,
         };
     }
+    
+    async listMembers(workspaceId: string, userId: string) {
+        const membership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId,
+            },
+            select: { id: true },
+        });
+
+        if (!membership) {
+            throw new ForbiddenException('Você não pertence a este workspace.');
+        }
+
+        return this.prisma.workspaceMember.findMany({
+            where: { workspaceId },
+            orderBy: {
+                createdAt: 'asc',
+            },
+            select: {
+                id: true,
+                role: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true,
+                    },
+                },
+            },
+        });
+    }
 }
