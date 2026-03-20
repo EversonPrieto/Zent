@@ -31,37 +31,41 @@ export default function ProjectsPage() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('zent_token');
-    const currentWorkspaceId = localStorage.getItem('zent_workspace_id');
-    const workspaceRaw = localStorage.getItem('zent_workspace');
+    async function loadPage() {
+      const token = localStorage.getItem('zent_token');
+      const currentWorkspaceId = localStorage.getItem('zent_workspace_id');
+      const workspaceRaw = localStorage.getItem('zent_workspace');
 
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+      if (!token) {
+        router.push('/login');
+        return;
+      }
 
-    if (!currentWorkspaceId) {
-      router.push('/dashboard');
-      return;
-    }
+      if (!currentWorkspaceId) {
+        router.push('/dashboard');
+        return;
+      }
 
-    const safeWorkspaceId = currentWorkspaceId;
-    setWorkspaceId(safeWorkspaceId);
+      const safeWorkspaceId = currentWorkspaceId;
+      setWorkspaceId(safeWorkspaceId);
 
-    if (workspaceRaw) {
-      try {
-        setWorkspace(JSON.parse(workspaceRaw));
-      } catch {
+      if (workspaceRaw) {
+        try {
+          setWorkspace(JSON.parse(workspaceRaw));
+        } catch {
+          setWorkspace(null);
+        }
+      } else {
         setWorkspace(null);
       }
-    }
 
-    async function loadProjects() {
       try {
+        setLoading(true);
         const data = await api('/projects', {
           workspaceId: safeWorkspaceId,
         });
         setProjects(data);
+        setError('');
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'Erro ao carregar projetos',
@@ -71,7 +75,17 @@ export default function ProjectsPage() {
       }
     }
 
-    loadProjects();
+    loadPage();
+
+    function handleWorkspaceChanged() {
+      loadPage();
+    }
+
+    window.addEventListener('workspace-changed', handleWorkspaceChanged);
+
+    return () => {
+      window.removeEventListener('workspace-changed', handleWorkspaceChanged);
+    };
   }, [router]);
 
   function openProject(projectId: string) {
