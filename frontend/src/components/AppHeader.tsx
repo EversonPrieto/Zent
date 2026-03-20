@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
 import CreateWorkspaceModal from './CreateWorkspaceModal';
+import EditWorkspaceModal from './EditWorkspaceModal';
 
 type Workspace = {
   id: string;
@@ -28,6 +29,7 @@ export default function AppHeader() {
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
+  const [showEditWorkspaceModal, setShowEditWorkspaceModal] = useState(false);
 
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -115,7 +117,21 @@ export default function AppHeader() {
     router.push('/dashboard/projects');
   }
 
+  function handleWorkspaceUpdated(updatedWorkspace: Workspace) {
+    setWorkspace(updatedWorkspace);
+    setWorkspaces((prev) =>
+      prev.map((ws) => (ws.id === updatedWorkspace.id ? updatedWorkspace : ws)),
+    );
+    localStorage.setItem('zent_workspace_id', updatedWorkspace.id);
+    localStorage.setItem('zent_workspace', JSON.stringify(updatedWorkspace));
+    setWorkspaceMenuOpen(false);
+
+    window.dispatchEvent(new Event('workspace-changed'));
+  }
+
   const userInitial = user?.name?.charAt(0).toUpperCase() ?? 'U';
+  const canEditWorkspace =
+    workspace?.role === 'OWNER' || workspace?.role === 'ADMIN';
 
   return (
     <>
@@ -145,7 +161,7 @@ export default function AppHeader() {
               </button>
 
               {workspaceMenuOpen && (
-                <div className="absolute left-0 top-12 z-50 w-64 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl">
+                <div className="absolute left-0 top-12 z-50 w-72 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl">
                   <p className="px-2 py-1 text-xs text-zinc-500">
                     Trocar workspace
                   </p>
@@ -177,15 +193,29 @@ export default function AppHeader() {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setWorkspaceMenuOpen(false);
-                      setShowCreateWorkspaceModal(true);
-                    }}
-                    className="mt-2 w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                  >
-                    + Criar workspace
-                  </button>
+                  <div className="mt-2 space-y-1 border-t border-zinc-800 pt-2">
+                    {canEditWorkspace && workspace && (
+                      <button
+                        onClick={() => {
+                          setWorkspaceMenuOpen(false);
+                          setShowEditWorkspaceModal(true);
+                        }}
+                        className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      >
+                        Editar workspace
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setWorkspaceMenuOpen(false);
+                        setShowCreateWorkspaceModal(true);
+                      }}
+                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                    >
+                      + Criar workspace
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -234,16 +264,6 @@ export default function AppHeader() {
                   <button
                     onClick={() => {
                       setUserMenuOpen(false);
-                      router.push('/onboarding/workspace');
-                    }}
-                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                  >
-                    Novo workspace
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
                       handleLogout();
                     }}
                     className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300"
@@ -263,6 +283,17 @@ export default function AppHeader() {
           onCreated={(createdWorkspace) => {
             handleWorkspaceCreated(createdWorkspace);
             setShowCreateWorkspaceModal(false);
+          }}
+        />
+      )}
+
+      {showEditWorkspaceModal && workspace && (
+        <EditWorkspaceModal
+          workspace={workspace}
+          onClose={() => setShowEditWorkspaceModal(false)}
+          onSaved={(updatedWorkspace) => {
+            handleWorkspaceUpdated(updatedWorkspace);
+            setShowEditWorkspaceModal(false);
           }}
         />
       )}
