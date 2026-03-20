@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { Role } from '@prisma/client';
@@ -96,5 +96,78 @@ export class WorkspacesService {
             logoUrl: workspace.logoUrl,
             role: workspace.members[0]?.role ?? 'MEMBER',
         }));
+    }
+    async inviteMember(
+        workspaceId: string,
+        inviterUserId: string,
+        email: string,
+        role: 'ADMIN' | 'MEMBER' | 'VIEWER',
+    ) {
+        const inviterMembership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId: inviterUserId,
+            },
+            select: {
+                role: true,
+            },
+        });
+
+        if (!inviterMembership) {
+            throw new ForbiddenException('Você não pertence a este workspace.');
+        }
+
+        if (!['OWNER', 'ADMIN'].includes(inviterMembership.role)) {
+            throw new ForbiddenException('Você não tem permissão para convidar membros.');
+        }
+
+        const user = await this.prisma.user.findUnique({
+            where: { email },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                avatarUrl: true,
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException('Usuário não encontrado com esse email.');
+        }
+
+        const existingMembership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId: user.id,
+            },
+        });
+
+        if (existingMembership) {
+            throw new ConflictException('Esse usuário já faz parte do workspace.');
+        }
+
+        const membership = await this.prisma.workspaceMember.create({
+            data: {
+                workspaceId,
+                userId: user.id,
+                role,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true,
+                    },
+                },
+            },
+        });
+
+        return {
+            id: membership.id,
+            role: membership.role,
+            user: membership.user,
+        };
     }
 }
