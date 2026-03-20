@@ -110,9 +110,8 @@ function ColumnEndDropZone({ id }: { id: string }) {
   return (
     <div
       ref={setNodeRef}
-      className={`mt-3 h-12 rounded-xl border border-dashed transition ${
-        isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
-      }`}
+      className={`mt-3 h-12 rounded-xl border border-dashed transition ${isOver ? 'border-green-500 bg-green-500/10' : 'border-zinc-700'
+        }`}
     />
   );
 }
@@ -139,9 +138,8 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-2xl border p-4 transition ${
-        isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
-      }`}
+      className={`rounded-2xl border p-4 transition ${isOver ? 'border-zinc-500 bg-zinc-800' : 'border-zinc-800 bg-zinc-900'
+        }`}
     >
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-semibold">{column.label}</h2>
@@ -210,32 +208,46 @@ export default function ProjectBoardPage() {
   );
 
   useEffect(() => {
-    const token = localStorage.getItem('zent_token');
-    const wsId = localStorage.getItem('zent_workspace_id');
-    const workspaceRaw = localStorage.getItem('zent_workspace');
+    async function loadBoard() {
+      const token = localStorage.getItem('zent_token');
+      const wsId = localStorage.getItem('zent_workspace_id');
+      const workspaceRaw = localStorage.getItem('zent_workspace');
 
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    if (!wsId) {
-      router.push('/dashboard');
-      return;
-    }
-
-    setWorkspaceId(wsId);
-
-    if (workspaceRaw) {
-      try {
-        const parsed = JSON.parse(workspaceRaw);
-        setWorkspaceName(parsed.name ?? '');
-      } catch {
-        setWorkspaceName('');
+      if (!token) {
+        router.push('/login');
+        return;
       }
+
+      if (!wsId) {
+        router.push('/dashboard');
+        return;
+      }
+
+      setWorkspaceId(wsId);
+
+      if (workspaceRaw) {
+        try {
+          const parsed = JSON.parse(workspaceRaw);
+          setWorkspaceName(parsed.name ?? '');
+        } catch {
+          setWorkspaceName('');
+        }
+      }
+
+      await loadTasks(wsId);
     }
 
-    loadTasks(wsId);
+    loadBoard();
+
+    function handleWorkspaceChanged() {
+      router.push('/dashboard/projects');
+    }
+
+    window.addEventListener('workspace-changed', handleWorkspaceChanged);
+
+    return () => {
+      window.removeEventListener('workspace-changed', handleWorkspaceChanged);
+    };
   }, [projectId, router]);
 
   async function loadTasks(ws: string) {
