@@ -3,13 +3,16 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
-  Headers,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WorkspacesService } from './workspaces.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
@@ -99,12 +102,22 @@ export class WorkspacesController {
       memberId,
     );
   }
-  
+
   @Delete(':workspaceId')
   deleteWorkspace(
     @Req() req: any,
     @Param('workspaceId') workspaceId: string,
   ) {
     return this.service.delete(workspaceId, req.user.sub);
+  }
+
+  @Post('current/logo')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadLogo(
+    @Req() req: any,
+    @Headers('x-workspace-id') workspaceId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.service.updateLogo(workspaceId, req.user.sub, file);
   }
 }

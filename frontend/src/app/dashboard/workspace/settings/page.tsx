@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 
@@ -11,12 +11,15 @@ type Workspace = {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function WorkspaceSettingsPage() {
   const router = useRouter();
 
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -66,6 +69,55 @@ export default function WorkspaceSettingsPage() {
     }
   }
 
+  async function handleLogoUpload(e: ChangeEvent<HTMLInputElement>) {
+    if (!workspace) return;
+
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingLogo(true);
+      setError('');
+      setSuccess('');
+
+      const token = localStorage.getItem('zent_token');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_URL}/workspaces/current/logo`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'x-workspace-id': workspace.id,
+        },
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message = Array.isArray(data?.message)
+          ? data.message.join(', ')
+          : data?.message || 'Erro ao enviar logo';
+
+        throw new Error(message);
+      }
+
+      localStorage.setItem('zent_workspace_id', data.id);
+      localStorage.setItem('zent_workspace', JSON.stringify(data));
+
+      setWorkspace(data);
+      setSuccess('Logo atualizada com sucesso!');
+
+      window.dispatchEvent(new Event('workspace-changed'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+      e.target.value = '';
+    }
+  }
+
   async function handleDelete() {
     if (!workspace) return;
 
@@ -108,6 +160,36 @@ export default function WorkspaceSettingsPage() {
           <p className="mt-2 text-zinc-400">
             Gerencie as configurações do seu workspace.
           </p>
+        </div>
+
+        <div className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+          <h2 className="text-lg font-semibold">Identidade</h2>
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-lg font-semibold">
+              {workspace.logoUrl ? (
+                <img
+                  src={workspace.logoUrl}
+                  alt={workspace.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                workspace.name.charAt(0).toUpperCase()
+              )}
+            </div>
+
+            <div>
+              <label className="inline-block cursor-pointer rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800">
+                {uploadingLogo ? 'Enviando...' : 'Enviar logo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
