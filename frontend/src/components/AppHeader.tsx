@@ -25,10 +25,12 @@ export default function AppHeader() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [open, setOpen] = useState(false);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
 
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const workspaceRaw = localStorage.getItem('zent_workspace');
@@ -66,9 +68,17 @@ export default function AppHeader() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
+      const target = event.target as Node;
+
+      if (
+        workspaceMenuRef.current &&
+        !workspaceMenuRef.current.contains(target)
+      ) {
+        setWorkspaceMenuOpen(false);
+      }
+
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false);
       }
     }
 
@@ -88,7 +98,7 @@ export default function AppHeader() {
     localStorage.setItem('zent_workspace_id', ws.id);
     localStorage.setItem('zent_workspace', JSON.stringify(ws));
     setWorkspace(ws);
-    setOpen(false);
+    setWorkspaceMenuOpen(false);
 
     window.dispatchEvent(new Event('workspace-changed'));
     router.push('/dashboard/projects');
@@ -99,11 +109,13 @@ export default function AppHeader() {
     localStorage.setItem('zent_workspace_id', newWorkspace.id);
     localStorage.setItem('zent_workspace', JSON.stringify(newWorkspace));
     setWorkspace(newWorkspace);
-    setOpen(false);
+    setWorkspaceMenuOpen(false);
 
     window.dispatchEvent(new Event('workspace-changed'));
     router.push('/dashboard/projects');
   }
+
+  const userInitial = user?.name?.charAt(0).toUpperCase() ?? 'U';
 
   return (
     <>
@@ -119,17 +131,20 @@ export default function AppHeader() {
 
             <div className="hidden h-6 w-px bg-zinc-800 md:block" />
 
-            <div className="relative hidden md:block" ref={menuRef}>
+            <div className="relative hidden md:block" ref={workspaceMenuRef}>
               <p className="text-xs text-zinc-500">Workspace</p>
 
               <button
-                onClick={() => setOpen((prev) => !prev)}
+                onClick={() => {
+                  setWorkspaceMenuOpen((prev) => !prev);
+                  setUserMenuOpen(false);
+                }}
                 className="text-left text-sm font-medium text-zinc-200 hover:text-white"
               >
                 {workspace?.name ?? 'Sem workspace'}
               </button>
 
-              {open && (
+              {workspaceMenuOpen && (
                 <div className="absolute left-0 top-12 z-50 w-64 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl">
                   <p className="px-2 py-1 text-xs text-zinc-500">
                     Trocar workspace
@@ -164,7 +179,7 @@ export default function AppHeader() {
 
                   <button
                     onClick={() => {
-                      setOpen(false);
+                      setWorkspaceMenuOpen(false);
                       setShowCreateWorkspaceModal(true);
                     }}
                     className="mt-2 w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
@@ -176,20 +191,68 @@ export default function AppHeader() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-zinc-200">
-                {user?.name ?? 'Usuário'}
-              </p>
-              <p className="text-xs text-zinc-500">{user?.email ?? ''}</p>
-            </div>
-
+          <div className="relative flex items-center gap-3" ref={userMenuRef}>
             <button
-              onClick={handleLogout}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              onClick={() => {
+                setUserMenuOpen((prev) => !prev);
+                setWorkspaceMenuOpen(false);
+              }}
+              className="flex items-center gap-3 rounded-xl px-2 py-1 hover:bg-zinc-800"
             >
-              Sair
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-sm font-semibold text-white">
+                {userInitial}
+              </div>
+
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-medium text-zinc-200">
+                  {user?.name ?? 'Usuário'}
+                </p>
+                <p className="text-xs text-zinc-500">{user?.email ?? ''}</p>
+              </div>
             </button>
+
+            {userMenuOpen && (
+              <div className="absolute right-0 top-14 z-50 w-56 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl">
+                <div className="border-b border-zinc-800 px-3 py-2">
+                  <p className="text-sm font-medium text-white">
+                    {user?.name ?? 'Usuário'}
+                  </p>
+                  <p className="text-xs text-zinc-500">{user?.email ?? ''}</p>
+                </div>
+
+                <div className="mt-2 space-y-1">
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      router.push('/dashboard/projects');
+                    }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  >
+                    Projetos
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      router.push('/onboarding/workspace');
+                    }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  >
+                    Novo workspace
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-800 hover:text-red-300"
+                  >
+                    Sair
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -197,8 +260,8 @@ export default function AppHeader() {
       {showCreateWorkspaceModal && (
         <CreateWorkspaceModal
           onClose={() => setShowCreateWorkspaceModal(false)}
-          onCreated={(workspace) => {
-            handleWorkspaceCreated(workspace);
+          onCreated={(createdWorkspace) => {
+            handleWorkspaceCreated(createdWorkspace);
             setShowCreateWorkspaceModal(false);
           }}
         />
