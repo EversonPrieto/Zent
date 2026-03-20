@@ -41,29 +41,43 @@ export default function AppHeader() {
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // carregar dados do localStorage
+  // 🔥 sincroniza com localStorage + evento
   useEffect(() => {
-    const workspaceRaw = localStorage.getItem('zent_workspace');
-    const userRaw = localStorage.getItem('zent_user');
+    function syncFromStorage() {
+      const workspaceRaw = localStorage.getItem('zent_workspace');
+      const userRaw = localStorage.getItem('zent_user');
 
-    if (workspaceRaw) {
-      try {
-        setWorkspace(JSON.parse(workspaceRaw));
-      } catch {
+      if (workspaceRaw) {
+        try {
+          setWorkspace(JSON.parse(workspaceRaw));
+        } catch {
+          setWorkspace(null);
+        }
+      } else {
         setWorkspace(null);
       }
-    }
 
-    if (userRaw) {
-      try {
-        setUser(JSON.parse(userRaw));
-      } catch {
+      if (userRaw) {
+        try {
+          setUser(JSON.parse(userRaw));
+        } catch {
+          setUser(null);
+        }
+      } else {
         setUser(null);
       }
     }
+
+    syncFromStorage();
+
+    window.addEventListener('workspace-changed', syncFromStorage);
+
+    return () => {
+      window.removeEventListener('workspace-changed', syncFromStorage);
+    };
   }, [pathname]);
 
-  // carregar lista de workspaces
+  // carregar workspaces
   useEffect(() => {
     async function loadWorkspaces() {
       try {
@@ -77,7 +91,7 @@ export default function AppHeader() {
     loadWorkspaces();
   }, []);
 
-  // fechar dropdown clicando fora
+  // fechar dropdown ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
@@ -107,6 +121,9 @@ export default function AppHeader() {
     localStorage.removeItem('zent_user');
     localStorage.removeItem('zent_workspace');
     localStorage.removeItem('zent_workspace_id');
+
+    window.dispatchEvent(new Event('workspace-changed'));
+
     router.push('/login');
   }
 
@@ -174,7 +191,7 @@ export default function AppHeader() {
 
             <div className="hidden h-6 w-px bg-zinc-800 md:block" />
 
-            {/* WORKSPACE MENU */}
+            {/* WORKSPACE */}
             <div className="relative hidden md:block" ref={workspaceMenuRef}>
               <p className="text-xs text-zinc-500">Workspace</p>
 
@@ -191,7 +208,6 @@ export default function AppHeader() {
               {workspaceMenuOpen && (
                 <div className="absolute left-0 top-12 z-50 w-72 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl">
 
-                  {/* TROCAR */}
                   <p className="px-2 py-1 text-xs text-zinc-500">
                     Trocar workspace
                   </p>
@@ -217,8 +233,17 @@ export default function AppHeader() {
                     ))}
                   </div>
 
-                  {/* ACTIONS */}
                   <div className="mt-2 space-y-1 border-t border-zinc-800 pt-2">
+
+                    <button
+                      onClick={() => {
+                        setWorkspaceMenuOpen(false);
+                        router.push('/dashboard/workspace/settings');
+                      }}
+                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                    >
+                      Configurações
+                    </button>
 
                     <button
                       onClick={() => {
