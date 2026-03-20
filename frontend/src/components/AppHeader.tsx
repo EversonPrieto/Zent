@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
+
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 import EditWorkspaceModal from './EditWorkspaceModal';
 import InviteMemberModal from './InviteMemberModal';
+import WorkspaceMembersModal from './WorkspaceMembersModal';
 
 type Workspace = {
   id: string;
@@ -34,6 +36,7 @@ export default function AppHeader() {
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showEditWorkspaceModal, setShowEditWorkspaceModal] = useState(false);
   const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
 
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -60,7 +63,7 @@ export default function AppHeader() {
     }
   }, [pathname]);
 
-  // carregar workspaces
+  // carregar lista de workspaces
   useEffect(() => {
     async function loadWorkspaces() {
       try {
@@ -86,13 +89,17 @@ export default function AppHeader() {
         setWorkspaceMenuOpen(false);
       }
 
-      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(target)
+      ) {
         setUserMenuOpen(false);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () =>
+      document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   function handleLogout() {
@@ -184,7 +191,7 @@ export default function AppHeader() {
               {workspaceMenuOpen && (
                 <div className="absolute left-0 top-12 z-50 w-72 rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl">
 
-                  {/* LISTA */}
+                  {/* TROCAR */}
                   <p className="px-2 py-1 text-xs text-zinc-500">
                     Trocar workspace
                   </p>
@@ -212,6 +219,16 @@ export default function AppHeader() {
 
                   {/* ACTIONS */}
                   <div className="mt-2 space-y-1 border-t border-zinc-800 pt-2">
+
+                    <button
+                      onClick={() => {
+                        setWorkspaceMenuOpen(false);
+                        setShowMembersModal(true);
+                      }}
+                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                    >
+                      Ver membros
+                    </button>
 
                     {canManageWorkspace && workspace && (
                       <>
@@ -340,6 +357,13 @@ export default function AppHeader() {
         <InviteMemberModal
           workspaceId={workspace.id}
           onClose={() => setShowInviteMemberModal(false)}
+        />
+      )}
+
+      {showMembersModal && workspace && (
+        <WorkspaceMembersModal
+          workspaceId={workspace.id}
+          onClose={() => setShowMembersModal(false)}
         />
       )}
     </>
