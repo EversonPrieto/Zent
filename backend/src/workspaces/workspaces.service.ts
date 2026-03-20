@@ -97,6 +97,29 @@ export class WorkspacesService {
             role: workspace.members[0]?.role ?? 'MEMBER',
         }));
     }
+    
+    async delete(workspaceId: string, userId: string) {
+        const membership = await this.prisma.workspaceMember.findFirst({
+            where: {
+                workspaceId,
+                userId,
+            },
+            select: {
+                role: true,
+            },
+        });
+
+        if (!membership || membership.role !== 'OWNER') {
+            throw new ForbiddenException('Apenas o OWNER pode deletar o workspace.');
+        }
+
+        await this.prisma.workspace.delete({
+            where: { id: workspaceId },
+        });
+
+        return { message: 'Workspace deletado com sucesso.' };
+    }
+
     async inviteMember(
         workspaceId: string,
         inviterUserId: string,
@@ -203,7 +226,7 @@ export class WorkspacesService {
             },
         });
     }
-    
+
     async updateMemberRole(
         workspaceId: string,
         requesterUserId: string,
