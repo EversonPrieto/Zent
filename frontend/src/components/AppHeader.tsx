@@ -41,7 +41,7 @@ export default function AppHeader() {
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // 🔥 sincroniza com localStorage + evento
+  // 🔥 sync global (sem F5)
   useEffect(() => {
     function syncFromStorage() {
       const workspaceRaw = localStorage.getItem('zent_workspace');
@@ -91,7 +91,7 @@ export default function AppHeader() {
     loadWorkspaces();
   }, []);
 
-  // fechar dropdown ao clicar fora
+  // fechar dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
@@ -117,13 +117,8 @@ export default function AppHeader() {
   }, []);
 
   function handleLogout() {
-    localStorage.removeItem('zent_token');
-    localStorage.removeItem('zent_user');
-    localStorage.removeItem('zent_workspace');
-    localStorage.removeItem('zent_workspace_id');
-
+    localStorage.clear();
     window.dispatchEvent(new Event('workspace-changed'));
-
     router.push('/login');
   }
 
@@ -135,7 +130,6 @@ export default function AppHeader() {
     setWorkspaceMenuOpen(false);
 
     window.dispatchEvent(new Event('workspace-changed'));
-
     router.push('/dashboard/projects');
   }
 
@@ -149,7 +143,6 @@ export default function AppHeader() {
     setWorkspaceMenuOpen(false);
 
     window.dispatchEvent(new Event('workspace-changed'));
-
     router.push('/dashboard/projects');
   }
 
@@ -166,12 +159,10 @@ export default function AppHeader() {
     localStorage.setItem('zent_workspace', JSON.stringify(updatedWorkspace));
 
     setWorkspaceMenuOpen(false);
-
     window.dispatchEvent(new Event('workspace-changed'));
   }
 
   const userInitial = user?.name?.charAt(0).toUpperCase() ?? 'U';
-
   const canManageWorkspace =
     workspace?.role === 'OWNER' || workspace?.role === 'ADMIN';
 
@@ -200,23 +191,21 @@ export default function AppHeader() {
                   setWorkspaceMenuOpen((prev) => !prev);
                   setUserMenuOpen(false);
                 }}
-                className="text-left text-sm font-medium text-zinc-200 hover:text-white"
+                className="flex items-center gap-2 text-left text-sm font-medium text-zinc-200 hover:text-white"
               >
-                <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-[10px]">
-                    {workspace?.logoUrl ? (
-                      <img
-                        src={workspace.logoUrl}
-                        alt={workspace.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      workspace?.name?.charAt(0).toUpperCase()
-                    )}
-                  </div>
-
-                  {workspace?.name ?? 'Sem workspace'}
+                <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-[10px]">
+                  {workspace?.logoUrl ? (
+                    <img
+                      src={workspace.logoUrl}
+                      alt={workspace.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    workspace?.name?.charAt(0).toUpperCase()
+                  )}
                 </div>
+
+                {workspace?.name ?? 'Sem workspace'}
               </button>
 
               {workspaceMenuOpen && (
@@ -231,30 +220,26 @@ export default function AppHeader() {
                       <button
                         key={ws.id}
                         onClick={() => handleSwitchWorkspace(ws)}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${workspace?.id === ws.id
-                          ? 'bg-zinc-800 text-white'
-                          : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                          }`}
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                          workspace?.id === ws.id
+                            ? 'bg-zinc-800 text-white'
+                            : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                        }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-[10px]">
-                              {ws.logoUrl ? (
-                                <img
-                                  src={ws.logoUrl}
-                                  alt={ws.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                ws.name.charAt(0).toUpperCase()
-                              )}
-                            </div>
-
-                            <span>{ws.name}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-[10px]">
+                            {ws.logoUrl ? (
+                              <img
+                                src={ws.logoUrl}
+                                alt={ws.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              ws.name.charAt(0).toUpperCase()
+                            )}
                           </div>
-                          <span className="text-[10px] text-zinc-500">
-                            {ws.role}
-                          </span>
+
+                          <span>{ws.name}</span>
                         </div>
                       </button>
                     ))}
@@ -267,7 +252,7 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         router.push('/dashboard/workspace/settings');
                       }}
-                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800"
                     >
                       Configurações
                     </button>
@@ -277,7 +262,7 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         setShowMembersModal(true);
                       }}
-                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800"
                     >
                       Ver membros
                     </button>
@@ -289,7 +274,7 @@ export default function AppHeader() {
                             setWorkspaceMenuOpen(false);
                             setShowInviteMemberModal(true);
                           }}
-                          className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                          className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800"
                         >
                           Convidar membro
                         </button>
@@ -299,7 +284,7 @@ export default function AppHeader() {
                             setWorkspaceMenuOpen(false);
                             setShowEditWorkspaceModal(true);
                           }}
-                          className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                          className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800"
                         >
                           Editar workspace
                         </button>
@@ -311,7 +296,7 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         setShowCreateWorkspaceModal(true);
                       }}
-                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      className="w-full rounded-lg border border-zinc-700 px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800"
                     >
                       + Criar workspace
                     </button>
@@ -370,6 +355,16 @@ export default function AppHeader() {
                   <button
                     onClick={() => {
                       setUserMenuOpen(false);
+                      router.push('/dashboard/activity');
+                    }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800"
+                  >
+                    Atividade
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
                       handleLogout();
                     }}
                     className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-800"
@@ -387,10 +382,7 @@ export default function AppHeader() {
       {showCreateWorkspaceModal && (
         <CreateWorkspaceModal
           onClose={() => setShowCreateWorkspaceModal(false)}
-          onCreated={(ws) => {
-            handleWorkspaceCreated(ws);
-            setShowCreateWorkspaceModal(false);
-          }}
+          onCreated={handleWorkspaceCreated}
         />
       )}
 
@@ -398,10 +390,7 @@ export default function AppHeader() {
         <EditWorkspaceModal
           workspace={workspace}
           onClose={() => setShowEditWorkspaceModal(false)}
-          onSaved={(ws) => {
-            handleWorkspaceUpdated(ws);
-            setShowEditWorkspaceModal(false);
-          }}
+          onSaved={handleWorkspaceUpdated}
         />
       )}
 
