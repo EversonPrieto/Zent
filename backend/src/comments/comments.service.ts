@@ -13,7 +13,7 @@ export class CommentsService {
   constructor(
     private prisma: PrismaService,
     private activity: ActivityService,
-  ) {}
+  ) { }
 
   async create(
     workspaceId: string,
@@ -105,6 +105,14 @@ export class CommentsService {
       select: {
         id: true,
         userId: true,
+        taskId: true,
+        task: {
+          select: {
+            id: true,
+            title: true,
+            projectId: true,
+          },
+        },
       },
     });
 
@@ -118,6 +126,15 @@ export class CommentsService {
 
     await this.prisma.comment.delete({
       where: { id: commentId },
+    });
+
+    await this.activity.create({
+      type: 'COMMENT_DELETED',
+      description: `removeu um comentário da task "${comment.task.title}"`,
+      workspaceId,
+      projectId: comment.task.projectId,
+      taskId: comment.task.id,
+      userId,
     });
 
     return { message: 'Comentário removido' };
