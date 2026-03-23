@@ -17,7 +17,7 @@ export class TasksService {
   constructor(
     private prisma: PrismaService,
     private activity: ActivityService,
-  ) { }
+  ) {}
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
     const project = await this.prisma.project.findFirst({
@@ -45,7 +45,7 @@ export class TasksService {
       select: { position: true },
     });
 
-    const position = dto.position ?? (last ? last.position + 1024 : 1024);
+    const position = last ? last.position + 1024 : 1024;
 
     const task = await this.prisma.task.create({
       data: {
@@ -61,7 +61,7 @@ export class TasksService {
 
     await this.activity.create({
       type: ActivityType.TASK_CREATED,
-      description: `Task "${task.title}" foi criada`,
+      description: `criou a task "${task.title}"`,
       workspaceId,
       projectId: task.projectId,
       taskId: task.id,
@@ -73,10 +73,16 @@ export class TasksService {
 
   async list(workspaceId: string, query: any) {
     const page = Math.max(parseInt(query.page ?? '1', 10), 1);
-    const pageSize = Math.min(Math.max(parseInt(query.pageSize ?? '20', 10), 1), 100);
+    const pageSize = Math.min(
+      Math.max(parseInt(query.pageSize ?? '20', 10), 1),
+      100,
+    );
+
     const skip = (page - 1) * pageSize;
 
-    const where: any = { project: { workspaceId } };
+    const where: any = {
+      project: { workspaceId },
+    };
 
     if (query.projectId) where.projectId = query.projectId;
     if (query.status) where.status = query.status;
@@ -95,10 +101,12 @@ export class TasksService {
         where,
         skip,
         take: pageSize,
-        orderBy: [{ updatedAt: 'desc' }],
+        orderBy: [{ position: 'asc' }],
         include: {
           project: { select: { id: true, name: true } },
-          assignee: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          assignee: {
+            select: { id: true, name: true, email: true, avatarUrl: true },
+          },
         },
       }),
       this.prisma.task.count({ where }),
@@ -109,24 +117,42 @@ export class TasksService {
 
   async get(workspaceId: string, id: string) {
     const task = await this.prisma.task.findFirst({
-      where: { id, project: { workspaceId } },
+      where: {
+        id,
+        project: { workspaceId },
+      },
       include: {
         project: { select: { id: true, name: true } },
-        assignee: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        assignee: {
+          select: { id: true, name: true, email: true, avatarUrl: true },
+        },
       },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+
     return task;
   }
 
-  async update(workspaceId: string, id: string, dto: UpdateTaskDto, userId?: string) {
-    const exists = await this.prisma.task.findFirst({
-      where: { id, project: { workspaceId } },
-      select: { id: true, title: true, projectId: true },
+  async update(
+    workspaceId: string,
+    id: string,
+    dto: UpdateTaskDto,
+    userId?: string,
+  ) {
+    const existingTask = await this.prisma.task.findFirst({
+      where: {
+        id,
+        project: { workspaceId },
+      },
+      select: {
+        id: true,
+        title: true,
+        projectId: true,
+      },
     });
 
-    if (!exists) throw new NotFoundException('Task não encontrada.');
+    if (!existingTask) throw new NotFoundException('Task não encontrada.');
 
     const updatedTask = await this.prisma.task.update({
       where: { id },
@@ -135,16 +161,16 @@ export class TasksService {
         description: dto.description,
         status: dto.status,
         priority: dto.priority,
-        assigneeId: dto.assigneeId === undefined ? undefined : dto.assigneeId,
-        position: dto.position,
+        assigneeId:
+          dto.assigneeId === undefined ? undefined : dto.assigneeId,
       },
     });
 
     await this.activity.create({
       type: ActivityType.TASK_UPDATED,
-      description: `Task "${updatedTask.title}" foi atualizada`,
+      description: `editou a task "${updatedTask.title}"`,
       workspaceId,
-      projectId: updatedTask.projectId,
+      projectId: existingTask.projectId,
       taskId: updatedTask.id,
       userId,
     });
@@ -152,23 +178,27 @@ export class TasksService {
     return updatedTask;
   }
 
-  async move(workspaceId: string, taskId: string, dto: MoveTaskDto, userId?: string) {
+  async move(
+    workspaceId: string,
+    taskId: string,
+    dto: MoveTaskDto,
+    userId?: string,
+  ) {
     const task = await this.prisma.task.findFirst({
-      where: { id: taskId, project: { workspaceId } },
-      select: { id: true, title: true, projectId: true, status: true, position: true },
+      where: {
+        id: taskId,
+        project: { workspaceId },
+      },
+      select: {
+        id: true,
+        title: true,
+        projectId: true,
+        status: true,
+        position: true,
+      },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-
-    if (dto.beforeId && dto.beforeId === taskId) {
-      throw new BadRequestException('beforeId não pode ser o próprio id da task.');
-    }
-    if (dto.afterId && dto.afterId === taskId) {
-      throw new BadRequestException('afterId não pode ser o próprio id da task.');
-    }
-    if (dto.beforeId && dto.afterId && dto.beforeId === dto.afterId) {
-      throw new BadRequestException('beforeId e afterId não podem ser iguais.');
-    }
 
     const getNeighbor = async (id: string) => {
       const neighbor = await this.prisma.task.findFirst({
@@ -178,11 +208,11 @@ export class TasksService {
           status: dto.status,
           project: { workspaceId },
         },
-        select: { id: true, position: true },
+        select: { position: true },
       });
 
       if (!neighbor) {
-        throw new BadRequestException(`Task vizinha inválida: ${id}`);
+        throw new BadRequestException(`Task inválida: ${id}`);
       }
 
       return neighbor;
@@ -194,11 +224,6 @@ export class TasksService {
     let newPosition: number;
 
     if (before && after) {
-      if (before.position >= after.position) {
-        throw new BadRequestException(
-          'Ordem inválida: beforeId precisa ter position menor que afterId.',
-        );
-      }
       newPosition = (before.position + after.position) / 2;
     } else if (before) {
       newPosition = before.position + 1024;
@@ -228,7 +253,7 @@ export class TasksService {
 
     await this.activity.create({
       type: ActivityType.TASK_MOVED,
-      description: `Task "${task.title}" foi movida para ${dto.status}`,
+      description: `moveu a task "${task.title}" para ${dto.status}`,
       workspaceId,
       projectId: task.projectId,
       taskId: task.id,
@@ -237,24 +262,35 @@ export class TasksService {
 
     return updatedTask;
   }
-  
-  async delete(workspaceId: string, id: string) {
-    const exists = await this.prisma.task.findFirst({
+
+  async delete(workspaceId: string, id: string, userId?: string) {
+    const task = await this.prisma.task.findFirst({
       where: {
         id,
         project: { workspaceId },
       },
       select: {
         id: true,
+        title: true,
+        projectId: true,
       },
     });
 
-    if (!exists) {
+    if (!task) {
       throw new NotFoundException('Task não encontrada.');
     }
 
     await this.prisma.task.delete({
       where: { id },
+    });
+
+    await this.activity.create({
+      type: ActivityType.TASK_DELETED,
+      description: `removeu a task "${task.title}"`,
+      workspaceId,
+      projectId: task.projectId,
+      taskId: task.id,
+      userId,
     });
 
     return { message: 'Task removida com sucesso.' };

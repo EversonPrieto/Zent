@@ -28,7 +28,7 @@ export class ActivityService {
         ...(taskId ? { taskId } : {}),
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 100,
       include: {
         user: {
           select: { id: true, name: true, email: true, avatarUrl: true },
