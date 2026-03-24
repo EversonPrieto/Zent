@@ -17,7 +17,7 @@ export class TasksService {
   constructor(
     private prisma: PrismaService,
     private activity: ActivityService,
-  ) {}
+  ) { }
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
     const project = await this.prisma.project.findFirst({
@@ -280,17 +280,17 @@ export class TasksService {
       throw new NotFoundException('Task não encontrada.');
     }
 
-    await this.prisma.task.delete({
-      where: { id },
-    });
-
     await this.activity.create({
-      type: ActivityType.TASK_DELETED,
+      type: 'TASK_DELETED',
       description: `removeu a task "${task.title}"`,
       workspaceId,
       projectId: task.projectId,
       taskId: task.id,
       userId,
+    });
+
+    await this.prisma.task.delete({
+      where: { id },
     });
 
     return { message: 'Task removida com sucesso.' };
