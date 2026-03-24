@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ActivityType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { ActivityGateway } from './activity.gateway';
 
 type CreateActivityInput = {
   type: ActivityType;
@@ -13,33 +14,48 @@ type CreateActivityInput = {
 
 @Injectable()
 export class ActivityService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: ActivityGateway,
+  ) {}
 
   async create(data: CreateActivityInput) {
-    return this.prisma.activityLog.create({
-      data,
-    });
+    try {
+      const activity = await this.prisma.activityLog.create({
+        data,
+        include: {
+          user: {
+            select: { id: true, name: true },
+          },
+        },
+      });
+
+      console.log('🔥 activity criada:', activity);
+
+      this.gateway.emitActivity(data.workspaceId, activity);
+
+      return activity;
+    } catch (err) {
+      console.error('❌ erro ao criar activity:', err);
+      throw err;
+    }
   }
 
-  async listByWorkspace(workspaceId: string, taskId?: string) {
-    return this.prisma.activityLog.findMany({
+  async listByWorkspace(workspaceId: string, projectId?: string) {
+    const items = await this.prisma.activityLog.findMany({
       where: {
         workspaceId,
-        ...(taskId ? { taskId } : {}),
+        ...(projectId ? { projectId } : {}),
       },
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 50,
       include: {
         user: {
-          select: { id: true, name: true, email: true, avatarUrl: true },
-        },
-        project: {
           select: { id: true, name: true },
-        },
-        task: {
-          select: { id: true, title: true, status: true },
         },
       },
     });
+
+    return { items }; // ⚠️ IMPORTANTE pro frontend
   }
 }
