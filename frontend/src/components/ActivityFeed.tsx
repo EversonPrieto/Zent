@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { io, Socket } from 'socket.io-client';
 
 type Activity = {
   id: string;
   type: string;
   description: string;
   createdAt: string;
-
   user?: {
     id: string;
     name: string;
@@ -18,32 +18,29 @@ type Activity = {
 export default function ActivityFeed({
   workspaceId,
   projectId,
-  refresh = 0,
 }: {
   workspaceId: string;
   projectId: string;
-  refresh?: number;
 }) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!workspaceId) return;
+
+    let socket: Socket;
+
     async function load() {
       try {
         const data = await api(
-          `/activity?projectId=${projectId}`, // ✅ rota corrigida
+          `/activities?projectId=${projectId}`,
           { workspaceId },
         );
 
-        // 🔥 BLINDAGEM (não quebra nunca)
-        if (Array.isArray(data)) {
-          setActivities(data);
-        } else if (Array.isArray(data?.items)) {
-          setActivities(data.items);
-        } else {
-          setActivities([]);
-        }
-      } catch {
+        // ✅ CORREÇÃO AQUI
+        setActivities(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Erro ao carregar atividades:', err);
         setActivities([]);
       } finally {
         setLoading(false);
@@ -51,17 +48,40 @@ export default function ActivityFeed({
     }
 
     load();
-  }, [workspaceId, projectId, refresh]);
+
+    socket = io('http://localhost:3000', {
+      transports: ['websocket'],
+    });
+
+    socket.emit('join', workspaceId);
+
+    socket.on('activity:new', (newActivity: Activity) => {
+      console.log('🔥 Nova activity recebida:', newActivity);
+
+      // ✅ evita duplicação
+      setActivities((prev) => {
+        const exists = prev.some((a) => a.id === newActivity.id);
+        if (exists) return prev;
+        return [newActivity, ...prev];
+      });
+    });
+
+    socket.on('connect', () => {
+      console.log('🟢 Socket conectado:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('🔴 Socket desconectado');
+    });
+
+    return () => {
+      socket.off('activity:new');
+      socket.disconnect();
+    };
+  }, [workspaceId, projectId]);
 
   function formatDate(date: string) {
-    const d = new Date(date);
-
-    return d.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return new Date(date).toLocaleString('pt-BR');
   }
 
   return (
@@ -72,19 +92,19 @@ export default function ActivityFeed({
         <p className="text-sm text-zinc-500">Carregando...</p>
       )}
 
-      {!loading && (activities?.length ?? 0) === 0 && (
+      {!loading && activities.length === 0 && (
         <p className="text-sm text-zinc-500">
           Nenhuma atividade ainda.
         </p>
       )}
 
       <div className="space-y-4">
-        {activities?.map((act) => (
+        {activities.map((act) => (
           <div
             key={act.id}
-            className="rounded-lg border border-zinc-800 p-3"
+            className="text-sm border-b border-zinc-800 pb-2"
           >
-            <p className="text-sm text-zinc-200">
+            <p className="text-zinc-200">
               <span className="font-medium">
                 {act.user?.name ?? 'Alguém'}
               </span>{' '}

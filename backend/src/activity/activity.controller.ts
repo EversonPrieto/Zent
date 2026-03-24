@@ -1,19 +1,15 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { WorkspaceGuard } from '../workspaces/workspace.guard';
+import { Controller, Get, Query, Headers } from '@nestjs/common';
 import { ActivityService } from './activity.service';
 
-@ApiTags('Activity')
-@ApiBearerAuth()
-@ApiSecurity('workspace-id')
-@UseGuards(JwtAuthGuard, WorkspaceGuard)
-@Controller('activity')
+@Controller('activities')
 export class ActivityController {
-  constructor(private service: ActivityService) {}
+  constructor(private activity: ActivityService) {}
 
   @Get()
-  list(@Req() req: any, @Query('taskId') taskId?: string) {
-    return this.service.listByWorkspace(req.workspaceId, taskId);
+  list(
+    @Headers('x-workspace-id') workspaceId: string,
+    @Query('projectId') projectId?: string,
+  ) {
+    return this.activity.listByWorkspace(workspaceId, projectId);
   }
 }
