@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { api } from '../../../../lib/api';
 import TaskModal from '../../../../components/TaskModal';
 import CreateTaskModal from '../../../../components/CreateTaskModal';
+import ActivityFeed from '../../../../components/ActivityFeed';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
@@ -402,16 +403,26 @@ export default function ProjectBoardPage() {
             collisionDetection={closestCorners}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid gap-4 lg:grid-cols-4">
-              {columns.map((col) => (
-                <KanbanColumn
-                  key={col.key}
-                  column={col}
-                  tasks={grouped[col.key]}
-                  onTaskClick={setSelectedTask}
-                  onOpenCreateModal={openCreateTaskModal}
-                />
-              ))}
+            <div className="flex gap-4">
+
+              {/* KANBAN */}
+              <div className="grid flex-1 gap-4 lg:grid-cols-4">
+                {columns.map((col) => (
+                  <KanbanColumn
+                    key={col.key}
+                    column={col}
+                    tasks={grouped[col.key]}
+                    onTaskClick={setSelectedTask}
+                    onOpenCreateModal={openCreateTaskModal}
+                  />
+                ))}
+              </div>
+
+              {/* ACTIVITY (lado direito) */}
+              <ActivityFeed
+                workspaceId={workspaceId}
+                projectId={projectId}
+              />
             </div>
           </DndContext>
         )}
