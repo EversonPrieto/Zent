@@ -13,6 +13,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
+    // Return payload as-is to preserve sub and email from the signed token.
+    // The token is signed with { sub: user.id, email } in AuthService.login.
     return payload;
   }
 }

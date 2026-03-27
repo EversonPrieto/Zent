@@ -42,16 +42,20 @@ export default function InviteMemberModal({
       setLoading(true);
       setError('');
 
-      const invited = await api('/workspaces/members', {
+      // Use the invitations flow so the recipient chooses to accept/decline.
+      await api('/invites', {
         method: 'POST',
         workspaceId,
-        body: JSON.stringify({
-          email,
-          role,
-        }),
+        body: JSON.stringify({ email, workspaceId, role }),
       });
 
-      onInvited?.(invited);
+      // Notify parent with a placeholder pending member so UI updates immediately.
+      onInvited?.({
+        id: 'pending',
+        role,
+        user: { id: '', name: email, email },
+      });
+
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao convidar membro');
@@ -65,9 +69,9 @@ export default function InviteMemberModal({
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold">Convidar membro</h2>
+            <h2 className="text-xl font-bold">Enviar convite por email</h2>
             <p className="mt-1 text-sm text-zinc-400">
-              Adicione um usuário existente ao workspace.
+              Envie um convite por email — o destinatário poderá aceitar ou recusar.
             </p>
           </div>
 
@@ -85,7 +89,7 @@ export default function InviteMemberModal({
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="usuario@email.com"
+              placeholder="email@exemplo.com"
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 outline-none focus:border-zinc-500"
             />
           </div>

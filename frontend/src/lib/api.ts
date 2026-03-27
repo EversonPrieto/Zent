@@ -2,6 +2,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type RequestOptions = RequestInit & {
   workspaceId?: string;
+  body?: any; // 👈 permite objeto direto
 };
 
 export async function api(path: string, options: RequestOptions = {}) {
@@ -23,6 +24,10 @@ export async function api(path: string, options: RequestOptions = {}) {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers,
+    body:
+      options.body && typeof options.body !== 'string'
+        ? JSON.stringify(options.body)
+        : options.body,
   });
 
   const data = await response.json().catch(() => null);

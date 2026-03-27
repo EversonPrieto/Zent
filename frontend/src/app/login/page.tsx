@@ -1,13 +1,16 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const inviteToken = searchParams.get('inviteToken');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,10 +39,19 @@ export default function LoginPage() {
         throw new Error(message);
       }
 
+      // 🔐 salvar auth
       localStorage.setItem('zent_token', data.accessToken);
       localStorage.setItem('zent_user', JSON.stringify(data.user));
 
-      const workspaces = await api('/workspaces');
+      // 🔥 ACEITAR INVITE
+      if (inviteToken) {
+        await api(`/invites/${inviteToken}/accept`, {
+          method: 'POST',
+        })
+      }
+
+      // 🔹 pegar workspaces
+      const workspaces = await api('/workspaces')
 
       if (workspaces.length > 0) {
         localStorage.setItem('zent_workspace_id', workspaces[0].id);
@@ -48,6 +60,7 @@ export default function LoginPage() {
       } else {
         router.push('/onboarding/workspace');
       }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar');
     } finally {
@@ -84,7 +97,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error ? <p className="text-red-400 text-sm">{error}</p> : null}
+          {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <button
             type="submit"

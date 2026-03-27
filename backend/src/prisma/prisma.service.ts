@@ -5,6 +5,9 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
+  // Do not declare runtime properties that would override the generated
+  // PrismaClient accessors (they are present on the client after generation).
+
   constructor(config: ConfigService) {
     const connectionString = config.get<string>('DATABASE_URL');
 

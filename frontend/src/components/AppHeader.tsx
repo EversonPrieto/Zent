@@ -134,7 +134,7 @@ export default function AppHeader() {
   }
 
   function handleWorkspaceCreated(newWorkspace: Workspace) {
-    setWorkspaces((prev) => [newWorkspace, ...prev]);
+    setWorkspaces((prev) => [newWorkspace, ...prev.filter((w) => w.id !== newWorkspace.id)]);
 
     localStorage.setItem('zent_workspace_id', newWorkspace.id);
     localStorage.setItem('zent_workspace', JSON.stringify(newWorkspace));
@@ -216,33 +216,40 @@ export default function AppHeader() {
                   </p>
 
                   <div className="mt-1 space-y-1">
-                    {workspaces.map((ws) => (
-                      <button
-                        key={ws.id}
-                        onClick={() => handleSwitchWorkspace(ws)}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
-                          workspace?.id === ws.id
-                            ? 'bg-zinc-800 text-white'
-                            : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-[10px]">
-                            {ws.logoUrl ? (
-                              <img
-                                src={ws.logoUrl}
-                                alt={ws.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              ws.name.charAt(0).toUpperCase()
-                            )}
-                          </div>
+                    {(() => {
+                      // Defensive dedupe: keep first occurrence for stable keys.
+                      const unique = workspaces.filter(
+                        (v, i, a) => a.findIndex((t) => t.id === v.id) === i,
+                      );
 
-                          <span>{ws.name}</span>
-                        </div>
-                      </button>
-                    ))}
+                      return unique.map((ws) => (
+                        <button
+                          key={ws.id}
+                          onClick={() => handleSwitchWorkspace(ws)}
+                          className={`w-full rounded-lg px-3 py-2 text-left text-sm transition ${
+                            workspace?.id === ws.id
+                              ? 'bg-zinc-800 text-white'
+                              : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-zinc-800 text-[10px]">
+                              {ws.logoUrl ? (
+                                <img
+                                  src={ws.logoUrl}
+                                  alt={ws.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                ws.name.charAt(0).toUpperCase()
+                              )}
+                            </div>
+
+                            <span>{ws.name}</span>
+                          </div>
+                        </button>
+                      ));
+                    })()}
                   </div>
 
                   <div className="mt-2 space-y-1 border-t border-zinc-800 pt-2">

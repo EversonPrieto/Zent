@@ -10,11 +10,14 @@ import { TasksModule } from './tasks/tasks.module';
 import { CommentsModule } from './comments/comments.module';
 import { ActivityModule } from './activity/activity.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { InvitesModule } from './invites/invites.module';
+import { EmailModule } from './common/email/email.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    EmailModule,
     CloudinaryModule,
     AuthModule,
     WorkspacesModule,
@@ -22,6 +25,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     TasksModule,
     CommentsModule,
     ActivityModule,
+    InvitesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
