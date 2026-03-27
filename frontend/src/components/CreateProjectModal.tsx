@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 
 type Project = {
   id: string;
@@ -26,6 +27,24 @@ export default function CreateProjectModal({
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [permissions, setPermissions] = useState<Permissions | null>(null);
+  const [checkingPerms, setCheckingPerms] = useState(true);
+
+  useEffect(() => {
+    async function loadPermissions() {
+      try {
+        const perms = await getWorkspacePermissions(workspaceId);
+        setPermissions(perms);
+      } catch (err) {
+        console.error('Erro ao carregar permissões:', err);
+        setPermissions(null);
+      } finally {
+        setCheckingPerms(false);
+      }
+    }
+
+    loadPermissions();
+  }, [workspaceId]);
 
   async function handleCreate() {
     if (!name.trim()) {
@@ -52,6 +71,26 @@ export default function CreateProjectModal({
     } finally {
       setLoading(false);
     }
+  }
+
+  // Se o usuário não tem permissão, mostra mensagem
+  if (!checkingPerms && !permissions?.canCreateProject) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
+          <h2 className="mb-4 text-xl font-bold text-red-400">Sem permissão</h2>
+          <p className="mb-6 text-sm text-zinc-400">
+            Apenas ADMIN e OWNER podem criar projetos.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full rounded-lg px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

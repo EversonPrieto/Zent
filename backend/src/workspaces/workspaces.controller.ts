@@ -103,12 +103,12 @@ export class WorkspacesController {
     );
   }
 
-  @Delete(':workspaceId')
-  deleteWorkspace(
+  @Get('permissions/:workspaceId')
+  getPermissions(
     @Req() req: any,
     @Param('workspaceId') workspaceId: string,
   ) {
-    return this.service.delete(workspaceId, req.user.sub);
+    return this.service.getUserPermissions(workspaceId, req.user.sub);
   }
 
   @Post('current/logo')
@@ -119,5 +119,13 @@ export class WorkspacesController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.service.updateLogo(workspaceId, req.user.sub, file);
+  }
+
+  @Delete(':workspaceId')
+  deleteWorkspace(
+    @Req() req: any,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.service.delete(workspaceId, req.user.sub);
   }
 }

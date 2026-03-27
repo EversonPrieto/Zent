@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -77,6 +78,8 @@ export default function TaskModal({
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [permissions, setPermissions] = useState<Permissions | null>(null);
+  const [checkingPerms, setCheckingPerms] = useState(true);
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -84,6 +87,43 @@ export default function TaskModal({
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadPermissions() {
+      try {
+        // Validar workspaceId - se for inválido, não fazer a chamada
+        if (!workspaceId || workspaceId.trim() === '' || workspaceId === ':1' || workspaceId.startsWith(':')) {
+          console.warn('TaskModal - Invalid workspaceId:', workspaceId);
+          console.log('Attempting to fix workspaceId from localStorage...');
+          
+          // Tentar recuperar do localStorage
+          const storedId = typeof window !== 'undefined' ? localStorage.getItem('zent_workspace_id') : null;
+          if (storedId && storedId !== ':1' && !storedId.startsWith(':')) {
+            console.log('TaskModal - Using workspaceId from localStorage:', storedId);
+            // não pode setWorkspaceId aqui (seria loop infinito), então apenas retornar
+            setPermissions(null);
+            setCheckingPerms(false);
+            return;
+          }
+          
+          setPermissions(null);
+          setCheckingPerms(false);
+          return;
+        }
+
+        console.log('TaskModal - workspaceId:', workspaceId, 'type:', typeof workspaceId);
+        const perms = await getWorkspacePermissions(workspaceId);
+        setPermissions(perms);
+      } catch (err) {
+        console.error('Erro ao carregar permissões:', err);
+        setPermissions(null);
+      } finally {
+        setCheckingPerms(false);
+      }
+    }
+
+    loadPermissions();
+  }, [workspaceId]);
 
   useEffect(() => {
     if (!task) return;
@@ -107,7 +147,7 @@ export default function TaskModal({
       try {
         setCommentsLoading(true);
 
-        const data = await api(`/tasks/${currentTask.id}/comments`, {
+        const data = await api(`/tasks/${task!.id}/comments`, {
           workspaceId,
         });
 
@@ -342,10 +382,17 @@ export default function TaskModal({
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 
+          {!checkingPerms && !permissions?.canEditTasks && (
+            <div className="rounded-lg border border-red-900 bg-red-900/20 p-3 text-sm text-red-400">
+              Você não tem permissão para editar tasks. Apenas MEMBER+ podem editar.
+            </div>
+          )}
+
           <div className="flex justify-between pt-2">
             <button
               onClick={handleDelete}
-              className="text-sm text-red-400 hover:text-red-300"
+              disabled={!permissions?.canEditTasks || checkingPerms}
+              className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Deletar task
             </button>
@@ -360,7 +407,7 @@ export default function TaskModal({
 
               <button
                 onClick={handleSave}
-                disabled={loading || !title.trim()}
+                disabled={loading || !title.trim() || !permissions?.canEditTasks || checkingPerms}
                 className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-60"
               >
                 {loading ? 'Salvando...' : 'Salvar'}

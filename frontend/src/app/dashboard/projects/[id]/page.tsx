@@ -211,14 +211,42 @@ export default function ProjectBoardPage() {
   useEffect(() => {
     async function loadBoard() {
       const token = localStorage.getItem('zent_token');
-      const wsId = localStorage.getItem('zent_workspace_id');
+      let wsId: string | null = localStorage.getItem('zent_workspace_id');
       const workspaceRaw = localStorage.getItem('zent_workspace');
+
+      console.log('ProjectBoardPage - wsId from localStorage:', wsId, 'type:', typeof wsId);
 
       if (!token) {
         router.push('/login');
         return;
       }
 
+      // Validar e corrigir wsId se necessário
+      if (!wsId || wsId === ':1' || wsId.startsWith(':')) {
+        console.warn('ProjectBoardPage - Invalid wsId from localStorage:', wsId);
+        console.log('Attempting to fetch valid workspaces...');
+        
+        try {
+          const workspaces = await api('/workspaces');
+          if (workspaces && workspaces.length > 0) {
+            const validWsId = workspaces[0].id;
+            wsId = validWsId;
+            localStorage.setItem('zent_workspace_id', validWsId);
+            localStorage.setItem('zent_workspace', JSON.stringify(workspaces[0]));
+            console.log('ProjectBoardPage - Fixed wsId to:', validWsId);
+          } else {
+            console.log('ProjectBoardPage - No workspaces found, redirecting to onboarding');
+            router.push('/onboarding/workspace');
+            return;
+          }
+        } catch (err) {
+          console.error('ProjectBoardPage - Failed to fetch workspaces:', err);
+          router.push('/dashboard');
+          return;
+        }
+      }
+
+      // wsId should now be a valid string
       if (!wsId) {
         router.push('/dashboard');
         return;

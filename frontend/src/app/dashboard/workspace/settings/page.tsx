@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
+import { getWorkspacePermissions, type Permissions } from '../../../../lib/permissions';
 
 type Workspace = {
   id: string;
@@ -22,6 +23,8 @@ export default function WorkspaceSettingsPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [permissions, setPermissions] = useState<Permissions | null>(null);
+  const [checkingPerms, setCheckingPerms] = useState(true);
 
   useEffect(() => {
     const workspaceRaw = localStorage.getItem('zent_workspace');
@@ -39,6 +42,24 @@ export default function WorkspaceSettingsPage() {
       router.push('/dashboard/projects');
     }
   }, [router]);
+
+  useEffect(() => {
+    async function loadPermissions() {
+      if (!workspace) return;
+
+      try {
+        const perms = await getWorkspacePermissions(workspace.id);
+        setPermissions(perms);
+      } catch (err) {
+        console.error('Erro ao carregar permissões:', err);
+        setPermissions(null);
+      } finally {
+        setCheckingPerms(false);
+      }
+    }
+
+    loadPermissions();
+  }, [workspace]);
 
   async function handleSave() {
     if (!workspace) return;
@@ -226,7 +247,7 @@ export default function WorkspaceSettingsPage() {
           </p>
         </div>
 
-        {workspace.role === 'OWNER' && (
+        {!checkingPerms && permissions?.canDeleteWorkspace && (
           <div className="rounded-2xl border border-red-900 bg-zinc-900 p-6">
             <h2 className="text-lg font-semibold text-red-400">
               Zona de perigo

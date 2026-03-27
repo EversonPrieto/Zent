@@ -3,10 +3,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { Role } from '@prisma/client';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { AclService } from 'src/common/acl/acl.service';
 
 @Injectable()
 export class WorkspacesService {
-    constructor(private prisma: PrismaService, private cloudinary: CloudinaryService) { }
+    constructor(
+        private prisma: PrismaService,
+        private cloudinary: CloudinaryService,
+        private acl: AclService,
+    ) { }
 
     async create(userId: string, dto: CreateWorkspaceDto) {
         return this.prisma.$transaction(async (tx) => {
@@ -100,19 +105,8 @@ export class WorkspacesService {
     }
 
     async delete(workspaceId: string, userId: string) {
-        const membership = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId,
-            },
-            select: {
-                role: true,
-            },
-        });
-
-        if (!membership || membership.role !== 'OWNER') {
-            throw new ForbiddenException('Apenas o OWNER pode deletar o workspace.');
-        }
+        // Usa ACL para verificar permissão (só OWNER pode deletar)
+        await this.acl.requirePermission('workspace:delete', workspaceId, userId);
 
         await this.prisma.workspace.delete({
             where: { id: workspaceId },
@@ -127,23 +121,8 @@ export class WorkspacesService {
         email: string,
         role: 'ADMIN' | 'MEMBER' | 'VIEWER',
     ) {
-        const inviterMembership = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId: inviterUserId,
-            },
-            select: {
-                role: true,
-            },
-        });
-
-        if (!inviterMembership) {
-            throw new ForbiddenException('Você não pertence a este workspace.');
-        }
-
-        if (!['OWNER', 'ADMIN'].includes(inviterMembership.role)) {
-            throw new ForbiddenException('Você não tem permissão para convidar membros.');
-        }
+        // Usa ACL para verificar permissão
+        await this.acl.requirePermission('workspace:invite', workspaceId, inviterUserId);
 
         const user = await this.prisma.user.findUnique({
             where: { email },
@@ -234,24 +213,12 @@ export class WorkspacesService {
         memberId: string,
         role: 'ADMIN' | 'MEMBER' | 'VIEWER',
     ) {
-        const requester = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId: requesterUserId,
-            },
-            select: {
-                id: true,
-                role: true,
-            },
-        });
-
-        if (!requester) {
-            throw new ForbiddenException('Você não pertence a este workspace.');
-        }
-
-        if (!['OWNER', 'ADMIN'].includes(requester.role)) {
-            throw new ForbiddenException('Você não tem permissão para alterar membros.');
-        }
+        // Usa ACL para verificar permissão
+        const requesterRole = await this.acl.requirePermission(
+            'workspace:update-member',
+            workspaceId,
+            requesterUserId,
+        );
 
         const target = await this.prisma.workspaceMember.findFirst({
             where: {
@@ -281,7 +248,7 @@ export class WorkspacesService {
             throw new ForbiddenException('Você não pode alterar sua própria role.');
         }
 
-        if (requester.role === 'ADMIN') {
+        if (requesterRole === 'ADMIN') {
             if (target.role === 'OWNER' || target.role === 'ADMIN') {
                 throw new ForbiddenException('Você não pode alterar este membro.');
             }
@@ -312,24 +279,12 @@ export class WorkspacesService {
         requesterUserId: string,
         memberId: string,
     ) {
-        const requester = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId: requesterUserId,
-            },
-            select: {
-                id: true,
-                role: true,
-            },
-        });
-
-        if (!requester) {
-            throw new ForbiddenException('Você não pertence a este workspace.');
-        }
-
-        if (!['OWNER', 'ADMIN'].includes(requester.role)) {
-            throw new ForbiddenException('Você não tem permissão para remover membros.');
-        }
+        // Usa ACL para verificar permissão
+        const requesterRole = await this.acl.requirePermission(
+            'workspace:remove-member',
+            workspaceId,
+            requesterUserId,
+        );
 
         const target = await this.prisma.workspaceMember.findFirst({
             where: {
@@ -351,7 +306,7 @@ export class WorkspacesService {
             throw new ForbiddenException('Você não pode remover a si mesmo.');
         }
 
-        if (requester.role === 'ADMIN') {
+        if (requesterRole === 'ADMIN') {
             if (target.role === 'OWNER' || target.role === 'ADMIN') {
                 throw new ForbiddenException('Você não pode remover este membro.');
             }
@@ -412,5 +367,9 @@ export class WorkspacesService {
             logoUrl: workspace.logoUrl,
             role: workspace.members[0]?.role ?? 'MEMBER',
         };
+    }
+
+    async getUserPermissions(workspaceId: string, userId: string) {
+        return this.acl.getUserPermissions(workspaceId, userId);
     }
 }

@@ -11,12 +11,14 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { MoveTaskDto } from './dto/move-task.dto';
 import { ActivityService } from 'src/activity/activity.service';
+import { AclService } from 'src/common/acl/acl.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     private prisma: PrismaService,
     private activity: ActivityService,
+    private acl: AclService,
   ) { }
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
@@ -140,6 +142,11 @@ export class TasksService {
     dto: UpdateTaskDto,
     userId?: string,
   ) {
+    // Usa ACL para verificar permissão (MEMBER+ podem editar tasks)
+    if (userId) {
+      await this.acl.requirePermission('task:edit', workspaceId, userId);
+    }
+
     const existingTask = await this.prisma.task.findFirst({
       where: {
         id,

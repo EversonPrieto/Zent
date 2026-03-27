@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
+import { showToast } from './Toast';
 
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 import EditWorkspaceModal from './EditWorkspaceModal';
@@ -76,6 +77,48 @@ export default function AppHeader() {
       window.removeEventListener('workspace-changed', syncFromStorage);
     };
   }, [pathname]);
+
+  // 🔄 Validar role periodicamente (a cada 5 segundos)
+  // Isso detecta quando um admin altera o role do usuário em tempo real
+  useEffect(() => {
+    async function validateCurrentRole() {
+      if (!workspace) return;
+
+      try {
+        // Buscar dados atualizados do workspace
+        const workspaces = await api('/workspaces');
+        const updatedWorkspace = workspaces.find((w: Workspace) => w.id === workspace.id);
+
+        if (updatedWorkspace && updatedWorkspace.role !== workspace.role) {
+          console.log('🔄 AppHeader - Role alterado de', workspace.role, 'para', updatedWorkspace.role);
+          
+          // Atualizar localStorage com o novo role
+          localStorage.setItem('zent_workspace', JSON.stringify(updatedWorkspace));
+          setWorkspace(updatedWorkspace);
+          
+          // Atualizar a lista de workspaces também
+          setWorkspaces(workspaces);
+
+          // 🎉 Mostrar notificação visual
+          showToast(
+            `Seu cargo foi alterado para ${updatedWorkspace.role}! 🎉`,
+            'success',
+            4000
+          );
+        }
+      } catch (err) {
+        // Erro ao validar, ignora silenciosamente para não poluir console
+      }
+    }
+
+    // Validar imediatamente
+    validateCurrentRole();
+
+    // Depois, validar a cada 5 segundos
+    const interval = setInterval(validateCurrentRole, 5000);
+
+    return () => clearInterval(interval);
+  }, [workspace]);
 
   // carregar workspaces
   useEffect(() => {

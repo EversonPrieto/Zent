@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { showToast } from './Toast';
 
 type Role = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 
@@ -81,6 +82,10 @@ export default function WorkspaceMembersModal({
 
   async function handleRoleChange(memberId: string, newRole: Role) {
     try {
+      // Guardar o role anterior para poder desfazer
+      const member = members.find((m) => m.id === memberId);
+      const previousRole = member?.role;
+
       const updated = await api(`/workspaces/members/${memberId}`, {
         method: 'PATCH',
         workspaceId,
@@ -90,10 +95,90 @@ export default function WorkspaceMembersModal({
       });
 
       setMembers((prev) =>
-        prev.map((member) =>
-          member.id === memberId ? { ...member, role: updated.role } : member,
+        prev.map((m) =>
+          m.id === memberId ? { ...m, role: updated.role } : m,
         ),
       );
+
+      // 🔥 Se o membro alterado é o usuário atual, atualizar localStorage
+      if (memberId === currentUserId) {
+        const workspaceRaw = localStorage.getItem('zent_workspace');
+        if (workspaceRaw) {
+          try {
+            const workspace = JSON.parse(workspaceRaw);
+            workspace.role = updated.role;
+            localStorage.setItem('zent_workspace', JSON.stringify(workspace));
+            console.log('✅ WorkspaceMembersModal - Role atualizado no localStorage para:', updated.role);
+            
+            // 🎉 Mostrar notificação visual com botão de desfazer
+            console.log('🍞 Chamando showToast...');
+            showToast(
+              `Seu cargo foi alterado para ${updated.role}! 🎉`,
+              'success',
+              8000, // Aumentar tempo para dar tempo de clicar em "Desfazer"
+              {
+                label: 'Desfazer',
+                onClick: async () => {
+                  if (!previousRole) return;
+                  
+                  try {
+                    console.log('↩️ Desfazendo mudança de role para:', previousRole);
+                    
+                    // Reverter a mudança
+                    const reverted = await api(`/workspaces/members/${memberId}`, {
+                      method: 'PATCH',
+                      workspaceId,
+                      body: JSON.stringify({
+                        role: previousRole,
+                      }),
+                    });
+
+                    // Atualizar a lista de membros
+                    setMembers((prev) =>
+                      prev.map((m) =>
+                        m.id === memberId ? { ...m, role: reverted.role } : m,
+                      ),
+                    );
+
+                    // Atualizar localStorage
+                    const wsRaw = localStorage.getItem('zent_workspace');
+                    if (wsRaw) {
+                      const ws = JSON.parse(wsRaw);
+                      ws.role = reverted.role;
+                      localStorage.setItem('zent_workspace', JSON.stringify(ws));
+                      
+                      // Disparar evento de atualização
+                      window.dispatchEvent(new Event('workspace-changed'));
+                    }
+
+                    // Mostrar confirmação
+                    showToast(
+                      `Cargo revertido para ${previousRole}! ✅`,
+                      'info',
+                      3000
+                    );
+
+                    console.log('✅ Mudança revertida com sucesso');
+                  } catch (err) {
+                    console.error('Erro ao desfazer:', err);
+                    showToast(
+                      'Erro ao desfazer mudança',
+                      'error',
+                      3000
+                    );
+                  }
+                },
+              }
+            );
+            
+            // Disparar evento para atualizar AppHeader e outros componentes
+            window.dispatchEvent(new Event('workspace-changed'));
+            console.log('✅ WorkspaceMembersModal - Evento "workspace-changed" disparado');
+          } catch (err) {
+            console.error('Erro ao atualizar localStorage:', err);
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao alterar role');
     }
