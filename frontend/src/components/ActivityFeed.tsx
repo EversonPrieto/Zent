@@ -58,7 +58,6 @@ export default function ActivityFeed({
     socket.on('activity:new', (newActivity: Activity) => {
       console.log('🔥 Nova activity recebida:', newActivity);
 
-      // ✅ evita duplicação
       setActivities((prev) => {
         const exists = prev.some((a) => a.id === newActivity.id);
         if (exists) return prev;

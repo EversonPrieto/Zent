@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
+import { showToast } from './Toast';
 
 type Project = {
   id: string;
@@ -49,6 +50,7 @@ export default function CreateProjectModal({
   async function handleCreate() {
     if (!name.trim()) {
       setError('Informe o nome do projeto.');
+      showToast('Informe o nome do projeto', 'error', 3000);
       return;
     }
 
@@ -65,9 +67,12 @@ export default function CreateProjectModal({
         }),
       });
 
+      showToast(`Projeto "${name}" criado com sucesso! 🎉`, 'success', 3000);
       onCreated(project);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar projeto');
+      const message = err instanceof Error ? err.message : 'Erro ao criar projeto';
+      setError(message);
+      showToast(message, 'error', 4000);
     } finally {
       setLoading(false);
     }
