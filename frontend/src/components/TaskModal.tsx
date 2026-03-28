@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
+import { showToast } from './Toast';
+import { showConfirm } from './ConfirmDialog';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -91,16 +93,13 @@ export default function TaskModal({
   useEffect(() => {
     async function loadPermissions() {
       try {
-        // Validar workspaceId - se for inválido, não fazer a chamada
         if (!workspaceId || workspaceId.trim() === '' || workspaceId === ':1' || workspaceId.startsWith(':')) {
           console.warn('TaskModal - Invalid workspaceId:', workspaceId);
           console.log('Attempting to fix workspaceId from localStorage...');
           
-          // Tentar recuperar do localStorage
           const storedId = typeof window !== 'undefined' ? localStorage.getItem('zent_workspace_id') : null;
           if (storedId && storedId !== ':1' && !storedId.startsWith(':')) {
             console.log('TaskModal - Using workspaceId from localStorage:', storedId);
-            // não pode setWorkspaceId aqui (seria loop infinito), então apenas retornar
             setPermissions(null);
             setCheckingPerms(false);
             return;
@@ -241,8 +240,15 @@ export default function TaskModal({
   }
 
   async function handleDelete() {
-    const confirmDelete = confirm('Tem certeza que deseja deletar esta task?');
-    if (!confirmDelete) return;
+    const confirmed = await showConfirm({
+      title: 'Deletar task',
+      message: `Tem certeza que deseja deletar a task "${currentTask.title}"? Esta ação não pode ser desfeita.`,
+      action: 'delete',
+      confirmLabel: 'Deletar',
+      isDangerous: true,
+    });
+
+    if (!confirmed) return;
 
     try {
       setLoading(true);
@@ -253,13 +259,16 @@ export default function TaskModal({
         workspaceId,
       });
 
+      showToast('Task deletada com sucesso', 'success', 3000);
       setComments([]);
       setActivities([]);
       setNewComment('');
       onDeleted?.(currentTask.id);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao deletar task');
+      const message = err instanceof Error ? err.message : 'Erro ao deletar task';
+      setError(message);
+      showToast(message, 'error', 4000);
     } finally {
       setLoading(false);
     }
@@ -295,6 +304,16 @@ export default function TaskModal({
   }
 
   async function handleDeleteComment(commentId: string) {
+    const confirmed = await showConfirm({
+      title: 'Deletar comentário',
+      message: 'Tem certeza que deseja deletar este comentário?',
+      action: 'delete',
+      confirmLabel: 'Deletar',
+      isDangerous: true,
+    });
+
+    if (!confirmed) return;
+
     try {
       setError('');
 
@@ -304,8 +323,11 @@ export default function TaskModal({
       });
 
       setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      showToast('Comentário deletado com sucesso', 'success', 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao deletar comentário');
+      const message = err instanceof Error ? err.message : 'Erro ao deletar comentário';
+      setError(message);
+      showToast(message, 'error', 4000);
     }
   }
 

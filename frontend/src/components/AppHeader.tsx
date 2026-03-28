@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
-import { showToast } from './Toast';
 
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 import EditWorkspaceModal from './EditWorkspaceModal';
@@ -78,14 +77,11 @@ export default function AppHeader() {
     };
   }, [pathname]);
 
-  // 🔄 Validar role periodicamente (a cada 5 segundos)
-  // Isso detecta quando um admin altera o role do usuário em tempo real
   useEffect(() => {
     async function validateCurrentRole() {
       if (!workspace) return;
 
       try {
-        // Buscar dados atualizados do workspace
         const workspaces = await api('/workspaces');
         const updatedWorkspace = workspaces.find((w: Workspace) => w.id === workspace.id);
 
@@ -99,12 +95,8 @@ export default function AppHeader() {
           // Atualizar a lista de workspaces também
           setWorkspaces(workspaces);
 
-          // 🎉 Mostrar notificação visual
-          showToast(
-            `Seu cargo foi alterado para ${updatedWorkspace.role}! 🎉`,
-            'success',
-            4000
-          );
+          // 📝 NÃO mostrar toast aqui - o toast é mostrado apenas para quem FAZ a mudança
+          // O usuário que recebe a mudança vê ela refletida no header automaticamente
         }
       } catch (err) {
         // Erro ao validar, ignora silenciosamente para não poluir console
