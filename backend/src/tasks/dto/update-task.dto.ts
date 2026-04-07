@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsUUID, IsNumber } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, IsNumber, IsISO8601 } from 'class-validator';
 import { TaskPriority, TaskStatus } from '@prisma/client';
 
 export class UpdateTaskDto {
@@ -21,6 +21,10 @@ export class UpdateTaskDto {
   @IsUUID()
   @IsOptional()
   assigneeId?: string | null;
+
+  @IsISO8601()
+  @IsOptional()
+  dueDate?: string | null;
 
   @IsNumber()
   @IsOptional()

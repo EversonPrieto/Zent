@@ -41,6 +41,25 @@ export class ActivityService {
     }
   }
 
+  async list(workspaceId: string, projectId?: string, taskId?: string) {
+    const items = await this.prisma.activityLog.findMany({
+      where: {
+        workspaceId,
+        ...(projectId ? { projectId } : {}),
+        ...(taskId ? { taskId } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        user: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    return { items };
+  }
+
   async listByWorkspace(workspaceId: string, projectId?: string) {
     const items = await this.prisma.activityLog.findMany({
       where: {

@@ -6,6 +6,20 @@ import { showToast } from './Toast';
 import { SkeletonMember, SkeletonModalHeader } from './Skeleton';
 import { EmptyMembers } from './EmptyState';
 import { showConfirm } from './ConfirmDialog';
+import {
+  X,
+  Users,
+  Crown,
+  Shield,
+  User,
+  Eye,
+  Trash2,
+  ChevronDown,
+  Mail,
+  AlertCircle,
+  CheckCircle2,
+  Loader2
+} from 'lucide-react';
 
 type Role = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 
@@ -25,6 +39,43 @@ type Props = {
   onClose: () => void;
 };
 
+const roleConfig = {
+  OWNER: { 
+    label: 'Proprietário', 
+    icon: Crown, 
+    color: 'text-amber-400', 
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    description: 'Controle total sobre o workspace'
+  },
+  ADMIN: { 
+    label: 'Administrador', 
+    icon: Shield, 
+    color: 'text-blue-400', 
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    description: 'Gerencia membros e projetos'
+  },
+  MEMBER: { 
+    label: 'Membro', 
+    icon: User, 
+    color: 'text-emerald-400', 
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    description: 'Cria e edita tasks'
+  },
+  VIEWER: { 
+    label: 'Visualizador', 
+    icon: Eye, 
+    color: 'text-zinc-400', 
+    bg: 'bg-zinc-500/10',
+    border: 'border-zinc-500/20',
+    description: 'Apenas visualiza'
+  },
+};
+
+const roleOptions: Role[] = ['ADMIN', 'MEMBER', 'VIEWER'];
+
 export default function WorkspaceMembersModal({
   workspaceId,
   onClose,
@@ -34,6 +85,7 @@ export default function WorkspaceMembersModal({
   const [error, setError] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserRole, setCurrentUserRole] = useState<Role | null>(null);
+  const [changingRole, setChangingRole] = useState<string | null>(null);
 
   useEffect(() => {
     const userRaw = localStorage.getItem('zent_user');
@@ -84,8 +136,9 @@ export default function WorkspaceMembersModal({
   }
 
   async function handleRoleChange(memberId: string, newRole: Role) {
+    setChangingRole(memberId);
+    
     try {
-      // Guardar o role anterior para poder desfazer
       const member = members.find((m) => m.id === memberId);
       const previousRole = member?.role;
 
@@ -103,42 +156,34 @@ export default function WorkspaceMembersModal({
         ),
       );
 
-      // 🔥 Se o membro alterado é o usuário atual, atualizar localStorage
+      // Se o membro alterado é o usuário atual, atualizar localStorage
       if (memberId === currentUserId) {
-        console.log('🎯 Mudança detectada no usuário atual! Atualizando localStorage...');
         const workspaceRaw = localStorage.getItem('zent_workspace');
         if (workspaceRaw) {
           try {
             const workspace = JSON.parse(workspaceRaw);
             workspace.role = updated.role;
             localStorage.setItem('zent_workspace', JSON.stringify(workspace));
-            console.log('✅ WorkspaceMembersModal - Role atualizado no localStorage para:', updated.role);
             
-            // Disparar evento para atualizar AppHeader e outros componentes
             window.dispatchEvent(new Event('workspace-changed'));
-            console.log('✅ WorkspaceMembersModal - Evento "workspace-changed" disparado');
           } catch (err) {
             console.error('Erro ao atualizar localStorage:', err);
           }
         }
       }
 
-      // 🎉 SEMPRE mostrar notificação visual com botão de desfazer (para qualquer membro que foi alterado)
       const memberName = member?.user.name || 'Membro';
-      console.log('🍞 Chamando showToast para mudança de role:', memberName, '->', updated.role);
+      const roleLabel = roleConfig[updated.role as keyof typeof roleConfig]?.label || updated.role;
       showToast(
-        `Cargo de ${memberName} alterado para ${updated.role}! 🎉`,
+        `Cargo de ${memberName} alterado para ${roleLabel}! 🎉`,
         'success',
-        15000, // 15 segundos para dar tempo de clicar em "Desfazer"
+        15000,
         {
           label: 'Desfazer',
           onClick: async () => {
             if (!previousRole) return;
             
             try {
-              console.log('↩️ Desfazendo mudança de role para:', previousRole);
-              
-              // Reverter a mudança
               const reverted = await api(`/workspaces/members/${memberId}`, {
                 method: 'PATCH',
                 workspaceId,
@@ -147,54 +192,48 @@ export default function WorkspaceMembersModal({
                 }),
               });
 
-              // Atualizar a lista de membros
               setMembers((prev) =>
                 prev.map((m) =>
                   m.id === memberId ? { ...m, role: reverted.role } : m,
                 ),
               );
 
-              // Atualizar localStorage se for o usuário atual
               if (memberId === currentUserId) {
                 const wsRaw = localStorage.getItem('zent_workspace');
                 if (wsRaw) {
                   const ws = JSON.parse(wsRaw);
                   ws.role = reverted.role;
                   localStorage.setItem('zent_workspace', JSON.stringify(ws));
-                  
-                  // Disparar evento de atualização
                   window.dispatchEvent(new Event('workspace-changed'));
                 }
               }
 
-              // Mostrar confirmação
+              const revertLabel = roleConfig[previousRole as keyof typeof roleConfig]?.label || previousRole;
               showToast(
-                `Cargo revertido para ${previousRole}! ✅`,
+                `Cargo revertido para ${revertLabel}! ✅`,
                 'info',
                 4000
               );
-
-              console.log('✅ Mudança revertida com sucesso');
             } catch (err) {
-              console.error('Erro ao desfazer:', err);
-              showToast(
-                'Erro ao desfazer mudança',
-                'error',
-                4000
-              );
+              showToast('Erro ao desfazer mudança', 'error', 4000);
             }
           },
         }
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao alterar role');
+      showToast('Erro ao alterar cargo', 'error', 4000);
+    } finally {
+      setChangingRole(null);
     }
   }
 
   async function handleRemove(memberId: string) {
+    const member = members.find((m) => m.id === memberId);
+    
     const confirmed = await showConfirm({
       title: 'Remover membro',
-      message: 'Tem certeza que deseja remover este membro do workspace? Esta ação não pode ser desfeita.',
+      message: `Tem certeza que deseja remover "${member?.user.name}" do workspace? Esta ação não pode ser desfeita.`,
       action: 'remove',
       confirmLabel: 'Remover',
       isDangerous: true,
@@ -220,91 +259,206 @@ export default function WorkspaceMembersModal({
     }
   }
 
+  const ownerCount = members.filter(m => m.role === 'OWNER').length;
+  const adminCount = members.filter(m => m.role === 'ADMIN').length;
+  const memberCount = members.filter(m => m.role === 'MEMBER').length;
+  const viewerCount = members.filter(m => m.role === 'VIEWER').length;
+
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-3xl rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
-        {loading ? (
-          <>
-            <SkeletonModalHeader />
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <SkeletonMember key={i} />
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="mb-5 flex items-start justify-between gap-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        {/* Header */}
+        <div className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
+                <Users className="h-5 w-5 text-violet-400" />
+              </div>
               <div>
-                <h2 className="text-xl font-bold">Membros do workspace</h2>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                  Membros do workspace
+                </h2>
                 <p className="mt-1 text-sm text-zinc-400">
                   Gerencie quem faz parte deste workspace.
                 </p>
               </div>
-
-              <button
-                onClick={onClose}
-                className="rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
-              >
-                Fechar
-              </button>
             </div>
 
-            {error ? <p className="mb-3 text-sm text-red-400">{error}</p> : null}
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-            {members.length === 0 ? (
-              <EmptyMembers />
-            ) : (
+          {/* Stats */}
+          {!loading && members.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                <span className="text-xs text-zinc-500">Total</span>
+                <p className="text-lg font-bold text-white">{members.length}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                <span className="text-xs text-zinc-500">Proprietários</span>
+                <p className="text-lg font-bold text-amber-400">{ownerCount}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                <span className="text-xs text-zinc-500">Administradores</span>
+                <p className="text-lg font-bold text-blue-400">{adminCount}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                <span className="text-xs text-zinc-500">Membros</span>
+                <p className="text-lg font-bold text-emerald-400">{memberCount}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+                <span className="text-xs text-zinc-500">Visualizadores</span>
+                <p className="text-lg font-bold text-zinc-400">{viewerCount}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] custom-scrollbar">
+          {loading ? (
+            <>
+              <SkeletonModalHeader />
               <div className="space-y-3">
-                {members.map((member) => {
-                  const manageable = canManage(member);
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <SkeletonMember key={i} />
+                ))}
+              </div>
+            </>
+          ) : error ? (
+            <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              {error}
+            </div>
+          ) : members.length === 0 ? (
+            <EmptyMembers />
+          ) : (
+            <div className="space-y-3">
+              {members.map((member) => {
+                const manageable = canManage(member);
+                const roleInfo = roleConfig[member.role as keyof typeof roleConfig];
+                const RoleIcon = roleInfo?.icon;
+                const isCurrentUser = member.user.id === currentUserId;
+                const isChanging = changingRole === member.id;
 
-                  return (
-                    <div
-                      key={member.id}
-                      className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4 md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="font-medium text-white">{member.user.name}</p>
-                        <p className="text-sm text-zinc-400">{member.user.email}</p>
+                return (
+                  <div
+                    key={member.id}
+                    className="group rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-4 transition-all hover:border-white/20 hover:shadow-lg"
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      {/* User Info */}
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${roleInfo.bg}`}>
+                          {member.user.avatarUrl ? (
+                            <img
+                              src={member.user.avatarUrl}
+                              alt={member.user.name}
+                              className="h-full w-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-white">
+                              {member.user.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-white">
+                              {member.user.name}
+                              {isCurrentUser && (
+                                <span className="ml-2 text-xs text-violet-400">(você)</span>
+                              )}
+                            </p>
+                          </div>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <Mail className="h-3 w-3 text-zinc-500" />
+                            <p className="text-sm text-zinc-400">{member.user.email}</p>
+                          </div>
+                        </div>
                       </div>
 
+                      {/* Role & Actions */}
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         {manageable ? (
-                          <select
-                            value={member.role}
-                            onChange={(e) =>
-                              handleRoleChange(member.id, e.target.value as Role)
-                            }
-                            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm outline-none focus:border-zinc-500"
-                          >
-                            <option value="ADMIN">ADMIN</option>
-                            <option value="MEMBER">MEMBER</option>
-                            <option value="VIEWER">VIEWER</option>
-                          </select>
+                          <div className="relative">
+                            <select
+                              value={member.role}
+                              onChange={(e) =>
+                                handleRoleChange(member.id, e.target.value as Role)
+                              }
+                              disabled={isChanging}
+                              className="appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-2 pr-8 text-sm text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {roleOptions.map((role) => (
+                                <option key={role} value={role} className="bg-zinc-900">
+                                  {roleConfig[role as keyof typeof roleConfig]?.label || role}
+                                </option>
+                              ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                            {isChanging && (
+                              <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50">
+                                <Loader2 className="h-4 w-4 animate-spin text-violet-400" />
+                              </div>
+                            )}
+                          </div>
                         ) : (
-                          <span className="rounded-full bg-zinc-800 px-3 py-2 text-xs text-zinc-300 text-center">
-                            {member.role}
-                          </span>
+                          <div className={`inline-flex items-center gap-1.5 rounded-full ${roleInfo.bg} px-3 py-1.5`}>
+                            <RoleIcon className={`h-3.5 w-3.5 ${roleInfo.color}`} />
+                            <span className={`text-xs font-medium ${roleInfo.color}`}>
+                              {roleInfo.label}
+                            </span>
+                          </div>
                         )}
 
-                        {manageable ? (
+                        {manageable && (
                           <button
                             onClick={() => handleRemove(member.id)}
-                            className="rounded-lg border border-red-900 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400 transition-all hover:bg-red-500/20 hover:text-red-300"
                           >
+                            <Trash2 className="h-3.5 w-3.5" />
                             Remover
                           </button>
-                        ) : null}
+                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
+
+                    {/* Role Description */}
+                    <div className="mt-3 flex items-center gap-2 pt-2 border-t border-white/5">
+                      <CheckCircle2 className={`h-3 w-3 ${roleInfo.color}`} />
+                      <p className="text-xs text-zinc-500">{roleInfo.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+      `}</style>
     </div>
   );
 }

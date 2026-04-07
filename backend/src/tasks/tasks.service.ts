@@ -12,6 +12,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { MoveTaskDto } from './dto/move-task.dto';
 import { ActivityService } from 'src/activity/activity.service';
 import { AclService } from 'src/common/acl/acl.service';
+import { TasksGateway } from './tasks.gateway';
 
 @Injectable()
 export class TasksService {
@@ -19,6 +20,7 @@ export class TasksService {
     private prisma: PrismaService,
     private activity: ActivityService,
     private acl: AclService,
+    private tasksGateway: TasksGateway,
   ) { }
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
@@ -57,6 +59,7 @@ export class TasksService {
         status,
         priority: dto.priority ?? TaskPriority.MEDIUM,
         assigneeId: dto.assigneeId,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         position,
       },
     });
@@ -69,6 +72,9 @@ export class TasksService {
       taskId: task.id,
       userId,
     });
+
+    // ✨ Emitir realtime para todos no projeto
+    this.tasksGateway.emitTaskCreated(task.projectId, task);
 
     return task;
   }
@@ -128,6 +134,20 @@ export class TasksService {
         assignee: {
           select: { id: true, name: true, email: true, avatarUrl: true },
         },
+        taskLabels: {
+          include: {
+            label: { select: { id: true, name: true, color: true } },
+          },
+        },
+        taskAssignees: {
+          include: {
+            user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          },
+        },
+        attachments: {
+          select: { id: true, url: true, fileName: true, fileType: true, size: true, createdAt: true },
+        },
+        comments: true,
       },
     });
 
@@ -170,6 +190,7 @@ export class TasksService {
         priority: dto.priority,
         assigneeId:
           dto.assigneeId === undefined ? undefined : dto.assigneeId,
+        dueDate: dto.dueDate === undefined ? undefined : (dto.dueDate ? new Date(dto.dueDate) : null),
       },
     });
 
@@ -181,6 +202,9 @@ export class TasksService {
       taskId: updatedTask.id,
       userId,
     });
+
+    // ✨ Emitir realtime para todos no projeto
+    this.tasksGateway.emitTaskUpdated(existingTask.projectId, updatedTask);
 
     return updatedTask;
   }
@@ -267,6 +291,9 @@ export class TasksService {
       userId,
     });
 
+    // ✨ Emitir realtime para todos no projeto
+    this.tasksGateway.emitTaskMoved(task.projectId, updatedTask);
+
     return updatedTask;
   }
 
@@ -300,6 +327,149 @@ export class TasksService {
       where: { id },
     });
 
+    // ✨ Emitir realtime para todos no projeto
+    this.tasksGateway.emitTaskDeleted(task.projectId, task.id);
+
     return { message: 'Task removida com sucesso.' };
+  }
+
+  // ==================== LABELS ====================
+  async addLabel(workspaceId: string, taskId: string, labelId: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    const label = await this.prisma.label.findFirst({
+      where: { id: labelId, workspaceId },
+    });
+
+    if (!label) throw new NotFoundException('Label não encontrado.');
+
+    // Verificar se já existe
+    const exists = await this.prisma.taskLabel.findUnique({
+      where: { taskId_labelId: { taskId, labelId } },
+    });
+
+    if (exists) return { message: 'Label já adicionado.' };
+
+    await this.prisma.taskLabel.create({
+      data: { taskId, labelId },
+    });
+
+    // Retornar task atualizada
+    return this.get(workspaceId, taskId);
+  }
+
+  async removeLabel(workspaceId: string, taskId: string, labelId: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    await this.prisma.taskLabel.delete({
+      where: { taskId_labelId: { taskId, labelId } },
+    });
+
+    // Retornar task atualizada
+    return this.get(workspaceId, taskId);
+  }
+
+  // ==================== ASSIGNEES ====================
+  async addAssignee(workspaceId: string, taskId: string, userId: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    // Verificar se usuário está no workspace
+    const member = await this.prisma.workspaceMember.findFirst({
+      where: { workspaceId, userId },
+    });
+
+    if (!member) throw new ForbiddenException('Usuário não está no workspace.');
+
+    // Verificar se já é assignee
+    const exists = await this.prisma.taskAssignee.findUnique({
+      where: { taskId_userId: { taskId, userId } },
+    });
+
+    if (exists) return { message: 'Usuário já é assignee.' };
+
+    await this.prisma.taskAssignee.create({
+      data: { taskId, userId },
+    });
+
+    // Retornar task atualizada
+    return this.get(workspaceId, taskId);
+  }
+
+  async removeAssignee(workspaceId: string, taskId: string, userId: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    await this.prisma.taskAssignee.delete({
+      where: { taskId_userId: { taskId, userId } },
+    });
+
+    // Retornar task atualizada
+    return this.get(workspaceId, taskId);
+  }
+
+  // ==================== ATTACHMENTS ====================
+  async addAttachment(workspaceId: string, taskId: string, data: { url: string; fileName: string; fileType: string; size?: number }) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    await this.prisma.attachment.create({
+      data: {
+        taskId,
+        url: data.url,
+        fileName: data.fileName,
+        fileType: data.fileType,
+        size: data.size,
+      },
+    });
+
+    // Retornar task atualizada
+    return this.get(workspaceId, taskId);
+  }
+
+  async removeAttachment(workspaceId: string, taskId: string, attachmentId: string) {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, project: { workspaceId } },
+      select: { id: true, projectId: true },
+    });
+
+    if (!task) throw new NotFoundException('Task não encontrada.');
+
+    const attachment = await this.prisma.attachment.findUnique({
+      where: { id: attachmentId },
+    });
+
+    if (!attachment || attachment.taskId !== taskId) {
+      throw new ForbiddenException('Anexo não encontrado.');
+    }
+
+    await this.prisma.attachment.delete({
+      where: { id: attachmentId },
+    });
+
+    // Retornar task atualizada
+    return this.get(workspaceId, taskId);
   }
 }

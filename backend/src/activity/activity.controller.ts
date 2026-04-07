@@ -9,7 +9,8 @@ export class ActivityController {
   list(
     @Headers('x-workspace-id') workspaceId: string,
     @Query('projectId') projectId?: string,
+    @Query('taskId') taskId?: string,
   ) {
-    return this.activity.listByWorkspace(workspaceId, projectId);
+    return this.activity.list(workspaceId, projectId, taskId);
   }
 }

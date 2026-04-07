@@ -7,12 +7,14 @@ import { ActivityType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { ActivityService } from 'src/activity/activity.service';
+import { CommentsGateway } from './comments.gateway';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private prisma: PrismaService,
     private activity: ActivityService,
+    private gateway: CommentsGateway,
   ) { }
 
   async create(
@@ -62,6 +64,9 @@ export class CommentsService {
       taskId: task.id,
       userId,
     });
+
+    // emitir comentário em realtime
+    this.gateway.emitCommentCreated(taskId, comment);
 
     return comment;
   }
@@ -136,6 +141,9 @@ export class CommentsService {
       taskId: comment.task.id,
       userId,
     });
+
+    // emitir comentário deletado em realtime
+    this.gateway.emitCommentDeleted(comment.taskId, commentId);
 
     return { message: 'Comentário removido' };
   }

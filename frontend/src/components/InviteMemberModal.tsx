@@ -3,6 +3,20 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
+import {
+  X,
+  Mail,
+  Send,
+  Shield,
+  User,
+  Eye,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  Users,
+  Lock
+} from 'lucide-react';
 
 type Role = 'ADMIN' | 'MEMBER' | 'VIEWER';
 
@@ -22,6 +36,35 @@ type Props = {
   onClose: () => void;
   onInvited?: (member: Member) => void;
 };
+
+const roleConfig = {
+  ADMIN: { 
+    label: 'Administrador', 
+    icon: Shield, 
+    color: 'text-blue-400', 
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    description: 'Pode gerenciar membros, projetos e tasks'
+  },
+  MEMBER: { 
+    label: 'Membro', 
+    icon: User, 
+    color: 'text-emerald-400', 
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    description: 'Pode criar e editar tasks'
+  },
+  VIEWER: { 
+    label: 'Visualizador', 
+    icon: Eye, 
+    color: 'text-zinc-400', 
+    bg: 'bg-zinc-500/10',
+    border: 'border-zinc-500/20',
+    description: 'Apenas visualiza, não pode editar'
+  },
+};
+
+const roleOptions: Role[] = ['ADMIN', 'MEMBER', 'VIEWER'];
 
 export default function InviteMemberModal({
   workspaceId,
@@ -52,8 +95,15 @@ export default function InviteMemberModal({
   }, [workspaceId]);
 
   async function handleInvite() {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     if (!email.trim()) {
       setError('Informe o email do usuário.');
+      return;
+    }
+    
+    if (!emailRegex.test(email)) {
+      setError('Informe um email válido.');
       return;
     }
 
@@ -61,108 +111,239 @@ export default function InviteMemberModal({
       setLoading(true);
       setError('');
 
-      // Use the invitations flow so the recipient chooses to accept/decline.
       await api('/invites', {
         method: 'POST',
         workspaceId,
-        body: JSON.stringify({ email, workspaceId, role }),
+        body: JSON.stringify({ email: email.trim(), workspaceId, role }),
       });
 
-      // Notify parent with a placeholder pending member so UI updates immediately.
       onInvited?.({
         id: 'pending',
         role,
-        user: { id: '', name: email, email },
+        user: { id: '', name: email, email: email.trim() },
       });
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao convidar membro');
+      const message = err instanceof Error ? err.message : 'Erro ao convidar membro';
+      setError(message);
     } finally {
       setLoading(false);
     }
   }
 
+  const currentRoleConfig = roleConfig[role as keyof typeof roleConfig];
+  const RoleIcon = currentRoleConfig?.icon;
+  const isFormValid = email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   // Se o usuário não tem permissão, mostra mensagem
   if (!checkingPerms && !permissions?.canInviteMembers) {
     return (
-      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
-          <h2 className="mb-4 text-xl font-bold text-red-400">Sem permissão</h2>
-          <p className="mb-6 text-sm text-zinc-400">
-            Apenas ADMIN e OWNER podem convidar membros.
-          </p>
-          <button
-            onClick={onClose}
-            className="w-full rounded-lg px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
-          >
-            Fechar
-          </button>
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+          <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-red-500/10 p-2">
+                  <Lock className="h-5 w-5 text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+                  Sem permissão
+                </h2>
+              </div>
+              <button
+                onClick={onClose}
+                className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 rounded-full bg-red-500/10 p-3">
+                <Lock className="h-8 w-8 text-red-400" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-white">
+                Acesso restrito
+              </h3>
+              <p className="mb-6 text-sm text-zinc-400">
+                Apenas <span className="font-medium text-violet-400">ADMIN</span> e{' '}
+                <span className="font-medium text-violet-400">OWNER</span> podem convidar membros.
+              </p>
+              <button
+                onClick={onClose}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:bg-white/10 hover:text-white"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold">Enviar convite por email</h2>
-            <p className="mt-1 text-sm text-zinc-400">
-              Envie um convite por email — o destinatário poderá aceitar ou recusar.
-            </p>
-          </div>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        {/* Header */}
+        <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
+                <Mail className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                  Convidar membro
+                </h2>
+                <p className="mt-1 text-sm text-zinc-400">
+                  Envie um convite por email para colaborar
+                </p>
+              </div>
+            </div>
 
-          <button
-            onClick={onClose}
-            className="rounded-lg px-3 py-1 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
-          >
-            Fechar
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">Email</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@exemplo.com"
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 outline-none focus:border-zinc-500"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">Permissão</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as Role)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 outline-none focus:border-zinc-500"
-            >
-              <option value="ADMIN">ADMIN</option>
-              <option value="MEMBER">MEMBER</option>
-              <option value="VIEWER">VIEWER</option>
-            </select>
-          </div>
-
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
-
-          <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
+              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
             >
-              Cancelar
+              <X className="h-5 w-5" />
             </button>
+          </div>
+        </div>
 
-            <button
-              onClick={handleInvite}
-              disabled={loading}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-60"
-            >
-              {loading ? 'Convidando...' : 'Convidar'}
-            </button>
+        <div className="p-6">
+          <div className="space-y-5">
+            {/* Email Field */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <Mail className="h-4 w-4 text-violet-400" />
+                Email do convidado
+              </label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@exemplo.com"
+                type="email"
+                autoFocus
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              />
+              {email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+                <div className="mt-2 flex items-center gap-1 text-xs text-emerald-400">
+                  <CheckCircle2 className="h-3 w-3" />
+                  <span>Email válido</span>
+                </div>
+              )}
+            </div>
+
+            {/* Role Selection */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <Shield className="h-4 w-4 text-violet-400" />
+                Permissão
+              </label>
+              <div className="grid gap-2">
+                {roleOptions.map((option) => {
+                  const config = roleConfig[option as keyof typeof roleConfig];
+                  const Icon = config?.icon;
+                  const isSelected = role === option;
+                  
+                  return (
+                    <button
+                      key={option}
+                      onClick={() => setRole(option)}
+                      className={`group relative flex items-center gap-3 rounded-xl border p-3 transition-all ${
+                        isSelected
+                          ? `${config.bg} ${config.border} border-opacity-100`
+                          : 'border-white/10 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className={`rounded-lg p-1.5 ${isSelected ? config.bg : 'bg-white/5'}`}>
+                        <Icon className={`h-4 w-4 ${config.color}`} />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className={`text-sm font-medium ${config.color}`}>
+                          {config.label}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {config.description}
+                        </p>
+                      </div>
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-zinc-900" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Info Box */}
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <div className="flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
+                <div className="text-xs text-zinc-500">
+                  <p className="mb-1 font-medium text-zinc-400">O que acontece depois?</p>
+                  <ul className="space-y-1">
+                    <li className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <span>O convidado receberá um email com o link de acesso</span>
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <span>Ele poderá aceitar ou recusar o convite</span>
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <span>Após aceitar, será adicionado automaticamente</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={handleInvite}
+                disabled={loading || !isFormValid}
+                className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    Enviar convite
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Footer Note */}
+            <p className="text-center text-xs text-zinc-500">
+              O convite será enviado para <span className="text-violet-400">{email || 'email informado'}</span>
+            </p>
           </div>
         </div>
       </div>

@@ -4,6 +4,19 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 import { showToast } from './Toast';
+import {
+  X,
+  FolderKanban,
+  PlusCircle,
+  Send,
+  Tag,
+  FileText,
+  Loader2,
+  AlertCircle,
+  Lock,
+  Sparkles,
+  CheckCircle2
+} from 'lucide-react';
 
 type Project = {
   id: string;
@@ -62,8 +75,8 @@ export default function CreateProjectModal({
         method: 'POST',
         workspaceId,
         body: JSON.stringify({
-          name,
-          description,
+          name: name.trim(),
+          description: description.trim() || null,
         }),
       });
 
@@ -78,74 +91,186 @@ export default function CreateProjectModal({
     }
   }
 
+  const isFormValid = name.trim();
+
   // Se o usuário não tem permissão, mostra mensagem
   if (!checkingPerms && !permissions?.canCreateProject) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
-          <h2 className="mb-4 text-xl font-bold text-red-400">Sem permissão</h2>
-          <p className="mb-6 text-sm text-zinc-400">
-            Apenas ADMIN e OWNER podem criar projetos.
-          </p>
-          <button
-            onClick={onClose}
-            className="w-full rounded-lg px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
-          >
-            Fechar
-          </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+          <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-red-500/10 p-2">
+                  <Lock className="h-5 w-5 text-red-400" />
+                </div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+                  Sem permissão
+                </h2>
+              </div>
+              <button
+                onClick={onClose}
+                className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="mb-4 rounded-full bg-red-500/10 p-3">
+                <Lock className="h-8 w-8 text-red-400" />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-white">
+                Acesso restrito
+              </h3>
+              <p className="mb-6 text-sm text-zinc-400">
+                Apenas <span className="font-medium text-violet-400">ADMIN</span> e{' '}
+                <span className="font-medium text-violet-400">OWNER</span> podem criar projetos nesta workspace.
+              </p>
+              <button
+                onClick={onClose}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:bg-white/10 hover:text-white"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-white shadow-2xl">
-        <h2 className="mb-4 text-xl font-bold">Novo projeto</h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">
-              Nome do projeto
-            </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex.: Zent Core"
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 outline-none focus:border-zinc-500"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm text-zinc-300">
-              Descrição
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descrição do projeto"
-              rows={4}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 outline-none focus:border-zinc-500"
-            />
-          </div>
-
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
-
-          <div className="flex justify-end gap-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        {/* Header */}
+        <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
+                <FolderKanban className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                  Novo projeto
+                </h2>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Organize suas tasks em um novo espaço
+                </p>
+              </div>
+            </div>
             <button
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-white"
+              className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
             >
-              Cancelar
+              <X className="h-5 w-5" />
             </button>
+          </div>
+        </div>
 
-            <button
-              onClick={handleCreate}
-              disabled={loading}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-60"
-            >
-              {loading ? 'Criando...' : 'Criar'}
-            </button>
+        <div className="p-6">
+          <div className="space-y-5">
+            {/* Name Field */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <Tag className="h-4 w-4 text-violet-400" />
+                Nome do projeto
+              </label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex.: Zent Core, Landing Page, Mobile App..."
+                autoFocus
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              />
+              {name && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  {name.length} caracteres
+                </p>
+              )}
+            </div>
+
+            {/* Description Field */}
+            <div>
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <FileText className="h-4 w-4 text-violet-400" />
+                Descrição
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Descreva o objetivo do projeto..."
+                rows={4}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none"
+              />
+              {description && (
+                <p className="mt-2 text-xs text-zinc-500">
+                  {description.length} caracteres
+                </p>
+              )}
+            </div>
+
+            {/* Tips */}
+            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+              <div className="flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
+                <div className="text-xs text-zinc-500">
+                  <p className="mb-1 font-medium text-zinc-400">Dicas para um bom projeto:</p>
+                  <ul className="space-y-1">
+                    <li className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <span>Use nomes descritivos e únicos</span>
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <span>Adicione uma descrição clara do objetivo</span>
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <span>Comece com tasks simples e evolua</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                onClick={onClose}
+                className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={handleCreate}
+                disabled={loading || !isFormValid}
+                className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    Criar projeto
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
