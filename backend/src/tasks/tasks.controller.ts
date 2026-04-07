@@ -58,4 +58,53 @@ export class TasksController {
   delete(@Req() req: any, @Param('id') id: string) {
     return this.service.delete(req.workspaceId, id);
   }
+
+  // Labels
+  @ApiOperation({ summary: 'Adicionar label à task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Post(':id/labels/:labelId')
+  addLabel(@Req() req: any, @Param('id') taskId: string, @Param('labelId') labelId: string) {
+    return this.service.addLabel(req.workspaceId, taskId, labelId);
+  }
+
+  @ApiOperation({ summary: 'Remover label da task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Delete(':id/labels/:labelId')
+  removeLabel(@Req() req: any, @Param('id') taskId: string, @Param('labelId') labelId: string) {
+    return this.service.removeLabel(req.workspaceId, taskId, labelId);
+  }
+
+  // Assignees
+  @ApiOperation({ summary: 'Adicionar assignee à task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Post(':id/assignees/:userId')
+  addAssignee(@Req() req: any, @Param('id') taskId: string, @Param('userId') userId: string) {
+    return this.service.addAssignee(req.workspaceId, taskId, userId);
+  }
+
+  @ApiOperation({ summary: 'Remover assignee da task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Delete(':id/assignees/:userId')
+  removeAssignee(@Req() req: any, @Param('id') taskId: string, @Param('userId') userId: string) {
+    return this.service.removeAssignee(req.workspaceId, taskId, userId);
+  }
+
+  // Attachments
+  @ApiOperation({ summary: 'Adicionar anexo à task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Post(':id/attachments')
+  addAttachment(
+    @Req() req: any,
+    @Param('id') taskId: string,
+    @Body() body: { url: string; fileName: string; fileType: string; size?: number },
+  ) {
+    return this.service.addAttachment(req.workspaceId, taskId, body);
+  }
+
+  @ApiOperation({ summary: 'Remover anexo da task' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Delete(':id/attachments/:attachmentId')
+  removeAttachment(@Req() req: any, @Param('id') taskId: string, @Param('attachmentId') attachmentId: string) {
+    return this.service.removeAttachment(req.workspaceId, taskId, attachmentId);
+  }
 }

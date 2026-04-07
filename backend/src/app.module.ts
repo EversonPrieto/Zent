@@ -12,6 +12,8 @@ import { ActivityModule } from './activity/activity.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { InvitesModule } from './invites/invites.module';
 import { EmailModule } from './common/email/email.module';
+import { LabelsModule } from './labels/labels.module';
+import { AttachmentsModule } from './attachments/attachments.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { EmailModule } from './common/email/email.module';
     CommentsModule,
     ActivityModule,
     InvitesModule,
+    LabelsModule,
+    AttachmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

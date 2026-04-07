@@ -1,0 +1,43 @@
+'use client';
+
+import { useEffect } from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+
+export default function RootError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error('Root error:', error);
+  }, [error]);
+
+  return (
+    <html>
+      <body>
+        <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 flex items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-8 text-center backdrop-blur-sm">
+              <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
+                <AlertCircle className="h-6 w-6 text-red-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Algo deu errado</h2>
+              <p className="text-sm text-zinc-300 mb-6">
+                {error.message || 'Erro ao carregar a aplicação'}
+              </p>
+              <button
+                onClick={reset}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/30 transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  );
+}

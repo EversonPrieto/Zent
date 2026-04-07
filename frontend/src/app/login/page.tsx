@@ -2,7 +2,23 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '../../lib/api';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  LogIn,
+  Sparkles,
+  Shield,
+  Users,
+  LayoutDashboard,
+  CheckCircle2,
+  Loader2,
+  AlertCircle
+} from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,6 +30,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -68,45 +85,207 @@ export default function LoginPage() {
     }
   }
 
+  const isFormValid = email.trim() && password.trim();
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-zinc-950 text-white px-4">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
-        <h1 className="text-2xl font-bold mb-2">Entrar no Zent</h1>
-        <p className="text-zinc-400 mb-6">Acesse sua workspace</p>
+    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm mb-1">Email</label>
-            <input
-              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-2 outline-none"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@email.com"
-            />
+      <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+        <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {/* Left Column - Info */}
+          <div className="hidden border-r border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 lg:block lg:p-10">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
+              <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                Zent
+              </span>
+            </div>
+
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              Bem-vindo de volta
+            </h1>
+            <p className="mt-4 text-zinc-400 leading-relaxed">
+              Acesse sua workspace e continue organizando seus projetos com mais produtividade e clareza.
+            </p>
+
+            {inviteToken && (
+              <div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/10 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  <span className="text-sm font-medium text-violet-400">Convite pendente!</span>
+                </div>
+                <p className="text-xs text-zinc-400">
+                  Você foi convidado para uma workspace. Após o login, será automaticamente adicionado.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-8 space-y-3">
+              {[
+                { icon: Users, text: 'Gerencie múltiplas workspaces' },
+                { icon: LayoutDashboard, text: 'Organize projetos em Kanban' },
+                { icon: Shield, text: 'Controle de permissões por função' },
+              ].map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <div key={idx} className="flex items-center gap-3 text-sm text-zinc-400">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/10">
+                      <Icon className="h-3.5 w-3.5 text-violet-400" />
+                    </div>
+                    <span>{item.text}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm mb-1">Senha</label>
-            <input
-              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-2 outline-none"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Sua senha"
-            />
+          {/* Right Column - Form */}
+          <div className="p-6 md:p-8 lg:p-10">
+            <div className="mb-6 text-center lg:text-left">
+              <div className="flex justify-center lg:justify-start mb-4 lg:hidden">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
+                  <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                    Zent
+                  </span>
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                Entrar
+              </h2>
+              <p className="mt-2 text-sm text-zinc-400">
+                Acesse sua conta e workspace
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Field */}
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                  <Mail className="h-4 w-4 text-violet-400" />
+                  Email
+                </label>
+                <input
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@email.com"
+                  autoFocus
+                />
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                  <Lock className="h-4 w-4 text-violet-400" />
+                  Senha
+                </label>
+                <div className="relative">
+                  <input
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Sua senha"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors hover:text-zinc-300"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              {/* Forgot Password Link */}
+              <div className="flex justify-end">
+                <Link 
+                  href="/forgot-password" 
+                  className="text-xs text-zinc-500 transition-colors hover:text-violet-400"
+                >
+                  Esqueceu a senha?
+                </Link>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || !isFormValid}
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      Entrar
+                      <LogIn className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </span>
+              </button>
+            </form>
+
+            {/* Signup Link */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-zinc-400">
+                Não tem uma conta?{' '}
+                <Link 
+                  href="/signup" 
+                  className="font-medium text-violet-400 transition-colors hover:text-violet-300 hover:underline"
+                >
+                  Criar conta gratuita
+                </Link>
+              </p>
+            </div>
+
+            {/* Mobile Features */}
+            <div className="mt-6 block lg:hidden">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  <span className="text-xs font-medium text-zinc-400">Grátis por 14 dias</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                    <span>Workspaces</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                    <span>Kanban</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                    <span>Comentários</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                    <span>Permissões</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-white text-black font-medium py-2 disabled:opacity-60"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+        </div>
       </div>
     </main>
   );

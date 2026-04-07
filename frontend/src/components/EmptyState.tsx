@@ -1,6 +1,20 @@
 'use client';
 
 import React from 'react';
+import {
+  Users,
+  FolderKanban,
+  CheckCircle2,
+  MessageSquare,
+  Search,
+  PlusCircle,
+  Sparkles,
+  Building2,
+  LayoutDashboard,
+  Mail,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -9,26 +23,28 @@ interface EmptyStateProps {
   action?: {
     label: string;
     onClick: () => void;
+    icon?: React.ReactNode;
   };
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'compact' | 'centered';
 }
 
 const iconSizes = {
-  sm: 'text-3xl',
-  md: 'text-5xl',
-  lg: 'text-6xl',
+  sm: 'h-8 w-8',
+  md: 'h-12 w-12',
+  lg: 'h-16 w-16',
 };
 
 const containerSizes = {
-  sm: 'py-4',
-  md: 'py-8',
-  lg: 'py-12',
+  sm: 'py-6 px-4',
+  md: 'py-12 px-6',
+  lg: 'py-16 px-8',
 };
 
 const titleSizes = {
   sm: 'text-sm',
-  md: 'text-base',
-  lg: 'text-lg',
+  md: 'text-lg',
+  lg: 'text-xl',
 };
 
 const descriptionSizes = {
@@ -37,31 +53,48 @@ const descriptionSizes = {
   lg: 'text-base',
 };
 
+const variantStyles = {
+  default: 'border border-dashed border-white/10 bg-white/5',
+  compact: 'border border-white/10 bg-white/5',
+  centered: 'border-none bg-transparent',
+};
+
 export function EmptyState({
-  icon = '📭',
+  icon,
   title,
   description,
   action,
   size = 'md',
+  variant = 'default',
 }: EmptyStateProps) {
   return (
-    <div className={`flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-zinc-700 bg-zinc-950/50 px-4 text-center ${containerSizes[size]}`}>
-      <div className={iconSizes[size]}>{icon}</div>
-      <div>
-        <h3 className={`font-semibold text-zinc-300 ${titleSizes[size]}`}>
+    <div
+      className={`flex flex-col items-center justify-center gap-4 rounded-2xl text-center transition-all ${variantStyles[variant]} ${containerSizes[size]}`}
+    >
+      {/* Icon */}
+      <div className={`rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 ${iconSizes[size]} flex items-center justify-center`}>
+        {icon || <Sparkles className={`${iconSizes[size]} text-violet-400`} />}
+      </div>
+
+      {/* Text Content */}
+      <div className="max-w-md space-y-2">
+        <h3 className={`font-semibold text-white ${titleSizes[size]}`}>
           {title}
         </h3>
         {description && (
-          <p className={`mt-1 text-zinc-500 ${descriptionSizes[size]}`}>
+          <p className={`text-zinc-400 ${descriptionSizes[size]}`}>
             {description}
           </p>
         )}
       </div>
+
+      {/* Action Button */}
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition-colors"
+          className="group mt-2 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40"
         >
+          {action.icon || <PlusCircle className="h-4 w-4 transition-transform group-hover:rotate-90" />}
           {action.label}
         </button>
       )}
@@ -73,10 +106,14 @@ export function EmptyState({
 export function EmptyMembers({ onInvite }: { onInvite?: () => void }) {
   return (
     <EmptyState
-      icon="👥"
+      icon={<Users className="h-12 w-12 text-violet-400" />}
       title="Nenhum membro ainda"
       description="Convide pessoas para começar a colaborar neste workspace"
-      action={onInvite ? { label: 'Convidar membro', onClick: onInvite } : undefined}
+      action={onInvite ? { 
+        label: 'Convidar membro', 
+        onClick: onInvite,
+        icon: <Mail className="h-4 w-4" />
+      } : undefined}
       size="md"
     />
   );
@@ -85,10 +122,14 @@ export function EmptyMembers({ onInvite }: { onInvite?: () => void }) {
 export function EmptyProjects({ onCreate }: { onCreate?: () => void }) {
   return (
     <EmptyState
-      icon="📁"
+      icon={<FolderKanban className="h-12 w-12 text-violet-400" />}
       title="Nenhum projeto criado"
       description="Crie seu primeiro projeto para começar a gerenciar tarefas"
-      action={onCreate ? { label: 'Criar projeto', onClick: onCreate } : undefined}
+      action={onCreate ? { 
+        label: 'Criar projeto', 
+        onClick: onCreate,
+        icon: <PlusCircle className="h-4 w-4" />
+      } : undefined}
       size="md"
     />
   );
@@ -97,10 +138,14 @@ export function EmptyProjects({ onCreate }: { onCreate?: () => void }) {
 export function EmptyTasks({ onCreate }: { onCreate?: () => void }) {
   return (
     <EmptyState
-      icon="✓"
+      icon={<CheckCircle2 className="h-12 w-12 text-violet-400" />}
       title="Nenhuma tarefa"
       description="Crie uma tarefa para começar a gerenciar seu trabalho"
-      action={onCreate ? { label: 'Criar tarefa', onClick: onCreate } : undefined}
+      action={onCreate ? { 
+        label: 'Criar tarefa', 
+        onClick: onCreate,
+        icon: <PlusCircle className="h-4 w-4" />
+      } : undefined}
       size="md"
     />
   );
@@ -109,10 +154,11 @@ export function EmptyTasks({ onCreate }: { onCreate?: () => void }) {
 export function EmptyComments() {
   return (
     <EmptyState
-      icon="💬"
+      icon={<MessageSquare className="h-8 w-8 text-violet-400" />}
       title="Sem comentários"
       description="Seja o primeiro a comentar"
       size="sm"
+      variant="compact"
     />
   );
 }
@@ -120,10 +166,74 @@ export function EmptyComments() {
 export function EmptySearch() {
   return (
     <EmptyState
-      icon="🔍"
-      title="Nenhum resultado"
+      icon={<Search className="h-12 w-12 text-violet-400" />}
+      title="Nenhum resultado encontrado"
       description="Tente ajustar seus filtros ou termos de busca"
       size="md"
     />
+  );
+}
+
+export function EmptyWorkspace({ onCreate }: { onCreate?: () => void }) {
+  return (
+    <EmptyState
+      icon={<Building2 className="h-12 w-12 text-violet-400" />}
+      title="Nenhum workspace encontrado"
+      description="Crie seu primeiro workspace para começar a organizar seu trabalho"
+      action={onCreate ? { 
+        label: 'Criar workspace', 
+        onClick: onCreate,
+        icon: <PlusCircle className="h-4 w-4" />
+      } : undefined}
+      size="lg"
+    />
+  );
+}
+
+export function EmptyActivity() {
+  return (
+    <EmptyState
+      icon={<Clock className="h-12 w-12 text-violet-400" />}
+      title="Nenhuma atividade recente"
+      description="Atividades aparecerão aqui conforme você e sua equipe trabalharem"
+      size="md"
+    />
+  );
+}
+
+export function EmptyNotifications() {
+  return (
+    <EmptyState
+      icon={<AlertCircle className="h-12 w-12 text-violet-400" />}
+      title="Nenhuma notificação"
+      description="Você está em dia! Novas notificações aparecerão aqui"
+      size="md"
+    />
+  );
+}
+
+export function EmptyDashboard() {
+  return (
+    <EmptyState
+      icon={<LayoutDashboard className="h-12 w-12 text-violet-400" />}
+      title="Bem-vindo ao Zent!"
+      description="Comece criando um workspace para organizar seus projetos"
+      size="lg"
+      variant="centered"
+    />
+  );
+}
+
+// Componente de loading para estados vazios
+export function EmptyStateSkeleton() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
+      <div className="h-12 w-12 animate-pulse rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20" />
+      <div className="space-y-2">
+        <div className="h-5 w-32 animate-pulse rounded bg-white/10 mx-auto" />
+        <div className="h-4 w-48 animate-pulse rounded bg-white/5 mx-auto" />
+      </div>
+      <div className="h-9 w-32 animate-pulse rounded-xl bg-white/10" />
+    </div>
   );
 }
