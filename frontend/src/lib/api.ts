@@ -2,7 +2,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type RequestOptions = RequestInit & {
   workspaceId?: string;
-  body?: any; // 👈 permite objeto direto
+  body?: any; 
 };
 
 export async function api(path: string, options: RequestOptions = {}) {

@@ -3,18 +3,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 type Role = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 
-/**
- * ACL (Access Control List) Service
- * Centraliza todas as regras de permissão da aplicação
- */
 @Injectable()
 export class AclService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Define as permissões por role
-   * Format: action -> roles que podem executar
-   */
   private readonly permissions = {
     'project:create': ['ADMIN', 'OWNER'],
     'project:delete': ['ADMIN', 'OWNER'],
@@ -29,9 +21,6 @@ export class AclService {
     'task:move': ['MEMBER', 'ADMIN', 'OWNER'],
   };
 
-  /**
-   * Obtém o role do usuário em um workspace
-   */
   async getUserRoleInWorkspace(
     workspaceId: string,
     userId: string,
@@ -47,10 +36,6 @@ export class AclService {
     return membership?.role || null;
   }
 
-  /**
-   * Verifica se o usuário tem permissão para uma ação
-   * Lança ForbiddenException se não tiver permissão
-   */
   async checkPermission(
     action: string,
     workspaceId: string,
@@ -74,9 +59,6 @@ export class AclService {
     }
   }
 
-  /**
-   * Verifica a permissão e retorna booleano (para uso frontend)
-   */
   async hasPermission(
     action: string,
     workspaceId: string,
@@ -90,10 +72,6 @@ export class AclService {
     }
   }
 
-  /**
-   * Verifica permissão ou lança erro
-   * Retorna o role do usuário se tiver permissão
-   */
   async requirePermission(
     action: string,
     workspaceId: string,
@@ -115,10 +93,6 @@ export class AclService {
     return role;
   }
 
-  /**
-   * Retorna as permissões do usuário em um workspace
-   * Util para frontend saber o que renderizar
-   */
   async getUserPermissions(
     workspaceId: string,
     userId: string,
@@ -142,9 +116,7 @@ export class AclService {
     };
   }
 
-  /**
-   * Traduz ação para label legível
-   */
+
   private getActionLabel(action: string): string {
     const labels: Record<string, string> = {
       'project:create': 'criar projetos',

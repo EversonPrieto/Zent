@@ -16,7 +16,6 @@ export class CommentsGateway {
   @WebSocketServer()
   server: Server;
 
-  // usuário entra na sala da task
   @SubscribeMessage('join-task')
   handleJoinTask(
     @MessageBody() taskId: string,
@@ -26,7 +25,6 @@ export class CommentsGateway {
     client.join(`task-${taskId}`);
   }
 
-  // usuário sai da sala da task
   @SubscribeMessage('leave-task')
   handleLeaveTask(
     @MessageBody() taskId: string,
@@ -36,13 +34,11 @@ export class CommentsGateway {
     client.leave(`task-${taskId}`);
   }
 
-  // emite novo comentário
   emitCommentCreated(taskId: string, comment: any) {
     console.log('💬 novo comentário:', comment);
     this.server.to(`task-${taskId}`).emit('comment:created', comment);
   }
 
-  // emite comentário deletado
   emitCommentDeleted(taskId: string, commentId: string) {
     console.log('🗑️ comentário deletado:', commentId);
     this.server.to(`task-${taskId}`).emit('comment:deleted', commentId);

@@ -96,7 +96,6 @@ export default function Toast() {
         return updated;
       });
 
-      // Remover após a duração especificada
       const duration = toast.duration || 4000;
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== toast.id));
@@ -132,18 +131,15 @@ export default function Toast() {
             }}
           >
             <div className="flex items-start gap-3 p-4">
-              {/* Icon */}
               <div className="flex-shrink-0">
                 <Icon className={`h-5 w-5 ${config.color}`} />
               </div>
 
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-medium ${config.color}`}>
                   {toast.message}
                 </p>
-                
-                {/* Action Button */}
+
                 {toast.action && (
                   <button
                     onClick={async () => {
@@ -157,7 +153,6 @@ export default function Toast() {
                 )}
               </div>
 
-              {/* Close Button */}
               <button
                 onClick={() => removeToast(toast.id)}
                 className="flex-shrink-0 rounded-lg p-1 text-zinc-500 transition-colors hover:bg-white/10 hover:text-white"
@@ -167,7 +162,6 @@ export default function Toast() {
               </button>
             </div>
 
-            {/* Progress Bar */}
             <div className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden rounded-b-xl">
               <div
                 className={`h-full rounded-full ${config.bg}`}
@@ -181,7 +175,6 @@ export default function Toast() {
         );
       })}
 
-      {/* Custom animations */}
       <style jsx>{`
         @keyframes slideIn {
           from {

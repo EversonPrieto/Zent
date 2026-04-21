@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
@@ -22,7 +22,7 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -56,18 +56,15 @@ export default function LoginPage() {
         throw new Error(message);
       }
 
-      // 🔐 salvar auth
       localStorage.setItem('zent_token', data.accessToken);
       localStorage.setItem('zent_user', JSON.stringify(data.user));
 
-      // 🔥 ACEITAR INVITE
       if (inviteToken) {
         await api(`/invites/${inviteToken}/accept`, {
           method: 'POST',
         })
       }
 
-      // 🔹 pegar workspaces
       const workspaces = await api('/workspaces')
 
       if (workspaces.length > 0) {
@@ -89,7 +86,6 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -97,7 +93,6 @@ export default function LoginPage() {
 
       <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Left Column - Info */}
           <div className="hidden border-r border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 lg:block lg:p-10">
             <div className="flex items-center gap-2 mb-6">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
@@ -144,7 +139,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Right Column - Form */}
           <div className="p-6 md:p-8 lg:p-10">
             <div className="mb-6 text-center lg:text-left">
               <div className="flex justify-center lg:justify-start mb-4 lg:hidden">
@@ -164,7 +158,6 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Email Field */}
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                   <Mail className="h-4 w-4 text-violet-400" />
@@ -180,7 +173,6 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Password Field */}
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                   <Lock className="h-4 w-4 text-violet-400" />
@@ -204,7 +196,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -212,7 +203,6 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {/* Forgot Password Link */}
               <div className="flex justify-end">
                 <Link 
                   href="/forgot-password" 
@@ -222,7 +212,6 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading || !isFormValid}
@@ -244,7 +233,6 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Signup Link */}
             <div className="mt-6 text-center">
               <p className="text-sm text-zinc-400">
                 Não tem uma conta?{' '}
@@ -257,7 +245,6 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Mobile Features */}
             <div className="mt-6 block lg:hidden">
               <div className="rounded-xl border border-white/10 bg-white/5 p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -288,5 +275,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -27,7 +27,6 @@ export class LabelsService {
   }
 
   async updateLabel(id: string, workspaceId: string, data: { name?: string; color?: string }) {
-    // Verificar se label pertence ao workspace
     const label = await this.prisma.label.findUnique({ where: { id } });
     if (!label || label.workspaceId !== workspaceId) {
       throw new ForbiddenException('Acesso negado');

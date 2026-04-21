@@ -17,7 +17,6 @@ export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
     );
   }
 
-  // Remover duplicatas usando Set de IDs
   const seenIds = new Set<string>();
   const uniqueUsers = users.filter((u) => {
     if (!u.id || seenIds.has(u.id)) {
@@ -27,7 +26,6 @@ export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
     return true;
   });
 
-  // Ordenar: usuário atual primeiro, depois os outros
   const sortedUsers = [
     ...uniqueUsers.filter((u) => u.id === currentUserId),
     ...uniqueUsers.filter((u) => u.id !== currentUserId),

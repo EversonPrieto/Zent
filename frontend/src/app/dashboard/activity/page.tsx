@@ -50,7 +50,6 @@ type Workspace = {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 };
 
-// Função para obter o ícone baseado no tipo de atividade
 function getActivityIcon(type: string) {
   const iconMap: Record<string, { icon: typeof Activity; color: string; bg: string }> = {
     'TASK_CREATED': { icon: PlusCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -65,7 +64,6 @@ function getActivityIcon(type: string) {
   return iconMap[type] || { icon: Activity, color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
 }
 
-// Função para formatar data relativa
 function getRelativeDate(date: string) {
   const now = new Date();
   const activityDate = new Date(date);
@@ -118,11 +116,12 @@ export default function ActivityPage() {
       try {
         setLoading(true);
 
-        const data = await api('/activity', {
+        const response = await api('/activities', {
           workspaceId,
         });
 
-        setActivities(data);
+        const activityList = response.items || response;
+        setActivities(Array.isArray(activityList) ? activityList : []);
         setError('');
       } catch (err) {
         setError(
@@ -146,7 +145,6 @@ export default function ActivityPage() {
     };
   }, [router]);
 
-  // Filtrar atividades
   const filteredActivities = activities.filter(activity => {
     if (filter === 'all') return true;
     if (filter === 'tasks') return activity.task !== undefined;
@@ -155,7 +153,6 @@ export default function ActivityPage() {
     return true;
   });
 
-  // Agrupar atividades por data
   const groupedActivities = filteredActivities.reduce((groups, activity) => {
     const date = new Date(activity.createdAt).toLocaleDateString('pt-BR');
     if (!groups[date]) {
@@ -174,14 +171,12 @@ export default function ActivityPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-12">
-        {/* Header */}
         <div className="mb-8 md:mb-12">
           <div className="mb-4 flex items-center gap-2">
             <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm backdrop-blur-sm">
@@ -212,7 +207,6 @@ export default function ActivityPage() {
               </p>
             </div>
 
-            {/* Stats */}
             <div className="flex gap-3">
               <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-sm">
                 <p className="text-2xl font-bold text-white">{activities.length}</p>
@@ -228,7 +222,6 @@ export default function ActivityPage() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="mb-6 flex flex-wrap gap-2">
           {filterOptions.map((option) => {
             const Icon = option.icon;
@@ -250,7 +243,6 @@ export default function ActivityPage() {
           })}
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
@@ -258,7 +250,6 @@ export default function ActivityPage() {
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
@@ -274,7 +265,6 @@ export default function ActivityPage() {
           </div>
         )}
 
-        {/* Empty State */}
         {!loading && !error && filteredActivities.length === 0 && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-12 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
@@ -289,12 +279,10 @@ export default function ActivityPage() {
           </div>
         )}
 
-        {/* Activities List */}
         {!loading && !error && filteredActivities.length > 0 && (
           <div className="space-y-8">
             {Object.entries(groupedActivities).map(([date, dateActivities]) => (
               <div key={date}>
-                {/* Date Header */}
                 <div className="sticky top-0 z-10 mb-4 -mt-2 bg-gradient-to-b from-zinc-950 to-transparent pt-2 pb-1">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-violet-400" />
@@ -318,7 +306,6 @@ export default function ActivityPage() {
                         className="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5 transition-all hover:scale-[1.02] hover:border-white/20 hover:shadow-xl"
                       >
                         <div className="flex items-start gap-4">
-                          {/* Avatar/Icon */}
                           <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
                             {activity.user?.avatarUrl ? (
                               <img
@@ -332,7 +319,6 @@ export default function ActivityPage() {
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            {/* Description */}
                             <p className="text-sm text-zinc-300">
                               <span className="font-medium text-white">
                                 {activity.user?.name ?? 'Sistema'}
@@ -340,7 +326,6 @@ export default function ActivityPage() {
                               {activity.description}
                             </p>
 
-                            {/* Metadata */}
                             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
                               <div className="flex items-center gap-1 text-zinc-500">
                                 <Clock className="h-3 w-3" />
@@ -362,7 +347,6 @@ export default function ActivityPage() {
                               )}
                             </div>
 
-                            {/* Full date tooltip on hover */}
                             <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <p className="text-[10px] text-zinc-600">
                                 {new Date(activity.createdAt).toLocaleString('pt-BR', {
@@ -384,7 +368,6 @@ export default function ActivityPage() {
               </div>
             ))}
 
-            {/* Footer */}
             <div className="mt-8 text-center">
               <p className="text-sm text-zinc-500">
                 Mostrando {filteredActivities.length} {filteredActivities.length === 1 ? 'atividade' : 'atividades'}
@@ -394,7 +377,6 @@ export default function ActivityPage() {
         )}
       </div>
 
-      {/* Custom scrollbar styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

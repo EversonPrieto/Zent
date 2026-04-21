@@ -167,7 +167,6 @@ export default function SignupPage() {
 
     return (
         <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-            {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -175,7 +174,6 @@ export default function SignupPage() {
 
             <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10 md:px-6">
                 <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {/* Left Column - Info */}
                     <div className="hidden border-r border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 lg:block lg:p-10">
                         <div className="flex items-center gap-2 mb-6">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
@@ -222,7 +220,6 @@ export default function SignupPage() {
                         </div>
                     </div>
 
-                    {/* Right Column - Form */}
                     <div className="p-6 md:p-8 lg:p-10">
                         <div className="mb-6 text-center lg:text-left">
                             <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
@@ -234,7 +231,6 @@ export default function SignupPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Name Field */}
                             <div>
                                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                                     <User className="h-4 w-4 text-violet-400" />
@@ -249,7 +245,6 @@ export default function SignupPage() {
                                 />
                             </div>
 
-                            {/* Email Field */}
                             <div>
                                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                                     <Mail className="h-4 w-4 text-violet-400" />
@@ -264,7 +259,6 @@ export default function SignupPage() {
                                 />
                             </div>
 
-                            {/* Password Field */}
                             <div>
                                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                                     <Lock className="h-4 w-4 text-violet-400" />
@@ -287,7 +281,6 @@ export default function SignupPage() {
                                     </button>
                                 </div>
 
-                                {/* Password Requirements */}
                                 <div className="mt-3 space-y-1.5">
                                     {[
                                         { key: 'minLength', text: 'Pelo menos 8 caracteres' },
@@ -306,7 +299,6 @@ export default function SignupPage() {
                                 </div>
                             </div>
 
-                            {/* Confirm Password Field */}
                             <div>
                                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                                     <Lock className="h-4 w-4 text-violet-400" />
@@ -345,7 +337,6 @@ export default function SignupPage() {
                                 )}
                             </div>
 
-                            {/* Error/Success Messages */}
                             {error && (
                                 <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
                                     <XCircle className="h-4 w-4 flex-shrink-0" />
@@ -359,7 +350,6 @@ export default function SignupPage() {
                                 </div>
                             )}
 
-                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 disabled={loading || !isFormValid}
@@ -381,7 +371,6 @@ export default function SignupPage() {
                             </button>
                         </form>
 
-                        {/* Login Link */}
                         <div className="mt-6 text-center">
                             <p className="text-sm text-zinc-400">
                                 Já tem conta?{' '}
@@ -394,7 +383,6 @@ export default function SignupPage() {
                             </p>
                         </div>
 
-                        {/* Mobile Features */}
                         <div className="mt-6 block lg:hidden">
                             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
                                 <div className="flex items-center gap-2 mb-3">

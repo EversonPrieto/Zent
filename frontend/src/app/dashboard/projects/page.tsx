@@ -110,7 +110,6 @@ export default function ProjectsPage() {
     setProjects((prev) => [createdProject, ...prev]);
   }
 
-  // Format date relative
   function getRelativeDate(date: string) {
     const now = new Date();
     const updated = new Date(date);
@@ -124,16 +123,13 @@ export default function ProjectsPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
-        {/* Header */}
         <div className="mb-8 md:mb-12">
-          {/* Workspace badge */}
           <div className="mb-4 flex items-center gap-2">
             <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm backdrop-blur-sm">
               <Building2 className="h-3.5 w-3.5 mr-1.5 text-violet-400" />
@@ -161,7 +157,6 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
         {!loading && !error && projects.length > 0 && (
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-4 backdrop-blur-sm">
@@ -200,7 +195,6 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
@@ -208,7 +202,6 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
@@ -224,7 +217,6 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* Empty State */}
         {!loading && !error && projects.length === 0 && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-12 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
@@ -244,7 +236,6 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* Projects Grid */}
         {!loading && !error && projects.length > 0 && (
           <>
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -262,11 +253,9 @@ export default function ProjectsPage() {
                     }
                   }}
                 >
-                  {/* Hover gradient overlay */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 opacity-0 transition-opacity group-hover:opacity-100" />
                   
                   <div className="relative">
-                    {/* Header with icon and menu */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                         <FolderKanban className="h-5 w-5 text-violet-400" />
@@ -274,7 +263,6 @@ export default function ProjectsPage() {
                       <div 
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Future: Open project menu
                         }}
                         className="rounded-lg p-1 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/10 cursor-pointer"
                         role="button"
@@ -283,7 +271,6 @@ export default function ProjectsPage() {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
                             e.stopPropagation();
-                            // Future: Open project menu
                           }
                         }}
                       >
@@ -291,17 +278,14 @@ export default function ProjectsPage() {
                       </div>
                     </div>
 
-                    {/* Project name */}
                     <h2 className="text-xl font-semibold text-white group-hover:text-violet-400 transition-colors">
                       {project.name}
                     </h2>
 
-                    {/* Description */}
                     <p className="mt-2 min-h-[40px] text-sm text-zinc-400 line-clamp-2">
                       {project.description || 'Sem descrição'}
                     </p>
 
-                    {/* Footer with date and action */}
                     <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
                       <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                         <Clock className="h-3 w-3" />
@@ -318,7 +302,6 @@ export default function ProjectsPage() {
               ))}
             </div>
 
-            {/* Footer info */}
             <div className="mt-8 text-center">
               <p className="text-sm text-zinc-500">
                 Mostrando <span className="text-violet-400 font-medium">{projects.length}</span>{' '}
@@ -329,7 +312,6 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      {/* Create Project Modal */}
       {showModal && workspaceId !== '' && (
         <CreateProjectModal
           workspaceId={workspaceId}

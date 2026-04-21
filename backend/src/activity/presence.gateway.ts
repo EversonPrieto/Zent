@@ -25,10 +25,8 @@ export class PresenceGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  // Map de usuarios online: projectId -> userId -> user info
   private onlineUsers = new Map<string, Map<string, OnlineUser>>();
 
-  // Map de conexões: socketId -> { projectId, userId }
   private socketMap = new Map<string, { projectId: string; userId: string }>();
 
   handleDisconnect(client: Socket) {
@@ -39,7 +37,6 @@ export class PresenceGateway implements OnGatewayDisconnect {
     }
   }
 
-  // usuário entra no projeto
   @SubscribeMessage('join-project')
   handleJoinProject(
     @MessageBody() data: { projectId: string; userId: string; name: string; avatarUrl: string },
@@ -56,7 +53,6 @@ export class PresenceGateway implements OnGatewayDisconnect {
     client.join(`project-presence-${data.projectId}`);
     this.socketMap.set(client.id, { projectId: data.projectId, userId: data.userId });
 
-    // adicionar usuario online
     if (!this.onlineUsers.has(data.projectId)) {
       this.onlineUsers.set(data.projectId, new Map());
     }
@@ -72,11 +68,9 @@ export class PresenceGateway implements OnGatewayDisconnect {
       console.log(`   Total de usuários no projeto ${data.projectId}:`, projectUsers.size);
     }
 
-    // notificar todos sobre lista atualizada
     this.broadcastPresence(data.projectId);
   }
 
-  // usuário sai do projeto
   @SubscribeMessage('leave-project')
   handleLeaveProject(
     @MessageBody() projectId: string,
@@ -90,7 +84,6 @@ export class PresenceGateway implements OnGatewayDisconnect {
     }
   }
 
-  // usuário começa a editar task
   @SubscribeMessage('editing-task')
   handleEditingTask(
     @MessageBody() data: { projectId: string; userId: string; taskId: string },
@@ -108,7 +101,6 @@ export class PresenceGateway implements OnGatewayDisconnect {
     }
   }
 
-  // usuário parou de editar
   @SubscribeMessage('stop-editing-task')
   handleStopEditingTask(
     @MessageBody() data: { projectId: string; userId: string },

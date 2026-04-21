@@ -193,7 +193,6 @@ export default function ProjectBoardPage() {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [createTaskStatus, setCreateTaskStatus] = useState<TaskStatus>('TODO');
 
-  // Presence tracking
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatarUrl: string | null } | null>(null);
 
   const sensors = useSensors(
@@ -202,7 +201,6 @@ export default function ProjectBoardPage() {
     }),
   );
 
-  // ✨ Hook para sincronização realtime de tasks
   useTaskSync({
     projectId,
     onTaskMoved: (movedTask) => {
@@ -238,7 +236,6 @@ export default function ProjectBoardPage() {
       let wsId: string | null = localStorage.getItem('zent_workspace_id');
       const workspaceRaw = localStorage.getItem('zent_workspace');
       
-      // Carregar usuário atual
       const userRaw = localStorage.getItem('zent_user');
       if (userRaw) {
         try {
@@ -249,7 +246,6 @@ export default function ProjectBoardPage() {
             avatarUrl: user.avatarUrl || null,
           });
         } catch {
-          // fail silently
         }
       }
 
@@ -258,7 +254,6 @@ export default function ProjectBoardPage() {
         return;
       }
 
-      // Validar e corrigir wsId se necessário
       if (!wsId || wsId === ':1' || wsId.startsWith(':')) {
         try {
           const workspaces = await api('/workspaces');
@@ -310,7 +305,6 @@ export default function ProjectBoardPage() {
     };
   }, [projectId, router]);
 
-  // Presence tracking - só inicializa quando currentUser está disponível
   const { onlineUsers } = usePresence(
     currentUser ? {
       projectId,
@@ -467,14 +461,12 @@ export default function ProjectBoardPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
-        {/* Header */}
         <div className="mb-6 md:mb-8">
           <button
             onClick={() => router.push('/dashboard/projects')}
@@ -498,7 +490,6 @@ export default function ProjectBoardPage() {
               </p>
             </div>
 
-            {/* Progress Bar */}
             {totalTasks > 0 && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
@@ -524,7 +515,6 @@ export default function ProjectBoardPage() {
           </div>
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
@@ -532,7 +522,6 @@ export default function ProjectBoardPage() {
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
@@ -548,7 +537,6 @@ export default function ProjectBoardPage() {
           </div>
         )}
 
-        {/* Kanban Board */}
         {!loading && !error && (
           <DndContext
             sensors={sensors}
@@ -556,7 +544,6 @@ export default function ProjectBoardPage() {
             onDragEnd={handleDragEnd}
           >
             <div className="flex flex-col lg:flex-row gap-6">
-              {/* Kanban Columns */}
               <div className="flex-1 min-w-0">
                 <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
                   {columns.map((col) => (
@@ -571,10 +558,8 @@ export default function ProjectBoardPage() {
                 </div>
               </div>
 
-              {/* Online Users & Activity Feed */}
               <div className="lg:w-80 flex-shrink-0">
                 <div className="sticky top-24">
-                  {/* Online Users */}
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm mb-4">
                     {currentUser && (
                       <OnlineUsers 
@@ -584,7 +569,6 @@ export default function ProjectBoardPage() {
                     )}
                   </div>
 
-                  {/* Activity Feed */}
                   <div>
                     <div className="mb-3 flex items-center gap-2 px-2">
                       <Users className="h-4 w-4 text-violet-400" />
@@ -601,7 +585,6 @@ export default function ProjectBoardPage() {
           </DndContext>
         )}
 
-        {/* Modals */}
         <TaskModal
           task={selectedTask}
           workspaceId={workspaceId}
@@ -627,14 +610,12 @@ export default function ProjectBoardPage() {
             initialStatus={createTaskStatus}
             onClose={() => setShowCreateTaskModal(false)}
             onCreated={() => {
-              // Task will be added via useTaskSync socket event (single source of truth)
               setShowCreateTaskModal(false);
             }}
           />
         )}
       </div>
 
-      {/* Custom scrollbar styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

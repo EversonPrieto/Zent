@@ -21,7 +21,9 @@ import {
   Eye,
   CheckCircle2,
   Menu,
-  X
+  X,
+  FolderKanban,
+  Search,
 } from 'lucide-react';
 
 import CreateWorkspaceModal from './CreateWorkspaceModal';
@@ -70,7 +72,6 @@ export default function AppHeader() {
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // sync global (sem F5)
   useEffect(() => {
     function syncFromStorage() {
       const workspaceRaw = localStorage.getItem('zent_workspace');
@@ -122,7 +123,6 @@ export default function AppHeader() {
           setWorkspaces(workspaces);
         }
       } catch (err) {
-        // Erro ao validar, ignora silenciosamente
       }
     }
 
@@ -132,7 +132,6 @@ export default function AppHeader() {
     return () => clearInterval(interval);
   }, [workspace]);
 
-  // carregar workspaces
   useEffect(() => {
     async function loadWorkspaces() {
       try {
@@ -146,7 +145,6 @@ export default function AppHeader() {
     loadWorkspaces();
   }, []);
 
-  // fechar dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
@@ -229,9 +227,7 @@ export default function AppHeader() {
     <>
       <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
-          {/* LEFT */}
           <div className="flex items-center gap-4">
-            {/* Logo */}
             <button
               onClick={() => router.push('/dashboard/projects')}
               className="group flex items-center gap-2"
@@ -244,7 +240,6 @@ export default function AppHeader() {
 
             <div className="hidden h-6 w-px bg-white/10 md:block" />
 
-            {/* WORKSPACE SELECTOR - Desktop */}
             <div className="relative hidden md:block" ref={workspaceMenuRef}>
               {workspace ? (
                 <button
@@ -292,7 +287,6 @@ export default function AppHeader() {
                 </button>
               )}
 
-              {/* Workspace Dropdown */}
               {workspaceMenuOpen && workspace && (
                 <div className="absolute left-0 top-full mt-2 w-80 rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-3 py-2">
@@ -416,14 +410,13 @@ export default function AppHeader() {
             </div>
           </div>
 
-          {/* RIGHT - Desktop */}
           <div className="hidden md:flex md:items-center md:gap-4">
-            {/* Navigation Links */}
             <div className="flex items-center gap-1 mr-2">
               <button
-                onClick={() => router.push('/dashboard/projects')}
+                onClick={() => router.push('/dashboard/overview')}
+                title="Dashboard"
                 className={`rounded-lg px-3 py-2 text-sm transition-all ${
-                  pathname === '/dashboard/projects'
+                  pathname === '/dashboard/overview'
                     ? 'bg-white/10 text-white'
                     : 'text-zinc-400 hover:bg-white/5 hover:text-white'
                 }`}
@@ -431,7 +424,19 @@ export default function AppHeader() {
                 <LayoutDashboard className="h-4 w-4" />
               </button>
               <button
+                onClick={() => router.push('/dashboard/projects')}
+                title="Projetos"
+                className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                  pathname === '/dashboard/projects'
+                    ? 'bg-white/10 text-white'
+                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <FolderKanban className="h-4 w-4" />
+              </button>
+              <button
                 onClick={() => router.push('/dashboard/activity')}
+                title="Atividade"
                 className={`rounded-lg px-3 py-2 text-sm transition-all ${
                   pathname === '/dashboard/activity'
                     ? 'bg-white/10 text-white'
@@ -442,7 +447,22 @@ export default function AppHeader() {
               </button>
             </div>
 
-            {/* User Menu */}
+            <button
+              onClick={() => router.push('/search')}
+              className="rounded-lg px-3 py-2 text-sm transition-all text-zinc-400 hover:bg-white/5 hover:text-white border border-white/10"
+              title="Busca Global (Ctrl+K)"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => router.push('/pricing')}
+              className="rounded-lg px-3 py-2 text-sm transition-all text-zinc-400 hover:bg-white/5 hover:text-white"
+              title="Planos"
+            >
+              <Crown className="h-4 w-4" />
+            </button>
+
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => {
@@ -467,7 +487,6 @@ export default function AppHeader() {
                 <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* User Dropdown */}
               {userMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="border-b border-white/10 px-3 py-2">
@@ -505,6 +524,30 @@ export default function AppHeader() {
                     <button
                       onClick={() => {
                         setUserMenuOpen(false);
+                        router.push('/pricing');
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-violet-400 transition-all hover:bg-violet-500/10"
+                    >
+                      <Crown className="h-4 w-4" />
+                      Planos
+                    </button>
+
+                    <div className="border-t border-white/10 my-2" />
+
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        router.push('/dashboard');
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/10"
+                    >
+                      <Building2 className="h-4 w-4" />
+                      Meus Workspaces
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
                         handleLogout();
                       }}
                       className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-400 transition-all hover:bg-red-500/10"
@@ -518,7 +561,6 @@ export default function AppHeader() {
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="mobile-menu-button rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white md:hidden"
@@ -527,13 +569,11 @@ export default function AppHeader() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div
             ref={mobileMenuRef}
             className="absolute top-full left-0 right-0 z-50 border-t border-white/10 bg-zinc-900/95 p-4 backdrop-blur-xl md:hidden animate-in slide-in-from-top-2 duration-200"
           >
-            {/* Workspace Info */}
             {workspace && (
               <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
                 <div className="flex items-center gap-3">
@@ -562,8 +602,18 @@ export default function AppHeader() {
               </div>
             )}
 
-            {/* Quick Actions */}
             <div className="space-y-1">
+              <button
+                onClick={() => {
+                  router.push('/dashboard/overview');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </button>
+
               <button
                 onClick={() => {
                   router.push('/dashboard/projects');
@@ -571,7 +621,7 @@ export default function AppHeader() {
                 }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
               >
-                <LayoutDashboard className="h-4 w-4" />
+                <FolderKanban className="h-4 w-4" />
                 Projetos
               </button>
 
@@ -584,6 +634,17 @@ export default function AppHeader() {
               >
                 <Activity className="h-4 w-4" />
                 Atividade
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push('/pricing');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-violet-400 transition-all hover:bg-violet-500/10"
+              >
+                <Crown className="h-4 w-4" />
+                Planos
               </button>
 
               <button
@@ -659,7 +720,6 @@ export default function AppHeader() {
               </button>
             </div>
 
-            {/* User Info */}
             <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
@@ -675,7 +735,6 @@ export default function AppHeader() {
         )}
       </header>
 
-      {/* MODAIS */}
       {showCreateWorkspaceModal && (
         <CreateWorkspaceModal
           onClose={() => setShowCreateWorkspaceModal(false)}

@@ -75,6 +75,6 @@ export class ActivityService {
       },
     });
 
-    return { items }; // ⚠️ IMPORTANTE pro frontend
+    return { items };
   }
 }

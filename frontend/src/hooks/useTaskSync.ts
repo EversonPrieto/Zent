@@ -34,41 +34,34 @@ export function useTaskSync({
   useEffect(() => {
     if (!projectId) return;
 
-    // 🟢 Conectar à sala do projeto
     socket.emit('join-tasks-room', projectId);
     console.log('🟢 Conectado à sala de tasks:', projectId);
 
-    // 🔥 Task movida
     const handleTaskMoved = (task: Task) => {
       console.log('🔥 Task movida recebida:', task.id, '→', task.status);
       onTaskMoved?.(task);
     };
 
-    // ✨ Task criada
     const handleTaskCreated = (task: Task) => {
       console.log('✨ Task criada recebida:', task.id);
       onTaskCreated?.(task);
     };
 
-    // 📝 Task atualizada
     const handleTaskUpdated = (task: Task) => {
       console.log('📝 Task atualizada recebida:', task.id);
       onTaskUpdated?.(task);
     };
 
-    // 🗑️ Task deletada
     const handleTaskDeleted = (taskId: string) => {
       console.log('🗑️ Task deletada recebida:', taskId);
       onTaskDeleted?.(taskId);
     };
 
-    // Registrar listeners
     socket.on('task:moved', handleTaskMoved);
     socket.on('task:created', handleTaskCreated);
     socket.on('task:updated', handleTaskUpdated);
     socket.on('task:deleted', handleTaskDeleted);
 
-    // Cleanup
     return () => {
       socket.off('task:moved', handleTaskMoved);
       socket.off('task:created', handleTaskCreated);

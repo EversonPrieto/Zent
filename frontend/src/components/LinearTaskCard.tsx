@@ -37,7 +37,6 @@ export interface LinearTask {
   taskLabels?: Array<{ label: TaskLabel }>;
   taskAssignees?: TaskAssignee[];
   attachments?: Attachment[];
-  // Campos opcionais para compatibilidade com tipos antigos
   [key: string]: any;
 }
 
@@ -99,7 +98,6 @@ export function LinearTaskCard({
       className="group relative rounded-lg border border-white/10 bg-white/5 p-3 cursor-grab active:cursor-grabbing transition-all hover:border-white/20 hover:bg-white/10"
     >
       <div className="relative space-y-2">
-        {/* Header com título e prioridade */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2 flex-1 min-w-0">
             <GripVertical className="h-4 w-4 text-zinc-600 mt-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100" />
@@ -113,9 +111,7 @@ export function LinearTaskCard({
           </div>
         </div>
 
-        {/* Meta info: due date, labels, assignees, attachments */}
         <div className="flex items-center gap-2 flex-wrap text-xs text-zinc-400 px-6">
-          {/* Due Date */}
           {dueStatus && (
             <div className={`flex items-center gap-1 ${dueStatus.color}`}>
               <Calendar className="h-3 w-3" />
@@ -123,7 +119,6 @@ export function LinearTaskCard({
             </div>
           )}
 
-          {/* Labels */}
           {labels.length > 0 && (
             <div className="flex items-center gap-1">
               <Tag className="h-3 w-3" />
@@ -131,7 +126,6 @@ export function LinearTaskCard({
             </div>
           )}
 
-          {/* Assignees */}
           {assignees.length > 0 && (
             <div className="flex items-center gap-0.5">
               <Users className="h-3 w-3" />
@@ -139,7 +133,6 @@ export function LinearTaskCard({
             </div>
           )}
 
-          {/* Attachments */}
           {attachmentCount > 0 && (
             <div className="flex items-center gap-1">
               <Paperclip className="h-3 w-3" />
@@ -148,7 +141,6 @@ export function LinearTaskCard({
           )}
         </div>
 
-        {/* Labels chips (se houver espaço) */}
         {labels.length > 0 && (
           <div className="flex items-center gap-1 flex-wrap px-6">
             {labels.slice(0, 2).map(({ label }: any) => (
@@ -166,7 +158,6 @@ export function LinearTaskCard({
           </div>
         )}
 
-        {/* Avatares de assignees */}
         {assignees.length > 0 && (
           <div className="flex items-center gap-1 px-6">
             {assignees.slice(0, 3).map(({ user }: any) => (

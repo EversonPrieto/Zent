@@ -105,7 +105,6 @@ export class WorkspacesService {
     }
 
     async delete(workspaceId: string, userId: string) {
-        // Usa ACL para verificar permissão (só OWNER pode deletar)
         await this.acl.requirePermission('workspace:delete', workspaceId, userId);
 
         await this.prisma.workspace.delete({
@@ -121,7 +120,6 @@ export class WorkspacesService {
         email: string,
         role: 'ADMIN' | 'MEMBER' | 'VIEWER',
     ) {
-        // Usa ACL para verificar permissão
         await this.acl.requirePermission('workspace:invite', workspaceId, inviterUserId);
 
         const user = await this.prisma.user.findUnique({
@@ -213,7 +211,6 @@ export class WorkspacesService {
         memberId: string,
         role: 'ADMIN' | 'MEMBER' | 'VIEWER',
     ) {
-        // Usa ACL para verificar permissão
         const requesterRole = await this.acl.requirePermission(
             'workspace:update-member',
             workspaceId,
@@ -279,7 +276,6 @@ export class WorkspacesService {
         requesterUserId: string,
         memberId: string,
     ) {
-        // Usa ACL para verificar permissão
         const requesterRole = await this.acl.requirePermission(
             'workspace:remove-member',
             workspaceId,

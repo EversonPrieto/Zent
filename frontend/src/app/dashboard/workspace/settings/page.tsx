@@ -128,7 +128,6 @@ export default function WorkspaceSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validação do arquivo
     if (!file.type.startsWith('image/')) {
       setError('Por favor, selecione um arquivo de imagem.');
       return;
@@ -139,7 +138,6 @@ export default function WorkspaceSettingsPage() {
       return;
     }
 
-    // Preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setLogoPreview(reader.result as string);
@@ -239,14 +237,12 @@ export default function WorkspaceSettingsPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-12">
-        {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.push('/dashboard/projects')}
@@ -271,7 +267,6 @@ export default function WorkspaceSettingsPage() {
           </div>
         </div>
 
-        {/* Identity Section */}
         <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-4">
             <Image className="h-5 w-5 text-violet-400" />
@@ -347,7 +342,6 @@ export default function WorkspaceSettingsPage() {
           </div>
         </div>
 
-        {/* Info Section */}
         <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-4">
             <Edit2 className="h-5 w-5 text-violet-400" />
@@ -419,7 +413,6 @@ export default function WorkspaceSettingsPage() {
           </button>
         </div>
 
-        {/* Members Section */}
         <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-4">
             <UserCog className="h-5 w-5 text-violet-400" />
@@ -437,7 +430,6 @@ export default function WorkspaceSettingsPage() {
           </button>
         </div>
 
-        {/* Danger Zone */}
         {!checkingPerms && canDelete && (
           <div className="rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-6">
             <div className="flex items-center gap-2 mb-4">

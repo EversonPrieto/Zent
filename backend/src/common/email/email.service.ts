@@ -8,11 +8,9 @@ export class EmailService {
   private senderEmail: string
 
   constructor(private config: ConfigService) {
-    // Initialize the Brevo client with the API key (v4+/v5 usage)
     this.client = new BrevoClient({
       apiKey: this.config.get<string>('BREVO_API_KEY')!,
     })
-    // Use the verified sender email from env or fallback to a default
     this.senderEmail = this.config.get<string>('BREVO_SENDER_EMAIL') || 'appzent@outlook.com'
   }
 
@@ -27,7 +25,6 @@ export class EmailService {
     invitedByName: string
     inviteLink: string
   }) {
-    // Build the request payload compatible with BrevoClient
     const payload = {
       sender: {
         name: 'Zent',
@@ -62,7 +59,6 @@ export class EmailService {
       console.log('[EmailService] ✅ Brevo sendTransacEmail success:', res)
       return res
     } catch (err) {
-      // Log detailed error to help debugging why emails are not delivered
       console.error('[EmailService] ❌ Error sending invite email via Brevo:', err)
       throw err
     }

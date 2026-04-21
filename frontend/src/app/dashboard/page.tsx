@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
+import CreateWorkspaceModal from '../../components/CreateWorkspaceModal';
 import { 
   Building2, 
   Users, 
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('zent_token');
@@ -63,20 +65,26 @@ export default function DashboardPage() {
     router.push('/dashboard/projects');
   }
 
+  const handleWorkspaceCreated = (newWorkspace: Workspace) => {
+    setWorkspaces([...workspaces, newWorkspace]);
+    localStorage.setItem('zent_workspace_id', newWorkspace.id);
+    localStorage.setItem('zent_workspace', JSON.stringify(newWorkspace));
+    setShowCreateModal(false);
+    router.push('/dashboard/projects');
+  };
+
   const getRoleInfo = (role: Workspace['role']) => {
     return roleConfig[role as keyof typeof roleConfig] || roleConfig.VIEWER;
   };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-6 py-12 md:py-16">
-        {/* Header */}
         <div className="mb-12 text-center md:text-left">
           <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm backdrop-blur-sm mb-6">
             <span className="relative flex h-2 w-2 mr-2">
@@ -94,7 +102,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
@@ -102,7 +109,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
@@ -118,7 +124,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Empty State */}
         {!loading && !error && workspaces.length === 0 && (
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-12 text-center backdrop-blur-sm">
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
@@ -129,7 +134,7 @@ export default function DashboardPage() {
               Você ainda não participa de nenhuma workspace. Crie uma nova workspace para começar a organizar seus projetos.
             </p>
             <button
-              onClick={() => router.push('/workspaces/new')}
+              onClick={() => setShowCreateModal(true)}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-6 py-3 font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40"
             >
               <PlusCircle className="h-5 w-5" />
@@ -138,7 +143,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Workspaces Grid */}
         {!loading && !error && workspaces.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {workspaces.map((workspace) => {
@@ -151,15 +155,12 @@ export default function DashboardPage() {
                   onClick={() => selectWorkspace(workspace)}
                   className="group relative text-left rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 transition-all hover:scale-105 hover:border-white/20 hover:shadow-2xl hover:shadow-violet-500/10 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 >
-                  {/* Hover gradient overlay */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 opacity-0 transition-opacity group-hover:opacity-100" />
                   
                   <div className="relative">
-                    {/* Header with logo/icon */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                         {workspace.logoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={workspace.logoUrl}
                             alt={workspace.name}
@@ -169,8 +170,7 @@ export default function DashboardPage() {
                           <Building2 className="h-6 w-6 text-violet-400" />
                         )}
                       </div>
-                      
-                      {/* Role badge */}
+
                       <div className={`inline-flex items-center gap-1.5 rounded-full ${roleInfo.bg} px-2.5 py-1 backdrop-blur-sm`}>
                         <RoleIcon className={`h-3 w-3 ${roleInfo.text}`} />
                         <span className={`text-xs font-medium ${roleInfo.text}`}>
@@ -179,17 +179,14 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Workspace name */}
                     <h2 className="text-xl font-semibold text-white group-hover:text-violet-400 transition-colors">
                       {workspace.name}
                     </h2>
 
-                    {/* Description */}
                     <p className="mt-2 text-sm text-zinc-400">
                       Clique para acessar esta workspace e gerenciar seus projetos
                     </p>
 
-                    {/* Action indicator */}
                     <div className="mt-4 flex items-center gap-1 text-sm text-violet-400 opacity-0 transition-all group-hover:opacity-100 group-hover:gap-2">
                       <span>Acessar workspace</span>
                       <ArrowRight className="h-4 w-4" />
@@ -199,9 +196,8 @@ export default function DashboardPage() {
               );
             })}
 
-            {/* Create new workspace card */}
             <button
-              onClick={() => router.push('/workspaces/new')}
+              onClick={() => setShowCreateModal(true)}
               className="group relative text-left rounded-2xl border border-dashed border-white/20 bg-white/5 p-6 transition-all hover:border-violet-500/50 hover:bg-violet-500/5 focus:outline-none focus:ring-2 focus:ring-violet-500"
             >
               <div className="relative flex flex-col items-center justify-center text-center">
@@ -219,7 +215,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Footer info */}
         {!loading && !error && workspaces.length > 0 && (
           <div className="mt-12 text-center">
             <p className="text-sm text-zinc-500">
@@ -229,6 +224,13 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {showCreateModal && (
+        <CreateWorkspaceModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleWorkspaceCreated}
+        />
+      )}
     </main>
   );
 }

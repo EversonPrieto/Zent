@@ -156,7 +156,6 @@ export default function WorkspaceMembersModal({
         ),
       );
 
-      // Se o membro alterado é o usuário atual, atualizar localStorage
       if (memberId === currentUserId) {
         const workspaceRaw = localStorage.getItem('zent_workspace');
         if (workspaceRaw) {
@@ -267,7 +266,6 @@ export default function WorkspaceMembersModal({
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        {/* Header */}
         <div className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -292,7 +290,6 @@ export default function WorkspaceMembersModal({
             </button>
           </div>
 
-          {/* Stats */}
           {!loading && members.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-3">
               <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
@@ -351,7 +348,6 @@ export default function WorkspaceMembersModal({
                     className="group rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-4 transition-all hover:border-white/20 hover:shadow-lg"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      {/* User Info */}
                       <div className="flex items-start gap-3">
                         <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${roleInfo.bg}`}>
                           {member.user.avatarUrl ? (
@@ -383,7 +379,6 @@ export default function WorkspaceMembersModal({
                         </div>
                       </div>
 
-                      {/* Role & Actions */}
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         {manageable ? (
                           <div className="relative">
@@ -429,7 +424,6 @@ export default function WorkspaceMembersModal({
                       </div>
                     </div>
 
-                    {/* Role Description */}
                     <div className="mt-3 flex items-center gap-2 pt-2 border-t border-white/5">
                       <CheckCircle2 className={`h-3 w-3 ${roleInfo.color}`} />
                       <p className="text-xs text-zinc-500">{roleInfo.description}</p>
@@ -442,7 +436,6 @@ export default function WorkspaceMembersModal({
         </div>
       </div>
 
-      {/* Custom scrollbar styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

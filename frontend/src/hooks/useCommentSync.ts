@@ -28,29 +28,24 @@ export function useCommentSync({
   onCommentCreated,
   onCommentDeleted,
 }: UseCommentSyncOptions) {
-  // Entrar na sala da task
   const joinTask = useCallback(() => {
     socket.emit('join-task', taskId);
     console.log('💬 Entrou na task:', taskId);
   }, [taskId]);
 
-  // Sair da sala da task
   const leaveTask = useCallback(() => {
     socket.emit('leave-task', taskId);
     console.log('💬 Saiu da task:', taskId);
   }, [taskId]);
 
-  // Setup listeners
   useEffect(() => {
     joinTask();
 
-    // Listen para novo comentário
     socket.on('comment:created', (comment: Comment) => {
       console.log('✨ Novo comentário:', comment);
       onCommentCreated?.(comment);
     });
 
-    // Listen para comentário deletado
     socket.on('comment:deleted', (commentId: string) => {
       console.log('🗑️ Comentário deletado:', commentId);
       onCommentDeleted?.(commentId);

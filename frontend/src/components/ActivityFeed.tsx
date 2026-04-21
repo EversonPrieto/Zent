@@ -31,7 +31,6 @@ type Activity = {
   } | null;
 };
 
-// Função para obter o ícone baseado no tipo de atividade
 function getActivityIcon(type: string) {
   const iconMap: Record<string, { icon: typeof Activity; color: string; bg: string }> = {
     'TASK_CREATED': { icon: PlusCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -46,7 +45,6 @@ function getActivityIcon(type: string) {
   return iconMap[type] || { icon: Activity, color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
 }
 
-// Função para formatar data relativa
 function getRelativeDate(date: string) {
   const now = new Date();
   const activityDate = new Date(date);
@@ -100,7 +98,6 @@ export default function ActivityFeed({
 
     load();
 
-    // Socket connection
     try {
       socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000', {
         transports: ['websocket'],
@@ -133,7 +130,6 @@ export default function ActivityFeed({
           const exists = prev.some((a) => a.id === newActivity.id);
           if (exists) return prev;
           
-          // Adicionar nova atividade no topo e limitar a 50 itens
           const newActivities = [newActivity, ...prev];
           return newActivities.slice(0, 50);
         });
@@ -164,7 +160,6 @@ export default function ActivityFeed({
   return (
     <div className="w-full lg:w-80 flex-shrink-0">
       <div className="sticky top-24">
-        {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-violet-400" />
@@ -176,7 +171,6 @@ export default function ActivityFeed({
             )}
           </div>
           
-          {/* Connection Status */}
           {socketConnected ? (
             <div className="flex items-center gap-1 text-xs text-emerald-400" title="Conexão em tempo real ativa">
               <Wifi className="h-3 w-3" />
@@ -190,14 +184,12 @@ export default function ActivityFeed({
           )}
         </div>
 
-        {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-center">
             <p className="text-xs text-red-400">{error}</p>
@@ -210,7 +202,6 @@ export default function ActivityFeed({
           </div>
         )}
 
-        {/* Empty State */}
         {!loading && !error && !hasActivities && (
           <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-center">
             <Sparkles className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
@@ -223,7 +214,6 @@ export default function ActivityFeed({
           </div>
         )}
 
-        {/* Activities List */}
         {!loading && !error && hasActivities && (
           <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
             {activities.map((act, index) => {
@@ -238,13 +228,11 @@ export default function ActivityFeed({
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Icon */}
                     <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
                       <Icon className={`h-4 w-4 ${color}`} />
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      {/* Description */}
                       <p className="text-xs text-zinc-300 leading-relaxed">
                         <span className="font-medium text-white">
                           {act.user?.name ?? 'Alguém'}
@@ -252,7 +240,6 @@ export default function ActivityFeed({
                         {act.description}
                       </p>
 
-                      {/* Timestamp */}
                       <div className="mt-1.5 flex items-center gap-1.5">
                         <Clock className="h-3 w-3 text-zinc-500" />
                         <p className="text-[10px] text-zinc-500">
@@ -266,7 +253,6 @@ export default function ActivityFeed({
                     </div>
                   </div>
 
-                  {/* Hover indicator line */}
                   <div className="absolute left-0 top-0 h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500 opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
               );
@@ -275,7 +261,6 @@ export default function ActivityFeed({
         )}
       </div>
 
-      {/* Custom scrollbar styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
