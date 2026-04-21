@@ -1,9 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { ArrowRight, CheckCircle2, Layers, MessageSquare, Activity, Briefcase } from 'lucide-react';
 
 export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('zent_token');
+    if (token) {
+      router.push('/dashboard');
+    }
+  }, [router]);
   const features = [
     {
       icon: Layers,
@@ -40,7 +50,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-white">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
@@ -56,6 +65,14 @@ export default function HomePage() {
           </div>
 
           <nav className="flex items-center gap-3">
+            <Link
+              href="/pricing"
+              className="group relative rounded-xl px-5 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:text-white"
+            >
+              Planos
+              <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-white transition-all group-hover:w-1/2" />
+            </Link>
+
             <Link
               href="/login"
               className="group relative rounded-xl px-5 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:text-white"
@@ -74,9 +91,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="relative mx-auto max-w-7xl px-6 pt-32 pb-20">
-        {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
           <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -133,7 +148,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Kanban Preview */}
           <div className="relative">
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-violet-500/20 to-indigo-500/20 blur-2xl" />
             <div className="relative rounded-3xl border border-white/10 bg-zinc-900/50 p-6 backdrop-blur-xl">
@@ -181,7 +195,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="border-t border-white/5 bg-gradient-to-b from-zinc-900/50 to-zinc-950">
         <div className="mx-auto max-w-7xl px-6 py-24">
           <div className="mb-16 text-center">
@@ -218,7 +231,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="relative mx-auto max-w-5xl px-6 py-24 text-center">
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 blur-3xl" />

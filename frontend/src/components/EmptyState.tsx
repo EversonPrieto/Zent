@@ -71,12 +71,10 @@ export function EmptyState({
     <div
       className={`flex flex-col items-center justify-center gap-4 rounded-2xl text-center transition-all ${variantStyles[variant]} ${containerSizes[size]}`}
     >
-      {/* Icon */}
       <div className={`rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 ${iconSizes[size]} flex items-center justify-center`}>
         {icon || <Sparkles className={`${iconSizes[size]} text-violet-400`} />}
       </div>
 
-      {/* Text Content */}
       <div className="max-w-md space-y-2">
         <h3 className={`font-semibold text-white ${titleSizes[size]}`}>
           {title}
@@ -88,7 +86,6 @@ export function EmptyState({
         )}
       </div>
 
-      {/* Action Button */}
       {action && (
         <button
           onClick={action.onClick}
@@ -102,7 +99,6 @@ export function EmptyState({
   );
 }
 
-// Variações pré-configuradas
 export function EmptyMembers({ onInvite }: { onInvite?: () => void }) {
   return (
     <EmptyState
@@ -224,7 +220,6 @@ export function EmptyDashboard() {
   );
 }
 
-// Componente de loading para estados vazios
 export function EmptyStateSkeleton() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-12 text-center">

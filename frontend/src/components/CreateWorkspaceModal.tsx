@@ -70,7 +70,6 @@ export default function CreateWorkspaceModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        {/* Header */}
         <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -98,7 +97,6 @@ export default function CreateWorkspaceModal({
 
         <div className="p-6">
           <div className="space-y-5">
-            {/* Name Field */}
             <div>
               <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                 <Tag className="h-4 w-4 text-violet-400" />
@@ -131,7 +129,6 @@ export default function CreateWorkspaceModal({
               )}
             </div>
 
-            {/* Tips Section */}
             <div className="rounded-lg border border-white/5 bg-white/5 p-4">
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
@@ -155,7 +152,6 @@ export default function CreateWorkspaceModal({
               </div>
             </div>
 
-            {/* Name Suggestions */}
             {!name && (
               <div className="rounded-lg border border-white/5 bg-white/5 p-3">
                 <p className="text-xs text-zinc-500 mb-2">💡 Sugestões de nomes:</p>
@@ -173,7 +169,6 @@ export default function CreateWorkspaceModal({
               </div>
             )}
 
-            {/* Error Message */}
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -181,7 +176,6 @@ export default function CreateWorkspaceModal({
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={onClose}
@@ -209,7 +203,6 @@ export default function CreateWorkspaceModal({
               </button>
             </div>
 
-            {/* Footer Note */}
             <p className="text-center text-xs text-zinc-500">
               Você será o <span className="text-violet-400">proprietário</span> deste workspace
             </p>

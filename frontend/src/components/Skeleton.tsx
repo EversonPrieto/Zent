@@ -82,7 +82,6 @@ export function Skeleton({
   return <div className={combinedClasses} />;
 }
 
-// Compostos úteis
 export function SkeletonCard() {
   return (
     <div className="rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5 space-y-4">
@@ -269,5 +268,3 @@ export function SkeletonComments() {
     </div>
   );
 }
-
-// Animations are defined in tailwind.config.js

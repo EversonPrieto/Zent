@@ -73,7 +73,6 @@ export class TasksService {
       userId,
     });
 
-    // ✨ Emitir realtime para todos no projeto
     this.tasksGateway.emitTaskCreated(task.projectId, task);
 
     return task;
@@ -162,7 +161,6 @@ export class TasksService {
     dto: UpdateTaskDto,
     userId?: string,
   ) {
-    // Usa ACL para verificar permissão (MEMBER+ podem editar tasks)
     if (userId) {
       await this.acl.requirePermission('task:edit', workspaceId, userId);
     }
@@ -203,7 +201,6 @@ export class TasksService {
       userId,
     });
 
-    // ✨ Emitir realtime para todos no projeto
     this.tasksGateway.emitTaskUpdated(existingTask.projectId, updatedTask);
 
     return updatedTask;
@@ -291,7 +288,6 @@ export class TasksService {
       userId,
     });
 
-    // ✨ Emitir realtime para todos no projeto
     this.tasksGateway.emitTaskMoved(task.projectId, updatedTask);
 
     return updatedTask;
@@ -327,13 +323,11 @@ export class TasksService {
       where: { id },
     });
 
-    // ✨ Emitir realtime para todos no projeto
     this.tasksGateway.emitTaskDeleted(task.projectId, task.id);
 
     return { message: 'Task removida com sucesso.' };
   }
 
-  // ==================== LABELS ====================
   async addLabel(workspaceId: string, taskId: string, labelId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
@@ -348,7 +342,6 @@ export class TasksService {
 
     if (!label) throw new NotFoundException('Label não encontrado.');
 
-    // Verificar se já existe
     const exists = await this.prisma.taskLabel.findUnique({
       where: { taskId_labelId: { taskId, labelId } },
     });
@@ -359,7 +352,6 @@ export class TasksService {
       data: { taskId, labelId },
     });
 
-    // Retornar task atualizada
     return this.get(workspaceId, taskId);
   }
 
@@ -375,11 +367,9 @@ export class TasksService {
       where: { taskId_labelId: { taskId, labelId } },
     });
 
-    // Retornar task atualizada
     return this.get(workspaceId, taskId);
   }
 
-  // ==================== ASSIGNEES ====================
   async addAssignee(workspaceId: string, taskId: string, userId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
@@ -388,14 +378,12 @@ export class TasksService {
 
     if (!task) throw new NotFoundException('Task não encontrada.');
 
-    // Verificar se usuário está no workspace
     const member = await this.prisma.workspaceMember.findFirst({
       where: { workspaceId, userId },
     });
 
     if (!member) throw new ForbiddenException('Usuário não está no workspace.');
 
-    // Verificar se já é assignee
     const exists = await this.prisma.taskAssignee.findUnique({
       where: { taskId_userId: { taskId, userId } },
     });
@@ -406,7 +394,6 @@ export class TasksService {
       data: { taskId, userId },
     });
 
-    // Retornar task atualizada
     return this.get(workspaceId, taskId);
   }
 
@@ -422,11 +409,9 @@ export class TasksService {
       where: { taskId_userId: { taskId, userId } },
     });
 
-    // Retornar task atualizada
     return this.get(workspaceId, taskId);
   }
 
-  // ==================== ATTACHMENTS ====================
   async addAttachment(workspaceId: string, taskId: string, data: { url: string; fileName: string; fileType: string; size?: number }) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
@@ -445,7 +430,6 @@ export class TasksService {
       },
     });
 
-    // Retornar task atualizada
     return this.get(workspaceId, taskId);
   }
 
@@ -469,7 +453,6 @@ export class TasksService {
       where: { id: attachmentId },
     });
 
-    // Retornar task atualizada
     return this.get(workspaceId, taskId);
   }
 }

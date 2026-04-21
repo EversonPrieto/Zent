@@ -45,7 +45,6 @@ type Task = {
   assigneeId?: string | null;
   createdAt: string;
   updatedAt: string;
-  // Linear features
   dueDate?: string | null;
   taskLabels?: Array<{ label: { id: string; name: string; color: string } }>;
   taskAssignees?: Array<{ user: { id: string; name: string; avatarUrl: string | null } }>;
@@ -90,7 +89,6 @@ const statusOptions: TaskStatus[] = [
   'DONE',
 ];
 
-// Adicione esta constante - lista de opções de prioridade
 const priorityOptions: TaskPriority[] = [
   'LOW',
   'MEDIUM',
@@ -128,7 +126,6 @@ export default function TaskModal({
   const [permissions, setPermissions] = useState<Permissions | null>(null);
   const [checkingPerms, setCheckingPerms] = useState(true);
 
-  // Linear features
   const [dueDate, setDueDate] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
@@ -140,7 +137,6 @@ export default function TaskModal({
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
 
-  // Labels e Assignees
   const { labels, loading: labelsLoading } = useLabels(workspaceId);
   const [availableAssignees, setAvailableAssignees] = useState<any[]>([]);
 
@@ -185,7 +181,6 @@ export default function TaskModal({
     setSelectedAssignees(task.taskAssignees?.map((ta: any) => ta.user.id) || []);
     setError('');
 
-    // Carregar members para assignees
     async function loadMembers() {
       try {
         const members = await api('/workspaces/members', { workspaceId });
@@ -251,7 +246,6 @@ export default function TaskModal({
         });
 
         if (!cancelled) {
-          // A resposta pode ser um objeto { items } ou um array diretamente
           const activityList = response.items || response;
           setActivities(Array.isArray(activityList) ? activityList : []);
         }
@@ -273,7 +267,6 @@ export default function TaskModal({
     };
   }, [task, workspaceId]);
 
-  // Comment sync realtime - DEVE SER ANTES DO if (!task)
   useCommentSync({
     taskId: task?.id || '',
     onCommentCreated: (comment) => {
@@ -320,7 +313,6 @@ export default function TaskModal({
         }),
       });
 
-      // Atualizar labels
       const currentLabelIds = updated.taskLabels?.map((tl: any) => tl.label.id) || [];
       for (const labelId of selectedLabels) {
         if (!currentLabelIds.includes(labelId)) {
@@ -347,7 +339,6 @@ export default function TaskModal({
         }
       }
 
-      // Atualizar assignees
       const currentAssigneeIds = updated.taskAssignees?.map((ta: any) => ta.user.id) || [];
       for (const assigneeId of selectedAssignees) {
         if (!currentAssigneeIds.includes(assigneeId)) {
@@ -374,12 +365,10 @@ export default function TaskModal({
         }
       }
 
-      // Fetch task atualizada com todas as informações (labels, assignees, attachments)
       const finalTask = await api(`/tasks/${updated.id}`, {
         workspaceId,
       });
 
-      // Recarregar atividades para mostrar as alterações
       try {
         const activityResponse = await api(`/activities?taskId=${currentTask.id}`, {
           workspaceId,
@@ -451,11 +440,8 @@ export default function TaskModal({
         }),
       });
 
-      // ⚠️ NÃO adicionar aqui! O socket.io vai trazer via useCommentSync
-      // setComments((prev) => [...prev, created]);
       setNewComment('');
 
-      // recarrega activity pra já aparecer o log novo
       try {
         const activityData = await api(`/activity?taskId=${currentTask.id}`, {
           workspaceId,
@@ -500,7 +486,6 @@ export default function TaskModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        {/* Header */}
         <div className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -544,9 +529,7 @@ export default function TaskModal({
 
         <div className="p-6">
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* Main Content - Left */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Edit Form */}
               <div className="space-y-4">
                 <div>
                   <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
@@ -617,7 +600,6 @@ export default function TaskModal({
                   </div>
                 </div>
 
-                {/* Linear Features */}
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
@@ -662,7 +644,6 @@ export default function TaskModal({
                   </div>
                 </div>
 
-                {/* Labels */}
                 <div>
                   <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                     <Tag className="h-4 w-4" />
@@ -715,7 +696,6 @@ export default function TaskModal({
                 )}
               </div>
 
-              {/* Comments Section */}
               <div className="border-t border-white/10 pt-6">
                 <div className="mb-4 flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-violet-400" />
@@ -798,7 +778,6 @@ export default function TaskModal({
               </div>
             </div>
 
-            {/* Activity Feed - Right */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
                 <div className="mb-4 flex items-center gap-2">
@@ -847,7 +826,6 @@ export default function TaskModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-6">
             <button
               onClick={handleDelete}
@@ -888,7 +866,6 @@ export default function TaskModal({
         </div>
       </div>
 
-      {/* Custom scrollbar styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

@@ -74,7 +74,6 @@ export default function EditWorkspaceModal({
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        {/* Header */}
         <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -102,7 +101,6 @@ export default function EditWorkspaceModal({
 
         <div className="p-6">
           <div className="space-y-5">
-            {/* Current Workspace Info */}
             <div className="rounded-lg border border-white/10 bg-white/5 p-3">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
@@ -123,7 +121,6 @@ export default function EditWorkspaceModal({
               </div>
             </div>
 
-            {/* Name Field */}
             <div>
               <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                 <Tag className="h-4 w-4 text-violet-400" />
@@ -156,7 +153,6 @@ export default function EditWorkspaceModal({
               )}
             </div>
 
-            {/* Tips */}
             <div className="rounded-lg border border-white/5 bg-white/5 p-3">
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
@@ -180,7 +176,6 @@ export default function EditWorkspaceModal({
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -188,7 +183,6 @@ export default function EditWorkspaceModal({
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={onClose}
@@ -216,7 +210,6 @@ export default function EditWorkspaceModal({
               </button>
             </div>
 
-            {/* Footer Note */}
             {isChanged && isFormValid && nameLength <= 50 && (
               <p className="text-center text-xs text-zinc-500">
                 Alterando de <span className="text-violet-400">{workspace.name}</span> para{' '}

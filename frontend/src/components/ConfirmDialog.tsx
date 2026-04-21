@@ -26,7 +26,6 @@ interface ConfirmDialogState {
   isLoading?: boolean;
 }
 
-// Gerenciador global de confirm dialog
 let confirmState: ConfirmDialogState | null = null;
 const confirmCallbacks: ((state: ConfirmDialogState | null) => void)[] = [];
 
@@ -43,7 +42,6 @@ function notifyConfirmDialog(state: ConfirmDialogState | null) {
   confirmCallbacks.forEach((cb) => cb(state));
 }
 
-// Helper para mostrar confirm dialog
 export async function showConfirm(options: {
   title: string;
   message: string;
@@ -115,7 +113,6 @@ const actionConfig = {
   },
 };
 
-// Componente ConfirmDialog
 export default function ConfirmDialog() {
   const [state, setState] = useState<ConfirmDialogState | null>(null);
   const [isClosing, setIsClosing] = useState(false);
@@ -160,7 +157,6 @@ export default function ConfirmDialog() {
           isClosing ? 'animate-out fade-out slide-out-to-bottom-4 scale-95' : 'animate-in slide-in-from-bottom-4 fade-in duration-300'
         }`}
       >
-        {/* Header with gradient */}
         <div className={`border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6 ${config.bg}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -179,9 +175,8 @@ export default function ConfirmDialog() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-6">
-          {/* Warning message for dangerous actions */}
+
           {state.isDangerous && (
             <div className={`mb-6 rounded-lg border ${config.border} ${config.bg} p-3`}>
               <div className="flex items-start gap-2">
@@ -193,7 +188,6 @@ export default function ConfirmDialog() {
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={handleCancel}
@@ -222,7 +216,6 @@ export default function ConfirmDialog() {
             </button>
           </div>
 
-          {/* Keyboard hint */}
           <div className="mt-4 flex justify-center gap-3 text-center text-xs text-zinc-600">
             <span className="flex items-center gap-1">
               <kbd className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px]">Enter</kbd>
@@ -236,7 +229,6 @@ export default function ConfirmDialog() {
         </div>
       </div>
 
-      {/* Keyboard shortcuts */}
       <script
         dangerouslySetInnerHTML={{
           __html: `

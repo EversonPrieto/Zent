@@ -14,6 +14,7 @@ import { InvitesModule } from './invites/invites.module';
 import { EmailModule } from './common/email/email.module';
 import { LabelsModule } from './labels/labels.module';
 import { AttachmentsModule } from './attachments/attachments.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AttachmentsModule } from './attachments/attachments.module';
     InvitesModule,
     LabelsModule,
     AttachmentsModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

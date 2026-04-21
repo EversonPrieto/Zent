@@ -16,7 +16,6 @@ export class ActivityGateway {
   @WebSocketServer()
   server: Server;
 
-  // usuário entra na sala do workspace
   @SubscribeMessage('join')
   handleJoin(
     @MessageBody() workspaceId: string,
@@ -26,7 +25,6 @@ export class ActivityGateway {
     client.join(workspaceId);
   }
 
-  // envia só pro workspace correto
   emitActivity(workspaceId: string, activity: any) {
     console.log('🔥 emitindo activity:', activity);
     this.server.to(workspaceId).emit('activity:new', activity);

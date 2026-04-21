@@ -14,7 +14,6 @@ export class ProjectsService {
   ) {}
 
   async create(workspaceId: string, dto: CreateProjectDto, userId?: string) {
-    // Usa ACL para verificar permissão (ADMIN + OWNER podem criar projetos)
     if (userId) {
       await this.acl.requirePermission('project:create', workspaceId, userId);
     }

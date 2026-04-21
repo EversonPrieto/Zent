@@ -12,7 +12,6 @@ export function PresenceIndicator({
   user,
   isCurrentUser,
 }: PresenceIndicatorProps) {
-  // Calcular tempo online
   const timeOnline = new Date().getTime() - new Date(user.joinedAt).getTime();
   const minutes = Math.floor(timeOnline / 60000);
   const seconds = Math.floor((timeOnline % 60000) / 1000);

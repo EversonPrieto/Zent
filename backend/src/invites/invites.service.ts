@@ -37,7 +37,6 @@ export class InvitesService {
         token,
         workspaceId,
         invitedById: userId,
-        // Expires in 24 hours (1 day)
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
       },
       include: {
@@ -46,12 +45,8 @@ export class InvitesService {
       },
     })
 
-  // Include the token in the frontend invite route. Frontend should show
-  // invite details (public) and then prompt the user to sign in before
-  // calling the protected accept endpoint. The link is valid for 24 hours.
   const inviteLink = `${process.env.FRONTEND_URL}/invite/${token}`
 
-    // 🔥 ENVIO REAL DE EMAIL
     await this.emailService.sendInviteEmail({
       to: email,
       workspaceName: invite.workspace.name,

@@ -65,7 +65,6 @@ export class CommentsService {
       userId,
     });
 
-    // emitir comentário em realtime
     this.gateway.emitCommentCreated(taskId, comment);
 
     return comment;
@@ -142,7 +141,6 @@ export class CommentsService {
       userId,
     });
 
-    // emitir comentário deletado em realtime
     this.gateway.emitCommentDeleted(comment.taskId, commentId);
 
     return { message: 'Comentário removido' };

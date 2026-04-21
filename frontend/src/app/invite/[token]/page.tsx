@@ -120,7 +120,6 @@ export default function InvitePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -129,7 +128,6 @@ export default function InvitePage() {
 
       <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
         <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Header */}
           <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6 md:p-8 text-center">
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-3 mb-4">
               <Sparkles className="h-8 w-8 text-violet-400" />
@@ -143,7 +141,6 @@ export default function InvitePage() {
           </div>
 
           <div className="p-6 md:p-8">
-            {/* Workspace Info */}
             <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
@@ -170,7 +167,6 @@ export default function InvitePage() {
               </div>
             </div>
 
-            {/* Features Preview */}
             <div className="mb-6 grid gap-3 sm:grid-cols-3">
               {[
                 { icon: Users, text: 'Colabore com sua equipe' },
@@ -187,7 +183,6 @@ export default function InvitePage() {
               })}
             </div>
 
-            {/* Action Button */}
             <button
               onClick={handleAccept}
               disabled={accepting}
@@ -208,7 +203,6 @@ export default function InvitePage() {
               </span>
             </button>
 
-            {/* Info Box */}
             <div className="mt-6 rounded-lg border border-white/5 bg-white/5 p-4">
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
@@ -232,7 +226,6 @@ export default function InvitePage() {
               </div>
             </div>
 
-            {/* Login Hint */}
             <div className="mt-4 text-center">
               <p className="text-xs text-zinc-500">
                 Já tem uma conta? Faça login para aceitar o convite.

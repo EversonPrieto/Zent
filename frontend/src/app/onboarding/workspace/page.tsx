@@ -62,7 +62,6 @@ export default function WorkspaceOnboardingPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -71,7 +70,6 @@ export default function WorkspaceOnboardingPage() {
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-10 md:px-6">
         <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Header */}
           <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6 md:p-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
@@ -90,7 +88,6 @@ export default function WorkspaceOnboardingPage() {
 
           <div className="p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Features preview */}
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   { icon: Users, text: 'Gerencie membros' },
@@ -107,7 +104,6 @@ export default function WorkspaceOnboardingPage() {
                 })}
               </div>
 
-              {/* Name input */}
               <div>
                 <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
                   <Tag className="h-4 w-4 text-violet-400" />
@@ -143,7 +139,6 @@ export default function WorkspaceOnboardingPage() {
                 )}
               </div>
 
-              {/* Suggestions */}
               {!name && (
                 <div className="rounded-lg border border-white/5 bg-white/5 p-3">
                   <p className="text-xs text-zinc-500 mb-2">💡 Sugestões de nomes:</p>
@@ -162,7 +157,6 @@ export default function WorkspaceOnboardingPage() {
                 </div>
               )}
 
-              {/* Error message */}
               {error && (
                 <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -170,7 +164,6 @@ export default function WorkspaceOnboardingPage() {
                 </div>
               )}
 
-              {/* Submit button */}
               <button
                 type="submit"
                 disabled={loading || !isFormValid}
@@ -192,7 +185,6 @@ export default function WorkspaceOnboardingPage() {
               </button>
             </form>
 
-            {/* Info box */}
             <div className="mt-6 rounded-lg border border-white/5 bg-white/5 p-4">
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
