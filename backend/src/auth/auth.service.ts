@@ -7,6 +7,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
@@ -59,5 +60,26 @@ export class AuthService {
       accessToken,
       user: { id: user.id, name: user.name, email: user.email },
     };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(dto.name && { name: dto.name }),
+          ...(dto.email && { email: dto.email }),
+          ...(dto.avatar && { avatar: dto.avatar }),
+        },
+      });
+
+      const { password, ...result } = user;
+      return result;
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
+        throw new ConflictException('Este email já está em uso.');
+      }
+      throw new InternalServerErrorException('Erro ao atualizar perfil');
+    }
   }
 }

@@ -463,6 +463,19 @@ export default function AppHeader() {
               <Crown className="h-4 w-4" />
             </button>
 
+            {/* Profile Button */}
+            <button
+              onClick={() => router.push('/dashboard/profile')}
+              className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                pathname === '/dashboard/profile'
+                  ? 'bg-white/10 text-white'
+                  : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+              }`}
+              title="Perfil"
+            >
+              <User className="h-4 w-4" />
+            </button>
+
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => {
@@ -530,6 +543,17 @@ export default function AppHeader() {
                     >
                       <Crown className="h-4 w-4" />
                       Planos
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        router.push('/dashboard/profile');
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                    >
+                      <User className="h-4 w-4" />
+                      Perfil
                     </button>
 
                     <div className="border-t border-white/10 my-2" />
@@ -656,6 +680,17 @@ export default function AppHeader() {
               >
                 <Settings className="h-4 w-4" />
                 Configurações
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push('/dashboard/profile');
+                  setMobileMenuOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+              >
+                <User className="h-4 w-4" />
+                Perfil
               </button>
 
               <button
