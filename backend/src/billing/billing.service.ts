@@ -24,7 +24,7 @@ export class BillingService {
       const stripe = this.getStripe();
       const paymentIntent = await stripe.paymentIntents.create({
         amount, 
-        currency: 'usd',
+        currency: 'brl',
         receipt_email: email,
         metadata: {
           customer_name: name,
