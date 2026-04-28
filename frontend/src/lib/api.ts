@@ -1,6 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-type RequestOptions = RequestInit & {
+type RequestOptions = Omit<RequestInit, 'body'> & {
   workspaceId?: string;
   body?: any; 
 };
