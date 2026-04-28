@@ -3,6 +3,8 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
@@ -32,5 +34,15 @@ export class AuthController {
   @ApiBearerAuth()
   updateProfile(@Req() req: any, @Body() dto: UpdateProfileDto) {
     return this.authService.updateProfile(req.user.sub, dto);
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Patch('reset-password')
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }
