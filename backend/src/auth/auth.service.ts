@@ -6,6 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -20,6 +21,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private cloudinary: CloudinaryService,
   ) {}
 
   async signUp(dto: CreateUserDto) {
@@ -73,7 +75,7 @@ export class AuthService {
         data: {
           ...(dto.name && { name: dto.name }),
           ...(dto.email && { email: dto.email }),
-          ...(dto.avatar && { avatar: dto.avatar }),
+          ...(dto.avatarUrl && { avatarUrl: dto.avatarUrl }),
         },
       });
 
@@ -244,6 +246,115 @@ export class AuthService {
       }
       console.error('Reset password error:', error);
       throw new InternalServerErrorException('Erro ao redefinir senha');
+    }
+  }
+
+  async uploadAvatar(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo foi enviado');
+    }
+
+    // Validar tipo de arquivo
+    if (!file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('O arquivo deve ser uma imagem');
+    }
+
+    try {
+      console.log('Iniciando upload do avatar:', { userId, fileName: file.filename, mimetype: file.mimetype });
+      
+      // Upload para Cloudinary
+      const uploadResult = await this.cloudinary.uploadImage(file, {
+        folder: 'zent/avatars',
+      });
+
+      console.log('Upload Cloudinary bem-sucedido:', uploadResult.public_id);
+
+      // Atualizar avatar no banco
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { avatarUrl: uploadResult.secure_url },
+      });
+
+      const { password, ...result } = user;
+      return result;
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      throw new InternalServerErrorException('Erro ao fazer upload do avatar');
+    }
+  }
+
+  async changePassword(userId: string, dto: any) {
+    const { currentPassword, newPassword, confirmPassword } = dto;
+
+    // Validar que as senhas conferem
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('As senhas não conferem');
+    }
+
+    // Validar que a senha atual e a nova são diferentes
+    if (currentPassword === newPassword) {
+      throw new BadRequestException('A nova senha deve ser diferente da senha atual');
+    }
+
+    try {
+      // Buscar usuário
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new BadRequestException('Usuário não encontrado');
+      }
+
+      // Validar senha atual
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Senha atual incorreta');
+      }
+
+      // Hash da nova senha
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Atualizar senha
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          password: hashedPassword,
+        },
+      });
+
+      return { message: 'Senha alterada com sucesso!' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.error('Change password error:', error);
+      throw new InternalServerErrorException('Erro ao alterar a senha');
+    }
+  }
+
+  async updateEmailPreferences(userId: string, dto: any) {
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          emailNotificationsEnabled: dto.emailNotificationsEnabled,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailNotificationsEnabled: true,
+        },
+      });
+
+      return {
+        message: 'Preferências atualizadas com sucesso!',
+        emailNotificationsEnabled: updatedUser.emailNotificationsEnabled,
+      };
+    } catch (error) {
+      console.error('Update email preferences error:', error);
+      throw new InternalServerErrorException('Erro ao atualizar preferências de email');
     }
   }
 }

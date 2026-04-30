@@ -24,6 +24,7 @@ import {
   X,
   FolderKanban,
   Search,
+  Bell,
 } from 'lucide-react';
 
 import CreateWorkspaceModal from './CreateWorkspaceModal';
@@ -42,6 +43,7 @@ type User = {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
 };
 
 const roleConfig = {
@@ -62,15 +64,19 @@ export default function AppHeader() {
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showEditWorkspaceModal, setShowEditWorkspaceModal] = useState(false);
   const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
 
+  const [notifications, setNotifications] = useState<Array<{ id: string; message: string; type: 'task' | 'comment' | 'mention' }>>([]);
+
   const workspaceMenuRef = useRef<HTMLDivElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function syncFromStorage() {
@@ -143,6 +149,15 @@ export default function AppHeader() {
     }
 
     loadWorkspaces();
+
+    const savedNotifications = localStorage.getItem('zent_notifications');
+    if (savedNotifications) {
+      try {
+        setNotifications(JSON.parse(savedNotifications));
+      } catch {
+        setNotifications([]);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -157,19 +172,52 @@ export default function AppHeader() {
         setUserMenuOpen(false);
       }
 
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(target) && !(event.target as HTMLElement).closest('.mobile-menu-button')) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(target)) {
         setMobileMenuOpen(false);
+      }
+
+      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
+        setNotificationsOpen(false);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    const handleAddNotification = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      addNotification(customEvent.detail.message, customEvent.detail.type);
+    };
+
+    window.addEventListener('add-notification', handleAddNotification);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('add-notification', handleAddNotification);
+    };
   }, []);
 
   function handleLogout() {
     localStorage.clear();
     window.dispatchEvent(new Event('workspace-changed'));
     router.push('/login');
+  }
+
+  function addNotification(message: string, type: 'task' | 'comment' | 'mention' = 'task') {
+    const newNotification = {
+      id: Date.now().toString(),
+      message,
+      type,
+    };
+    
+    setNotifications((prev) => {
+      const updated = [newNotification, ...prev];
+      localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20))); // Manter últimas 20
+      return updated;
+    });
+
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
+    }, 10000);
   }
 
   function handleSwitchWorkspace(ws: Workspace) {
@@ -463,18 +511,68 @@ export default function AppHeader() {
               <Crown className="h-4 w-4" />
             </button>
 
-            {/* Profile Button */}
-            <button
-              onClick={() => router.push('/dashboard/profile')}
-              className={`rounded-lg px-3 py-2 text-sm transition-all ${
-                pathname === '/dashboard/profile'
-                  ? 'bg-white/10 text-white'
-                  : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-              }`}
-              title="Perfil"
-            >
-              <User className="h-4 w-4" />
-            </button>
+            {/* Notifications Button */}
+            <div className="relative" ref={notificationsRef}>
+              <button
+                onClick={() => {
+                  setNotificationsOpen((prev) => !prev);
+                  setUserMenuOpen(false);
+                }}
+                className="relative rounded-lg px-3 py-2 text-sm transition-all text-zinc-400 hover:bg-white/5 hover:text-white"
+                title="Notificações"
+              >
+                <Bell className="h-4 w-4" />
+                {notifications.length > 0 && (
+                  <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+                    {notifications.length > 9 ? '9+' : notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-white/10 bg-zinc-900/95 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="border-b border-white/10 px-4 py-3">
+                    <h3 className="font-semibold text-white">Notificações</h3>
+                  </div>
+
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      <div className="space-y-2 p-2">
+                        {notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className="rounded-lg bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all cursor-pointer"
+                          >
+                            <p className="text-sm text-white">{notif.message}</p>
+                            <p className="text-xs text-zinc-500 mt-1">
+                              {notif.type === 'task' && '📋 Tarefa'}
+                              {notif.type === 'comment' && '💬 Comentário'}
+                              {notif.type === 'mention' && '🔔 Menção'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center">
+                        <Bell className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
+                        <p className="text-sm text-zinc-400">Sem notificações</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {notifications.length > 0 && (
+                    <div className="border-t border-white/10 p-2">
+                      <button
+                        onClick={() => setNotifications([])}
+                        className="w-full py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        Limpar tudo
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="relative" ref={userMenuRef}>
               <button
@@ -484,8 +582,19 @@ export default function AppHeader() {
                 }}
                 className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-2 py-1.5 transition-all hover:border-white/20 hover:bg-white/10"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
-                  {userInitial}
+                <div className="relative">
+                  {user?.avatarUrl ? (
+                    <img 
+                      src={user.avatarUrl} 
+                      alt={user.name}
+                      className="h-8 w-8 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
+                      {userInitial}
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-zinc-950 shadow-lg" />
                 </div>
 
                 <div className="hidden text-right lg:block">
@@ -757,9 +866,17 @@ export default function AppHeader() {
 
             <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
-                  {userInitial}
-                </div>
+                {user?.avatarUrl ? (
+                  <img 
+                    src={user.avatarUrl} 
+                    alt={user.name}
+                    className="h-10 w-10 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
+                    {userInitial}
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-medium text-white">{user?.name}</p>
                   <p className="text-xs text-zinc-500">{user?.email}</p>

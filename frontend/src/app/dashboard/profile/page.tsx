@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   User,
@@ -23,13 +23,16 @@ type UserData = {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
   });
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -43,6 +46,8 @@ export default function ProfilePage() {
     new: false,
     confirm: false,
   });
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -55,6 +60,18 @@ export default function ProfilePage() {
             name: parsed.name || '',
             email: parsed.email || '',
           });
+
+          if (parsed.avatarUrl) {
+            setAvatarUrl(parsed.avatarUrl);
+          }
+        }
+
+        const savedTheme = localStorage.getItem('zent_theme') || 'dark';
+        setTheme(savedTheme as 'light' | 'dark');
+
+        const savedEmailPrefs = localStorage.getItem('zent_email_notifications');
+        if (savedEmailPrefs) {
+          setEmailNotificationsEnabled(JSON.parse(savedEmailPrefs));
         }
       } catch (err) {
         setError('Erro ao carregar perfil');
@@ -65,6 +82,184 @@ export default function ProfilePage() {
 
     loadUserProfile();
   }, []);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('A imagem deve ter menos de 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const token = localStorage.getItem('zent_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/upload-avatar`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed - Status:', response.status, 'Body:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || `Erro ${response.status}` };
+        }
+        throw new Error(errorData?.message || 'Erro ao fazer upload do avatar');
+      }
+
+      const updated = await response.json();
+
+      setAvatarUrl(updated.avatarUrl);
+
+      const updatedUser = { ...updated };
+      setUser(updatedUser);
+
+      localStorage.setItem('zent_user', JSON.stringify(updatedUser));
+
+      setSuccess('Avatar atualizado com sucesso!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Avatar upload error:', err);
+      setError('Erro ao fazer upload do avatar. Tente novamente.');
+    } finally {
+      setUploadingAvatar(false);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }
+
+  function handleThemeChange(newTheme: 'light' | 'dark') {
+    setTheme(newTheme);
+    localStorage.setItem('zent_theme', newTheme);
+
+    const htmlElement = document.documentElement;
+    if (newTheme === 'light') {
+      htmlElement.classList.remove('dark');
+      htmlElement.classList.add('light');
+      document.body.className = 'bg-white text-zinc-950';
+    } else {
+      htmlElement.classList.remove('light');
+      htmlElement.classList.add('dark');
+      document.body.className = 'bg-zinc-950 text-white';
+    }
+  }
+
+  async function handleEmailNotificationsChange(enabled: boolean) {
+    setEmailNotificationsEnabled(enabled);
+    localStorage.setItem('zent_email_notifications', JSON.stringify(enabled));
+
+    try {
+      const token = localStorage.getItem('zent_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/email-preferences`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            emailNotificationsEnabled: enabled,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar preferências');
+      }
+
+      setSuccess(
+        enabled
+          ? 'Notificações por email ativadas!'
+          : 'Notificações por email desativadas!'
+      );
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Email preferences error:', err);
+      setError('Erro ao atualizar preferências. Tente novamente.');
+      setEmailNotificationsEnabled(!enabled);
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
+      setError('Todos os campos são obrigatórios');
+      return;
+    }
+
+    if (passwords.new !== passwords.confirm) {
+      setError('As senhas não conferem');
+      return;
+    }
+
+    if (passwords.new.length < 8) {
+      setError('A nova senha deve ter no mínimo 8 caracteres');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const token = localStorage.getItem('zent_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            currentPassword: passwords.current,
+            newPassword: passwords.new,
+            confirmPassword: passwords.confirm,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao alterar senha');
+      }
+
+      setSuccess('Senha alterada com sucesso!');
+      setPasswords({ current: '', new: '', confirm: '' });
+      setShowPasswordChange(false);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Change password error:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao alterar a senha. Tente novamente.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -92,7 +287,6 @@ export default function ProfilePage() {
 
       const updated = await response.json();
 
-      // Atualizar localStorage
       localStorage.setItem('zent_user', JSON.stringify(updated));
       setUser(updated);
       setSuccess('Perfil atualizado com sucesso!');
@@ -118,13 +312,11 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 pt-20 px-4 pb-20">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Configurações de Perfil</h1>
           <p className="text-zinc-400">Gereneie suas informações pessoais e preferências</p>
         </div>
 
-        {/* Alerts */}
         {error && (
           <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
@@ -145,16 +337,38 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Profile Card */}
         <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 mb-8">
           <div className="flex items-center gap-6 mb-8">
             <div className="relative">
-              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/20">
-                <User className="h-10 w-10 text-violet-400" />
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/20 overflow-hidden">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user?.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="h-10 w-10 text-violet-400" />
+                )}
               </div>
-              <button className="absolute bottom-0 right-0 p-2 rounded-full bg-violet-500 hover:bg-violet-600 transition-all">
-                <Upload className="h-4 w-4 text-white" />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute bottom-0 right-0 p-2 rounded-full bg-violet-500 hover:bg-violet-600 disabled:bg-violet-500/50 transition-all cursor-pointer"
+              >
+                {uploadingAvatar ? (
+                  <Loader2 className="h-4 w-4 text-white animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 text-white" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             </div>
             <div>
               <p className="text-sm text-zinc-400">Usuário</p>
@@ -163,7 +377,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Edit Profile Form */}
           <form onSubmit={handleUpdateProfile} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -215,7 +428,6 @@ export default function ProfilePage() {
           </form>
         </div>
 
-        {/* Password Change Card */}
         <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white">Alterar Senha</h2>
@@ -307,15 +519,23 @@ export default function ProfilePage() {
 
               <button
                 type="button"
-                className="w-full py-2.5 rounded-xl border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 font-medium transition-all"
+                onClick={handleChangePassword}
+                disabled={saving}
+                className="w-full py-2.5 rounded-xl border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/20 disabled:bg-violet-500/5 disabled:border-violet-500/10 text-violet-400 font-medium transition-all flex items-center justify-center gap-2"
               >
-                Atualizar Senha
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Atualizando...
+                  </>
+                ) : (
+                  'Atualizar Senha'
+                )}
               </button>
             </div>
           )}
         </div>
 
-        {/* Preferences Card */}
         <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
           <h2 className="text-xl font-bold text-white mb-6">Preferências</h2>
 
@@ -326,7 +546,12 @@ export default function ProfilePage() {
                 <p className="text-sm text-zinc-400">Receba alertas sobre suas tarefas</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  checked={emailNotificationsEnabled}
+                  onChange={(e) => handleEmailNotificationsChange(e.target.checked)}
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-500"></div>
               </label>
             </div>
@@ -334,10 +559,15 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
               <div>
                 <p className="font-medium text-white">Tema Escuro</p>
-                <p className="text-sm text-zinc-400">Usar tema escuro por padrão</p>
+                <p className="text-sm text-zinc-400">Usar tema escuro ou claro</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" defaultChecked className="sr-only peer" />
+                <input
+                  type="checkbox"
+                  checked={theme === 'dark'}
+                  onChange={(e) => handleThemeChange(e.target.checked ? 'dark' : 'light')}
+                  className="sr-only peer"
+                />
                 <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-500"></div>
               </label>
             </div>
