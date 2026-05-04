@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useTheme } from '../../../hooks/useTheme';
 import CreateProjectModal from '../../../components/CreateProjectModal';
 import {
   FolderKanban,
@@ -36,6 +37,7 @@ type Workspace = {
 
 export default function ProjectsPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -122,7 +124,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -131,18 +133,18 @@ export default function ProjectsPage() {
       <div className="relative mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
         <div className="mb-8 md:mb-12">
           <div className="mb-4 flex items-center gap-2">
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm backdrop-blur-sm">
+            <div className={`inline-flex items-center rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-1 text-sm backdrop-blur-sm`}>
               <Building2 className="h-3.5 w-3.5 mr-1.5 text-violet-400" />
-              <span className="text-xs text-zinc-400">Workspace atual</span>
+              <span className={`text-xs ${themeClasses.text.secondary}`}>Workspace atual</span>
             </div>
           </div>
 
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold md:text-4xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 {workspace?.name ?? 'Projetos'}
               </h1>
-              <p className="mt-2 text-zinc-400">
+              <p className={`mt-2 ${themeClasses.text.secondary}`}>
                 Gerencie os projetos da workspace selecionada
               </p>
             </div>
@@ -159,38 +161,38 @@ export default function ProjectsPage() {
 
         {!loading && !error && projects.length > 0 && (
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-4 backdrop-blur-sm">
+            <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm`}>
               <div className="flex items-center justify-between">
                 <FolderKanban className="h-5 w-5 text-violet-400" />
-                <span className="text-2xl font-bold text-white">{projects.length}</span>
+                <span className={`text-2xl font-bold ${themeClasses.text.primary}`}>{projects.length}</span>
               </div>
-              <p className="mt-2 text-sm text-zinc-400">Total de projetos</p>
+              <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>Total de projetos</p>
             </div>
             
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-4 backdrop-blur-sm">
+            <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm`}>
               <div className="flex items-center justify-between">
                 <Calendar className="h-5 w-5 text-emerald-400" />
-                <span className="text-2xl font-bold text-white">
+                <span className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                   {projects.filter(p => new Date(p.createdAt).toDateString() === new Date().toDateString()).length}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-zinc-400">Criados hoje</p>
+              <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>Criados hoje</p>
             </div>
             
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-4 backdrop-blur-sm">
+            <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm`}>
               <div className="flex items-center justify-between">
                 <Users className="h-5 w-5 text-blue-400" />
-                <span className="text-2xl font-bold text-white">—</span>
+                <span className={`text-2xl font-bold ${themeClasses.text.primary}`}>—</span>
               </div>
-              <p className="mt-2 text-sm text-zinc-400">Membros ativos</p>
+              <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>Membros ativos</p>
             </div>
             
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-4 backdrop-blur-sm">
+            <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm`}>
               <div className="flex items-center justify-between">
                 <Star className="h-5 w-5 text-amber-400" />
-                <span className="text-2xl font-bold text-white">—</span>
+                <span className={`text-2xl font-bold ${themeClasses.text.primary}`}>—</span>
               </div>
-              <p className="mt-2 text-sm text-zinc-400">Projetos favoritos</p>
+              <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>Projetos favoritos</p>
             </div>
           </div>
         )}
@@ -198,7 +200,7 @@ export default function ProjectsPage() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
-            <p className="mt-4 text-zinc-400">Carregando projetos...</p>
+            <p className={`mt-4 ${themeClasses.text.secondary}`}>Carregando projetos...</p>
           </div>
         )}
 
@@ -218,12 +220,12 @@ export default function ProjectsPage() {
         )}
 
         {!loading && !error && projects.length === 0 && (
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-12 text-center backdrop-blur-sm">
+          <div className={`rounded-3xl border ${themeClasses.border.primary} bg-gradient-to-br from-violet-500/5 to-indigo-500/5 p-12 text-center backdrop-blur-sm`}>
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
               <FolderKanban className="h-12 w-12 text-violet-400" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">Nenhum projeto encontrado</h3>
-            <p className="text-zinc-400 mb-8 max-w-md mx-auto">
+            <h3 className={`text-2xl font-semibold mb-2 ${themeClasses.text.primary}`}>Nenhum projeto encontrado</h3>
+            <p className={`${themeClasses.text.secondary} mb-8 max-w-md mx-auto`}>
               Comece criando seu primeiro projeto para organizar as tarefas da sua equipe.
             </p>
             <button
@@ -243,7 +245,7 @@ export default function ProjectsPage() {
                 <div
                   key={project.id}
                   onClick={() => openProject(project.id)}
-                  className="group relative cursor-pointer rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5 transition-all hover:scale-105 hover:border-white/20 hover:shadow-2xl hover:shadow-violet-500/10 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className={`group relative cursor-pointer rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-5 transition-all hover:scale-105 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10 focus:outline-none focus:ring-2 focus:ring-violet-500`}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -264,7 +266,7 @@ export default function ProjectsPage() {
                         onClick={(e) => {
                           e.stopPropagation();
                         }}
-                        className="rounded-lg p-1 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/10 cursor-pointer"
+                        className={`rounded-lg p-1 ${themeClasses.text.secondary} opacity-0 transition-opacity group-hover:opacity-100 ${themeClasses.bg.hover} cursor-pointer`}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => {
@@ -278,16 +280,16 @@ export default function ProjectsPage() {
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-semibold text-white group-hover:text-violet-400 transition-colors">
+                    <h2 className={`text-xl font-semibold ${themeClasses.text.primary} group-hover:text-violet-400 transition-colors`}>
                       {project.name}
                     </h2>
 
-                    <p className="mt-2 min-h-[40px] text-sm text-zinc-400 line-clamp-2">
+                    <p className={`mt-2 min-h-[40px] text-sm ${themeClasses.text.secondary} line-clamp-2`}>
                       {project.description || 'Sem descrição'}
                     </p>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                    <div className={`mt-4 flex items-center justify-between border-t ${themeClasses.border.primary} pt-3`}>
+                      <div className={`flex items-center gap-1.5 text-xs ${themeClasses.text.secondary}`}>
                         <Clock className="h-3 w-3" />
                         <span>Atualizado {getRelativeDate(project.updatedAt)}</span>
                       </div>
@@ -303,7 +305,7 @@ export default function ProjectsPage() {
             </div>
 
             <div className="mt-8 text-center">
-              <p className="text-sm text-zinc-500">
+              <p className={`text-sm ${themeClasses.text.secondary}`}>
                 Mostrando <span className="text-violet-400 font-medium">{projects.length}</span>{' '}
                 {projects.length === 1 ? 'projeto' : 'projetos'} nesta workspace
               </p>

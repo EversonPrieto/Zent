@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import {
   X,
   Building2,
@@ -33,6 +34,7 @@ export default function CreateWorkspaceModal({
   onClose,
   onCreated,
 }: Props) {
+  const { themeClasses } = useTheme();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -68,19 +70,19 @@ export default function CreateWorkspaceModal({
   const nameLength = name.length;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+    <div className={`fixed inset-0 z-[60] flex items-center justify-center ${themeClasses.bg.primary}/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
+      <div className={`relative w-full max-w-md overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl animate-in slide-in-from-bottom-4 duration-300`}>
+        <div className={`border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} p-6`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
                 <Building2 className="h-5 w-5 text-violet-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                <h2 className={`text-xl font-bold ${themeClasses.text.primary}`}>
                   Novo workspace
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>
                   Crie um novo ambiente para seu time.
                 </p>
               </div>
@@ -88,7 +90,7 @@ export default function CreateWorkspaceModal({
 
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className={`rounded-lg p-2 ${themeClasses.text.secondary} transition-colors ${themeClasses.bg.hover} ${themeClasses.text.primary}`}
             >
               <X className="h-5 w-5" />
             </button>
@@ -98,7 +100,7 @@ export default function CreateWorkspaceModal({
         <div className="p-6">
           <div className="space-y-5">
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Tag className="h-4 w-4 text-violet-400" />
                 Nome do workspace
               </label>
@@ -107,11 +109,11 @@ export default function CreateWorkspaceModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex.: Equipe Zent, Marketing, Desenvolvimento..."
                 autoFocus
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               />
               {name && (
                 <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">
+                  <span className={themeClasses.text.secondary}>
                     {nameLength} caracteres
                   </span>
                   {nameLength >= 3 && nameLength <= 50 && (
@@ -129,11 +131,11 @@ export default function CreateWorkspaceModal({
               )}
             </div>
 
-            <div className="rounded-lg border border-white/5 bg-white/5 p-4">
+            <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
-                <div className="text-xs text-zinc-500">
-                  <p className="mb-2 font-medium text-zinc-400">O que você pode fazer com um workspace:</p>
+                <div className={`text-xs ${themeClasses.text.secondary}`}>
+                  <p className={`mb-2 font-medium ${themeClasses.text.primary}`}>O que você pode fazer com um workspace:</p>
                   <ul className="space-y-1.5">
                     <li className="flex items-center gap-1.5">
                       <Users className="h-3 w-3 text-violet-400" />
@@ -153,14 +155,14 @@ export default function CreateWorkspaceModal({
             </div>
 
             {!name && (
-              <div className="rounded-lg border border-white/5 bg-white/5 p-3">
-                <p className="text-xs text-zinc-500 mb-2">💡 Sugestões de nomes:</p>
+              <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
+                <p className={`text-xs ${themeClasses.text.secondary} mb-2`}>💡 Sugestões de nomes:</p>
                 <div className="flex flex-wrap gap-2">
                   {['Equipe Design', 'Desenvolvimento', 'Marketing', 'Produto', 'Vendas'].map((suggestion) => (
                     <button
                       key={suggestion}
                       onClick={() => setName(suggestion)}
-                      className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-400 transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400"
+                      className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-2 py-1 text-xs ${themeClasses.text.secondary} transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400`}
                     >
                       {suggestion}
                     </button>
@@ -179,7 +181,7 @@ export default function CreateWorkspaceModal({
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
+                className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover} ${themeClasses.text.primary}`}
               >
                 Cancelar
               </button>
@@ -203,7 +205,7 @@ export default function CreateWorkspaceModal({
               </button>
             </div>
 
-            <p className="text-center text-xs text-zinc-500">
+            <p className={`text-center text-xs ${themeClasses.text.secondary}`}>
               Você será o <span className="text-violet-400">proprietário</span> deste workspace
             </p>
           </div>

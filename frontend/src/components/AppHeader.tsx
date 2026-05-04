@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import {
   ChevronDown,
   ChevronRight,
@@ -77,6 +78,8 @@ export default function AppHeader() {
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const notificationsRef = useRef<HTMLDivElement | null>(null);
+
+  const { themeClasses } = useTheme();
 
   useEffect(() => {
     function syncFromStorage() {
@@ -273,20 +276,20 @@ export default function AppHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
+      <header className={`sticky top-0 z-50 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} backdrop-blur-xl`}>
+        <div className={`mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6`}>
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push('/dashboard/projects')}
               className="group flex items-center gap-2"
             >
               <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 shadow-lg shadow-violet-500/25 transition-all group-hover:scale-105" />
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent hidden sm:inline">
+              <span className={`text-xl font-bold hidden sm:inline bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent dark:from-white dark:to-zinc-400`}>
                 Zent
               </span>
             </button>
 
-            <div className="hidden h-6 w-px bg-white/10 md:block" />
+            <div className={`hidden h-6 w-px md:block ${themeClasses.border.primary}`} />
 
             <div className="relative hidden md:block" ref={workspaceMenuRef}>
               {workspace ? (
@@ -295,7 +298,7 @@ export default function AppHeader() {
                     setWorkspaceMenuOpen((prev) => !prev);
                     setUserMenuOpen(false);
                   }}
-                  className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 transition-all hover:border-white/20 hover:bg-white/10"
+                  className={`group flex items-center gap-3 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-1.5 transition-all ${themeClasses.border.hover} ${themeClasses.bg.hover}`}
                 >
                   <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                     {workspace.logoUrl ? (
@@ -328,7 +331,7 @@ export default function AppHeader() {
               ) : (
                 <button
                   onClick={() => setShowCreateWorkspaceModal(true)}
-                  className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-zinc-300 transition-all hover:border-white/20 hover:bg-white/10"
+                  className={`flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-1.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.border.hover} ${themeClasses.bg.hover}`}
                 >
                   <PlusCircle className="h-4 w-4" />
                   Criar workspace
@@ -336,9 +339,9 @@ export default function AppHeader() {
               )}
 
               {workspaceMenuOpen && workspace && (
-                <div className="absolute left-0 top-full mt-2 w-80 rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className={`absolute left-0 top-full mt-2 w-80 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
                   <div className="px-3 py-2">
-                    <p className="text-xs font-medium text-zinc-500">Trocar workspace</p>
+                    <p className={`text-xs font-medium ${themeClasses.text.hint}`}>Trocar workspace</p>
                   </div>
 
                   <div className="max-h-64 space-y-1 overflow-y-auto">
@@ -347,14 +350,14 @@ export default function AppHeader() {
                       const WsRoleIcon = wsRoleInfo?.icon;
                       const isActive = workspace?.id === ws.id;
                       
-                      return (
+                            return (
                         <button
                           key={ws.id}
                           onClick={() => handleSwitchWorkspace(ws)}
                           className={`group relative w-full rounded-xl px-3 py-2 text-left transition-all ${
                             isActive
                               ? 'bg-gradient-to-r from-violet-500/20 to-indigo-500/20'
-                              : 'hover:bg-white/5'
+                              : themeClasses.bg.hover
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -370,14 +373,14 @@ export default function AppHeader() {
                               )}
                             </div>
 
-                            <div className="flex-1">
-                              <p className={`text-sm font-medium ${isActive ? 'text-white' : 'text-zinc-300'}`}>
+                              <div className="flex-1">
+                              <p className={`text-sm font-medium ${isActive ? themeClasses.text.primary : themeClasses.text.secondary}`}>
                                 {ws.name}
                               </p>
                               {WsRoleIcon && (
-                                <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1">
                                   <WsRoleIcon className={`h-3 w-3 ${wsRoleInfo?.text}`} />
-                                  <p className={`text-xs ${wsRoleInfo?.text}`}>
+                                  <p className={`text-xs ${themeClasses.text.tertiary}`}>
                                     {wsRoleInfo?.label}
                                   </p>
                                 </div>
@@ -399,7 +402,7 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         router.push('/dashboard/workspace/settings');
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <Settings className="h-4 w-4" />
                       Configurações
@@ -410,7 +413,7 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         setShowMembersModal(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <Users className="h-4 w-4" />
                       Ver membros
@@ -423,7 +426,7 @@ export default function AppHeader() {
                             setWorkspaceMenuOpen(false);
                             setShowInviteMemberModal(true);
                           }}
-                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                         >
                           <Mail className="h-4 w-4" />
                           Convidar membro
@@ -434,7 +437,7 @@ export default function AppHeader() {
                             setWorkspaceMenuOpen(false);
                             setShowEditWorkspaceModal(true);
                           }}
-                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                         >
                           <Edit2 className="h-4 w-4" />
                           Editar workspace
@@ -447,7 +450,7 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         setShowCreateWorkspaceModal(true);
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-violet-400 transition-all hover:bg-white/5"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.accent.violet.split(' ')[1] || themeClasses.text.primary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <PlusCircle className="h-4 w-4" />
                       Criar nova workspace
@@ -465,8 +468,8 @@ export default function AppHeader() {
                 title="Dashboard"
                 className={`rounded-lg px-3 py-2 text-sm transition-all ${
                   pathname === '/dashboard/overview'
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                    ? `${themeClasses.bg.hover} ${themeClasses.text.primary}`
+                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`
                 }`}
               >
                 <LayoutDashboard className="h-4 w-4" />
@@ -476,8 +479,8 @@ export default function AppHeader() {
                 title="Projetos"
                 className={`rounded-lg px-3 py-2 text-sm transition-all ${
                   pathname === '/dashboard/projects'
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                    ? `${themeClasses.bg.hover} ${themeClasses.text.primary}`
+                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`
                 }`}
               >
                 <FolderKanban className="h-4 w-4" />
@@ -487,8 +490,8 @@ export default function AppHeader() {
                 title="Atividade"
                 className={`rounded-lg px-3 py-2 text-sm transition-all ${
                   pathname === '/dashboard/activity'
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                    ? `${themeClasses.bg.hover} ${themeClasses.text.primary}`
+                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`
                 }`}
               >
                 <Activity className="h-4 w-4" />
@@ -497,7 +500,7 @@ export default function AppHeader() {
 
             <button
               onClick={() => router.push('/search')}
-              className="rounded-lg px-3 py-2 text-sm transition-all text-zinc-400 hover:bg-white/5 hover:text-white border border-white/10"
+              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover} border ${themeClasses.border.primary}`}
               title="Busca Global (Ctrl+K)"
             >
               <Search className="h-4 w-4" />
@@ -505,7 +508,7 @@ export default function AppHeader() {
 
             <button
               onClick={() => router.push('/pricing')}
-              className="rounded-lg px-3 py-2 text-sm transition-all text-zinc-400 hover:bg-white/5 hover:text-white"
+              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`}
               title="Planos"
             >
               <Crown className="h-4 w-4" />
@@ -518,7 +521,7 @@ export default function AppHeader() {
                   setNotificationsOpen((prev) => !prev);
                   setUserMenuOpen(false);
                 }}
-                className="relative rounded-lg px-3 py-2 text-sm transition-all text-zinc-400 hover:bg-white/5 hover:text-white"
+                className={`relative rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
                 title="Notificações"
               >
                 <Bell className="h-4 w-4" />
@@ -529,10 +532,10 @@ export default function AppHeader() {
                 )}
               </button>
 
-              {notificationsOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-white/10 bg-zinc-900/95 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="border-b border-white/10 px-4 py-3">
-                    <h3 className="font-semibold text-white">Notificações</h3>
+                {notificationsOpen && (
+                <div className={`absolute right-0 top-full mt-2 w-80 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
+                  <div className={`border-b ${themeClasses.border.primary} px-4 py-3`}>
+                    <h3 className={`font-semibold ${themeClasses.text.primary}`}>Notificações</h3>
                   </div>
 
                   <div className="max-h-96 overflow-y-auto">
@@ -541,10 +544,10 @@ export default function AppHeader() {
                         {notifications.map((notif) => (
                           <div
                             key={notif.id}
-                            className="rounded-lg bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all cursor-pointer"
+                            className={`rounded-lg ${themeClasses.bg.subtle} border ${themeClasses.border.primary} p-3 ${themeClasses.bg.hover} transition-all cursor-pointer`}
                           >
-                            <p className="text-sm text-white">{notif.message}</p>
-                            <p className="text-xs text-zinc-500 mt-1">
+                            <p className={`text-sm ${themeClasses.text.primary}`}>{notif.message}</p>
+                            <p className={`text-xs ${themeClasses.text.hint} mt-1`}>
                               {notif.type === 'task' && '📋 Tarefa'}
                               {notif.type === 'comment' && '💬 Comentário'}
                               {notif.type === 'mention' && '🔔 Menção'}
@@ -554,17 +557,17 @@ export default function AppHeader() {
                       </div>
                     ) : (
                       <div className="p-8 text-center">
-                        <Bell className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
-                        <p className="text-sm text-zinc-400">Sem notificações</p>
+                        <Bell className={`h-8 w-8 mx-auto mb-2 ${themeClasses.text.tertiary}`} />
+                        <p className={`text-sm ${themeClasses.text.hint}`}>Sem notificações</p>
                       </div>
                     )}
                   </div>
 
                   {notifications.length > 0 && (
-                    <div className="border-t border-white/10 p-2">
+                      <div className={`border-t ${themeClasses.border.primary} p-2`}>
                       <button
                         onClick={() => setNotifications([])}
-                        className="w-full py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
+                        className={`w-full py-2 rounded-lg text-sm ${themeClasses.text.secondary} ${themeClasses.bg.hover} transition-all`}
                       >
                         Limpar tudo
                       </button>
@@ -580,7 +583,7 @@ export default function AppHeader() {
                   setUserMenuOpen((prev) => !prev);
                   setWorkspaceMenuOpen(false);
                 }}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-2 py-1.5 transition-all hover:border-white/20 hover:bg-white/10"
+                className={`flex items-center gap-3 rounded-xl transition-all px-2 py-1 ${themeClasses.bg.hover}`}
               >
                 <div className="relative">
                   {user?.avatarUrl ? (
@@ -590,32 +593,32 @@ export default function AppHeader() {
                       className="h-8 w-8 rounded-lg object-cover"
                     />
                   ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${themeClasses.bg.subtle} text-sm font-semibold ${themeClasses.text.primary}`}>
                       {userInitial}
                     </div>
                   )}
-                  <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-zinc-950 shadow-lg" />
+                  <div className={`absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 ${themeClasses.bg.primary} shadow-lg`} />
                 </div>
 
                 <div className="hidden text-right lg:block">
-                  <p className="text-sm font-medium text-white">
+                  <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
                     {user?.name}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className={`text-xs ${themeClasses.text.hint}`}>
                     {user?.email}
                   </p>
                 </div>
 
-                <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 ${themeClasses.text.secondary} transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-white/10 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="border-b border-white/10 px-3 py-2">
-                    <p className="text-sm font-medium text-white">
+                <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
+                  <div className={`border-b ${themeClasses.border.primary} px-3 py-2`}>
+                    <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
                       {user?.name}
                     </p>
-                    <p className="text-xs text-zinc-500">
+                    <p className={`${themeClasses.text.hint} text-xs`}>
                       {user?.email}
                     </p>
                   </div>
@@ -626,7 +629,7 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/dashboard/projects');
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <LayoutDashboard className="h-4 w-4" />
                       Projetos
@@ -637,7 +640,7 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/dashboard/activity');
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <Activity className="h-4 w-4" />
                       Atividade
@@ -648,7 +651,7 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/pricing');
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-violet-400 transition-all hover:bg-violet-500/10"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <Crown className="h-4 w-4" />
                       Planos
@@ -659,20 +662,20 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/dashboard/profile');
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <User className="h-4 w-4" />
                       Perfil
                     </button>
 
-                    <div className="border-t border-white/10 my-2" />
+                    <div className={`border-t ${themeClasses.border.primary} my-2`} />
 
                     <button
                       onClick={() => {
                         setUserMenuOpen(false);
                         router.push('/dashboard');
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all hover:bg-white/10"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                     >
                       <Building2 className="h-4 w-4" />
                       Meus Workspaces
@@ -683,7 +686,7 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         handleLogout();
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-400 transition-all hover:bg-red-500/10"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-400 transition-all hover:bg-red-500/10`}
                     >
                       <LogOut className="h-4 w-4" />
                       Sair
@@ -705,10 +708,10 @@ export default function AppHeader() {
         {mobileMenuOpen && (
           <div
             ref={mobileMenuRef}
-            className="absolute top-full left-0 right-0 z-50 border-t border-white/10 bg-zinc-900/95 p-4 backdrop-blur-xl md:hidden animate-in slide-in-from-top-2 duration-200"
+            className={`absolute top-full left-0 right-0 z-50 border-t ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 backdrop-blur-xl md:hidden animate-in slide-in-from-top-2 duration-200`}
           >
             {workspace && (
-              <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
+              <div className={`mb-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                     {workspace.logoUrl ? (
@@ -722,15 +725,15 @@ export default function AppHeader() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-white">{workspace.name}</p>
+                    <p className={`font-semibold ${themeClasses.text.primary}`}>{workspace.name}</p>
                     {RoleIcon && (
                       <div className="flex items-center gap-1">
                         <RoleIcon className="h-3 w-3 text-zinc-400" />
-                        <p className="text-xs text-zinc-500">{roleInfo?.label}</p>
+                        <p className={`${themeClasses.text.hint} text-xs`}>{roleInfo?.label}</p>
                       </div>
                     )}
                   </div>
-                  <ChevronRight className="h-4 w-4 text-zinc-500" />
+                  <ChevronRight className={`h-4 w-4 ${themeClasses.text.hint}`} />
                 </div>
               </div>
             )}
@@ -741,7 +744,7 @@ export default function AppHeader() {
                   router.push('/dashboard/overview');
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
@@ -752,7 +755,7 @@ export default function AppHeader() {
                   router.push('/dashboard/projects');
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <FolderKanban className="h-4 w-4" />
                 Projetos
@@ -763,7 +766,7 @@ export default function AppHeader() {
                   router.push('/dashboard/activity');
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <Activity className="h-4 w-4" />
                 Atividade
@@ -774,7 +777,7 @@ export default function AppHeader() {
                   router.push('/pricing');
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-violet-400 transition-all hover:bg-violet-500/10"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <Crown className="h-4 w-4" />
                 Planos
@@ -785,7 +788,7 @@ export default function AppHeader() {
                   router.push('/dashboard/workspace/settings');
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <Settings className="h-4 w-4" />
                 Configurações
@@ -796,7 +799,7 @@ export default function AppHeader() {
                   router.push('/dashboard/profile');
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <User className="h-4 w-4" />
                 Perfil
@@ -807,7 +810,7 @@ export default function AppHeader() {
                   setShowMembersModal(true);
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <Users className="h-4 w-4" />
                 Ver membros
@@ -820,7 +823,7 @@ export default function AppHeader() {
                       setShowInviteMemberModal(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                   >
                     <Mail className="h-4 w-4" />
                     Convidar membro
@@ -831,7 +834,7 @@ export default function AppHeader() {
                       setShowEditWorkspaceModal(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-300 transition-all hover:bg-white/5"
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
                   >
                     <Edit2 className="h-4 w-4" />
                     Editar workspace
@@ -844,27 +847,27 @@ export default function AppHeader() {
                   setShowCreateWorkspaceModal(true);
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-violet-400 transition-all hover:bg-white/5"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
               >
                 <PlusCircle className="h-4 w-4" />
                 Criar nova workspace
               </button>
 
-              <div className="my-2 h-px bg-white/10" />
+              <div className={`my-2 h-px ${themeClasses.border.primary}`} />
 
               <button
                 onClick={() => {
                   handleLogout();
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400 transition-all hover:bg-red-500/10"
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400 transition-all hover:bg-red-500/10`}
               >
                 <LogOut className="h-4 w-4" />
                 Sair
               </button>
             </div>
 
-            <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className={`mt-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
               <div className="flex items-center gap-3">
                 {user?.avatarUrl ? (
                   <img 
@@ -873,13 +876,13 @@ export default function AppHeader() {
                     className="h-10 w-10 rounded-lg object-cover"
                   />
                 ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-semibold text-violet-400">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${themeClasses.bg.subtle} text-sm font-semibold ${themeClasses.text.primary}`}>
                     {userInitial}
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                  <p className={`text-sm font-medium ${themeClasses.text.primary}`}>{user?.name}</p>
+                  <p className={`${themeClasses.text.hint} text-xs`}>{user?.email}</p>
                 </div>
               </div>
             </div>

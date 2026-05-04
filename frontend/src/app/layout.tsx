@@ -5,6 +5,7 @@ import ToastProvider from "../components/ToastProvider";
 import DialogProvider from "../components/DialogProvider";
 import CommandPaletteProvider from "../components/CommandPaletteProvider";
 import ThemeProvider from "../components/ThemeProvider";
+import { ThemeContextProvider } from "../contexts/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -115,12 +116,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-950 text-white`}
         suppressHydrationWarning
       >
-        <ThemeProvider>
-          {children}
-          <ToastProvider />
-          <DialogProvider />
-          <CommandPaletteProvider />
-        </ThemeProvider>
+        <ThemeContextProvider>
+          <ThemeProvider>
+            {children}
+            <ToastProvider />
+            <DialogProvider />
+            <CommandPaletteProvider />
+          </ThemeProvider>
+        </ThemeContextProvider>
       </body>
     </html>
   );

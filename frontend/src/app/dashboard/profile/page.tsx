@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '../../../hooks/useTheme';
+import { useThemeToggle } from '../../../hooks/useThemeToggle';
 import {
   User,
   Mail,
@@ -23,6 +25,8 @@ type UserData = {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
+  const { setToTheme } = useThemeToggle();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState({
@@ -153,18 +157,7 @@ export default function ProfilePage() {
 
   function handleThemeChange(newTheme: 'light' | 'dark') {
     setTheme(newTheme);
-    localStorage.setItem('zent_theme', newTheme);
-
-    const htmlElement = document.documentElement;
-    if (newTheme === 'light') {
-      htmlElement.classList.remove('dark');
-      htmlElement.classList.add('light');
-      document.body.className = 'bg-white text-zinc-950';
-    } else {
-      htmlElement.classList.remove('light');
-      htmlElement.classList.add('dark');
-      document.body.className = 'bg-zinc-950 text-white';
-    }
+    setToTheme(newTheme);
   }
 
   async function handleEmailNotificationsChange(enabled: boolean) {
@@ -301,7 +294,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 pt-20 px-4">
+      <main className={`min-h-screen ${themeClasses.bg.primary} pt-20 px-4`}>
         <div className="flex items-center justify-center h-96">
           <Loader2 className="h-8 w-8 text-violet-400 animate-spin" />
         </div>
@@ -310,11 +303,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-900 pt-20 px-4 pb-20">
+    <main className={`min-h-screen ${themeClasses.bg.primary} pt-20 px-4 pb-20`}>
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Configurações de Perfil</h1>
-          <p className="text-zinc-400">Gereneie suas informações pessoais e preferências</p>
+          <h1 className={`text-4xl font-bold ${themeClasses.text.primary} mb-2`}>Configurações de Perfil</h1>
+          <p className={`${themeClasses.text.secondary}`}>Gereneie suas informações pessoais e preferências</p>
         </div>
 
         {error && (
@@ -337,10 +330,10 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 mb-8">
+        <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-8 mb-8`}>
           <div className="flex items-center gap-6 mb-8">
             <div className="relative">
-              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/20 overflow-hidden">
+              <div className={`h-20 w-20 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center border border-violet-500/20 overflow-hidden`}>
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
@@ -371,37 +364,37 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <p className="text-sm text-zinc-400">Usuário</p>
-              <p className="text-2xl font-bold text-white">{user?.name || 'Seu Nome'}</p>
-              <p className="text-sm text-zinc-500">{user?.email || 'seu@email.com'}</p>
+              <p className={`text-sm ${themeClasses.text.secondary}`}>Usuário</p>
+              <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{user?.name || 'Seu Nome'}</p>
+              <p className={`text-sm ${themeClasses.text.hint}`}>{user?.email || 'seu@email.com'}</p>
             </div>
           </div>
 
           <form onSubmit={handleUpdateProfile} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Nome Completo</label>
+                <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>Nome Completo</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                  <User className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${themeClasses.text.hint}`} />
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 focus:border-violet-500/50 focus:bg-white/10 transition-all"
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500/50 focus:bg-violet-500/5 transition-all`}
                     placeholder="Seu nome completo"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Email</label>
+                <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                  <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 ${themeClasses.text.hint}`} />
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 focus:border-violet-500/50 focus:bg-white/10 transition-all"
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500/50 focus:bg-violet-500/5 transition-all`}
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -428,9 +421,9 @@ export default function ProfilePage() {
           </form>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 mb-8">
+        <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-8 mb-8`}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-white">Alterar Senha</h2>
+            <h2 className={`text-xl font-bold ${themeClasses.text.primary}`}>Alterar Senha</h2>
             <button
               onClick={() => setShowPasswordChange(!showPasswordChange)}
               className="text-violet-400 hover:text-violet-300 text-sm font-medium"
@@ -442,13 +435,13 @@ export default function ProfilePage() {
           {showPasswordChange && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Senha Atual</label>
+                <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>Senha Atual</label>
                 <div className="relative">
                   <input
                     type={showPasswords.current ? 'text' : 'password'}
                     value={passwords.current}
                     onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 focus:border-violet-500/50 focus:bg-white/10 transition-all"
+                    className={`w-full pr-10 pl-4 py-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500/50 focus:bg-violet-500/5 transition-all`}
                     placeholder="Digite sua senha atual"
                   />
                   <button
@@ -456,7 +449,7 @@ export default function ProfilePage() {
                     onClick={() =>
                       setShowPasswords({ ...showPasswords, current: !showPasswords.current })
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-300"
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.secondary} hover:${themeClasses.text.primary}`}
                   >
                     {showPasswords.current ? (
                       <EyeOff className="h-4 w-4" />
@@ -468,19 +461,19 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Nova Senha</label>
+                <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>Nova Senha</label>
                 <div className="relative">
                   <input
                     type={showPasswords.new ? 'text' : 'password'}
                     value={passwords.new}
                     onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 focus:border-violet-500/50 focus:bg-white/10 transition-all"
+                    className={`w-full pr-10 pl-4 py-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500/50 focus:bg-violet-500/5 transition-all`}
                     placeholder="Digite uma nova senha"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-300"
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.secondary} hover:${themeClasses.text.primary}`}
                   >
                     {showPasswords.new ? (
                       <EyeOff className="h-4 w-4" />
@@ -492,13 +485,13 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Confirmar Senha</label>
+                <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-2`}>Confirmar Senha</label>
                 <div className="relative">
                   <input
                     type={showPasswords.confirm ? 'text' : 'password'}
                     value={passwords.confirm}
                     onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white placeholder-zinc-500 focus:border-violet-500/50 focus:bg-white/10 transition-all"
+                    className={`w-full pr-10 pl-4 py-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500/50 focus:bg-violet-500/5 transition-all`}
                     placeholder="Confirme a nova senha"
                   />
                   <button
@@ -506,7 +499,7 @@ export default function ProfilePage() {
                     onClick={() =>
                       setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-300"
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.secondary} hover:${themeClasses.text.primary}`}
                   >
                     {showPasswords.confirm ? (
                       <EyeOff className="h-4 w-4" />
@@ -536,14 +529,14 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-          <h2 className="text-xl font-bold text-white mb-6">Preferências</h2>
+        <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-8`}>
+          <h2 className={`text-xl font-bold ${themeClasses.text.primary} mb-6`}>Preferências</h2>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+            <div className={`flex items-center justify-between p-4 rounded-xl border ${themeClasses.border.primary} hover:${themeClasses.border.secondary} transition-all`}>
               <div>
-                <p className="font-medium text-white">Notificações por Email</p>
-                <p className="text-sm text-zinc-400">Receba alertas sobre suas tarefas</p>
+                <p className={`font-medium ${themeClasses.text.primary}`}>Notificações por Email</p>
+                <p className={`text-sm ${themeClasses.text.secondary}`}>Receba alertas sobre suas tarefas</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -556,10 +549,10 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+            <div className={`flex items-center justify-between p-4 rounded-xl border ${themeClasses.border.primary} hover:${themeClasses.border.secondary} transition-all`}>
               <div>
-                <p className="font-medium text-white">Tema Escuro</p>
-                <p className="text-sm text-zinc-400">Usar tema escuro ou claro</p>
+                <p className={`font-medium ${themeClasses.text.primary}`}>Tema Escuro</p>
+                <p className={`text-sm ${themeClasses.text.secondary}`}>Usar tema escuro ou claro</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -572,10 +565,10 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+            <div className={`flex items-center justify-between p-4 rounded-xl border ${themeClasses.border.primary} hover:${themeClasses.border.secondary} transition-all`}>
               <div>
-                <p className="font-medium text-white">Duas Autenticações</p>
-                <p className="text-sm text-zinc-400">Ativar 2FA para maior segurança</p>
+                <p className={`font-medium ${themeClasses.text.primary}`}>Duas Autenticações</p>
+                <p className={`text-sm ${themeClasses.text.secondary}`}>Ativar 2FA para maior segurança</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" />
