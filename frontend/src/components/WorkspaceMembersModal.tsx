@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import { showToast } from './Toast';
 import { SkeletonMember, SkeletonModalHeader } from './Skeleton';
 import { EmptyMembers } from './EmptyState';
@@ -80,6 +81,7 @@ export default function WorkspaceMembersModal({
   workspaceId,
   onClose,
 }: Props) {
+  const { themeClasses } = useTheme();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

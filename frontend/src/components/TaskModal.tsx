@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 import { useCommentSync } from '../hooks/useCommentSync';
 import { usePresence } from '../hooks/usePresence';
@@ -117,6 +118,7 @@ export default function TaskModal({
   onSaved,
   onDeleted,
 }: Props) {
+  const { themeClasses } = useTheme();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('TODO');

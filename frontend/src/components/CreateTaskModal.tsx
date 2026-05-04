@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import {
   X,
   PlusCircle,
@@ -63,6 +64,7 @@ export default function CreateTaskModal({
   onClose,
   onCreated,
 }: Props) {
+  const { themeClasses } = useTheme();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
@@ -106,9 +108,9 @@ export default function CreateTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
+      <div className={`relative w-full max-w-lg overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 ${themeClasses.bg.primary} ${themeClasses.border.primary}`}>
+        <div className={`border-b p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -120,17 +122,17 @@ export default function CreateTaskModal({
                 </div>
                 <Sparkles className="h-4 w-4 text-violet-400" />
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h2 className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                 Nova task
               </h2>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className={`mt-1 text-sm ${themeClasses.text.tertiary}`}>
                 Crie uma nova task para organizar seu trabalho
               </p>
             </div>
 
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className={`rounded-lg p-2 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
             >
               <X className="h-5 w-5" />
             </button>
