@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../lib/api';
+import { useTheme } from '../../hooks/useTheme';
 import CreateWorkspaceModal from '../../components/CreateWorkspaceModal';
 import { 
   Building2, 
@@ -32,6 +33,7 @@ const roleConfig = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -78,7 +80,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -86,7 +88,7 @@ export default function DashboardPage() {
 
       <div className="relative mx-auto max-w-6xl px-6 py-12 md:py-16">
         <div className="mb-12 text-center md:text-left">
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm backdrop-blur-sm mb-6">
+          <div className={`inline-flex items-center rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-1.5 text-sm backdrop-blur-sm mb-6`}>
             <span className="relative flex h-2 w-2 mr-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -94,10 +96,10 @@ export default function DashboardPage() {
             Dashboard
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+          <h1 className={`text-4xl md:text-5xl font-bold ${themeClasses.text.primary}`}>
             Suas workspaces
           </h1>
-          <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto md:mx-0">
+          <p className={`mt-4 text-lg ${themeClasses.text.secondary} max-w-2xl mx-auto md:mx-0`}>
             Escolha uma workspace para continuar e gerenciar seus projetos
           </p>
         </div>
@@ -105,12 +107,12 @@ export default function DashboardPage() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
-            <p className="mt-4 text-zinc-400">Carregando suas workspaces...</p>
+            <p className={`mt-4 ${themeClasses.text.secondary}`}>Carregando suas workspaces...</p>
           </div>
         )}
 
         {error && !loading && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
+          <div className={`rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm`}>
             <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
               <span className="text-2xl">⚠️</span>
             </div>
@@ -125,12 +127,12 @@ export default function DashboardPage() {
         )}
 
         {!loading && !error && workspaces.length === 0 && (
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-12 text-center backdrop-blur-sm">
+          <div className={`rounded-3xl border ${themeClasses.border.primary} bg-gradient-to-br from-violet-500/5 to-indigo-500/5 p-12 text-center backdrop-blur-sm`}>
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
               <Building2 className="h-12 w-12 text-violet-400" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">Nenhuma workspace encontrada</h3>
-            <p className="text-zinc-400 mb-8 max-w-md mx-auto">
+            <h3 className={`text-2xl font-semibold mb-2 ${themeClasses.text.primary}`}>Nenhuma workspace encontrada</h3>
+            <p className={`${themeClasses.text.secondary} mb-8 max-w-md mx-auto`}>
               Você ainda não participa de nenhuma workspace. Crie uma nova workspace para começar a organizar seus projetos.
             </p>
             <button
@@ -153,7 +155,7 @@ export default function DashboardPage() {
                 <button
                   key={workspace.id}
                   onClick={() => selectWorkspace(workspace)}
-                  className="group relative text-left rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 transition-all hover:scale-105 hover:border-white/20 hover:shadow-2xl hover:shadow-violet-500/10 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className={`group relative text-left rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 transition-all hover:scale-105 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10 focus:outline-none focus:ring-2 focus:ring-violet-500`}
                 >
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 opacity-0 transition-opacity group-hover:opacity-100" />
                   
@@ -179,11 +181,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-semibold text-white group-hover:text-violet-400 transition-colors">
+                    <h2 className={`text-xl font-semibold ${themeClasses.text.primary} group-hover:text-violet-400 transition-colors`}>
                       {workspace.name}
                     </h2>
 
-                    <p className="mt-2 text-sm text-zinc-400">
+                    <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>
                       Clique para acessar esta workspace e gerenciar seus projetos
                     </p>
 
@@ -198,16 +200,16 @@ export default function DashboardPage() {
 
             <button
               onClick={() => setShowCreateModal(true)}
-              className="group relative text-left rounded-2xl border border-dashed border-white/20 bg-white/5 p-6 transition-all hover:border-violet-500/50 hover:bg-violet-500/5 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className={`group relative text-left rounded-2xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 transition-all hover:border-violet-500/50 hover:bg-violet-500/5 focus:outline-none focus:ring-2 focus:ring-violet-500`}
             >
               <div className="relative flex flex-col items-center justify-center text-center">
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 transition-colors group-hover:bg-violet-500/20">
-                  <PlusCircle className="h-6 w-6 text-zinc-400 group-hover:text-violet-400 transition-colors" />
+                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${themeClasses.bg.subtle} transition-colors group-hover:bg-violet-500/20`}>
+                  <PlusCircle className={`h-6 w-6 ${themeClasses.text.secondary} group-hover:text-violet-400 transition-colors`} />
                 </div>
-                <h3 className="text-lg font-semibold text-zinc-300 group-hover:text-white transition-colors">
+                <h3 className={`text-lg font-semibold ${themeClasses.text.primary} group-hover:text-violet-400 transition-colors`}>
                   Criar nova workspace
                 </h3>
-                <p className="mt-2 text-sm text-zinc-500">
+                <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>
                   Adicione um novo espaço para sua equipe
                 </p>
               </div>
@@ -217,7 +219,7 @@ export default function DashboardPage() {
 
         {!loading && !error && workspaces.length > 0 && (
           <div className="mt-12 text-center">
-            <p className="text-sm text-zinc-500">
+            <p className={`text-sm ${themeClasses.text.secondary}`}>
               Você tem acesso a <span className="text-violet-400 font-medium">{workspaces.length}</span>{' '}
               {workspaces.length === 1 ? 'workspace' : 'workspaces'}
             </p>

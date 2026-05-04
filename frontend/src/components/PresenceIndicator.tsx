@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { OnlineUser } from '../hooks/usePresence';
 
 interface PresenceIndicatorProps {
@@ -22,13 +21,17 @@ export function PresenceIndicator({
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
       <div className="relative">
-        <Image
-          src={user.avatarUrl || '/avatar-placeholder.png'}
-          alt={user.name || 'User avatar'}
-          width={32}
-          height={32}
-          className="rounded-full"
-        />
+        {user.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt={user.name || 'User avatar'}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center text-sm font-semibold text-violet-400">
+            {(user.name || 'U').charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-slate-900"></div>
       </div>
 
