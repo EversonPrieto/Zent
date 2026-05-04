@@ -4,6 +4,7 @@ import { FormEvent, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { useTheme } from '../../hooks/useTheme';
 import {
   Mail,
   Lock,
@@ -25,6 +26,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { themeClasses } = useTheme();
 
   const inviteToken = searchParams.get('inviteToken');
 
@@ -85,18 +87,18 @@ function LoginContent() {
   const isFormValid = email.trim() && password.trim();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="hidden border-r border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 lg:block lg:p-10">
+      <div className={`relative flex min-h-screen items-center justify-center px-4 py-10`}>
+        <div className={`grid w-full max-w-5xl overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
+          <div className={`hidden border-r p-8 lg:block lg:p-10 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
             <div className="flex items-center gap-2 mb-6">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <span className={`text-xl font-bold ${themeClasses.text.primary}`}>
                 Zent
               </span>
             </div>

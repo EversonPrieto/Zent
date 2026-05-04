@@ -1,5 +1,7 @@
 'use client';
 
+import { useTheme } from '../hooks/useTheme';
+
 import { useState } from 'react';
 import { CldUploadWidget } from 'next-cloudinary';
 import { Upload, Loader2, Trash2, Download, FileIcon } from 'lucide-react';

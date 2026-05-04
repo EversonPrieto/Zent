@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useTheme } from '../../../hooks/useTheme';
 import {
   Activity,
   Clock,
@@ -82,6 +83,7 @@ function getRelativeDate(date: string) {
 
 export default function ActivityPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);

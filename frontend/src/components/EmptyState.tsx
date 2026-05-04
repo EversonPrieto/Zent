@@ -1,5 +1,7 @@
 'use client';
 
+import { useTheme } from '../hooks/useTheme';
+
 import React from 'react';
 import {
   Users,
