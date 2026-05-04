@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useTheme } from '../../../hooks/useTheme';
 import {
   Building2,
   Sparkles,
@@ -18,6 +19,7 @@ import {
 
 export default function WorkspaceOnboardingPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useTheme } from '../../../../hooks/useTheme';
 import {
   DndContext,
   DragEndEvent,
