@@ -200,7 +200,12 @@ export default function AppHeader() {
   }, []);
 
   function handleLogout() {
-    localStorage.clear();
+    // Manter configurações de usuário, limpar apenas dados de sessão
+    localStorage.removeItem('zent_token');
+    localStorage.removeItem('zent_user');
+    localStorage.removeItem('zent_workspace_id');
+    localStorage.removeItem('zent_workspace');
+    localStorage.removeItem('zent_notifications');
     window.dispatchEvent(new Event('workspace-changed'));
     router.push('/login');
   }
@@ -284,7 +289,7 @@ export default function AppHeader() {
               className="group flex items-center gap-2"
             >
               <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 shadow-lg shadow-violet-500/25 transition-all group-hover:scale-105" />
-              <span className={`text-xl font-bold hidden sm:inline bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent dark:from-white dark:to-zinc-400`}>
+              <span className={`text-xl font-bold hidden sm:inline ${themeClasses.text.primary}`}>
                 Zent
               </span>
             </button>
@@ -313,7 +318,7 @@ export default function AppHeader() {
                   </div>
 
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-white">
+                    <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>
                       {workspace.name}
                     </p>
                     {RoleIcon && (
@@ -699,7 +704,7 @@ export default function AppHeader() {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="mobile-menu-button rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+            className={`mobile-menu-button rounded-lg p-2 transition-colors md:hidden ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

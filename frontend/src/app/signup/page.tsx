@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '../../hooks/useTheme';
 import {
   User,
   Mail,
@@ -34,6 +35,7 @@ function validatePassword(password: string) {
 
 export default function SignupPage() {
     const router = useRouter();
+    const { themeClasses } = useTheme();
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');

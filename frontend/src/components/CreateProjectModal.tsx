@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 import { showToast } from './Toast';
 import {
@@ -37,6 +38,7 @@ export default function CreateProjectModal({
   onClose,
   onCreated,
 }: Props) {
+  const { themeClasses } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -95,21 +97,21 @@ export default function CreateProjectModal({
 
   if (!checkingPerms && !permissions?.canCreateProject) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-          <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
+        <div className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 ${themeClasses.bg.primary} ${themeClasses.border.primary}`}>
+          <div className={`border-b p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-2">
                 <div className="rounded-lg bg-red-500/10 p-2">
                   <Lock className="h-5 w-5 text-red-400" />
                 </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
-                  Sem permissão
-                </h2>
-              </div>
+              <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+                Sem permissão
+              </h2>
+            </div>
               <button
                 onClick={onClose}
-                className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+                className={`rounded-lg p-1 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -121,16 +123,16 @@ export default function CreateProjectModal({
               <div className="mb-4 rounded-full bg-red-500/10 p-3">
                 <Lock className="h-8 w-8 text-red-400" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-white">
+              <h3 className={`mb-2 text-lg font-semibold ${themeClasses.text.primary}`}>
                 Acesso restrito
               </h3>
-              <p className="mb-6 text-sm text-zinc-400">
+              <p className={`mb-6 text-sm ${themeClasses.text.tertiary}`}>
                 Apenas <span className="font-medium text-violet-400">ADMIN</span> e{' '}
                 <span className="font-medium text-violet-400">OWNER</span> podem criar projetos nesta workspace.
               </p>
               <button
                 onClick={onClose}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:bg-white/10 hover:text-white"
+                className={`w-full rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${themeClasses.border.primary} ${themeClasses.bg.secondary} ${themeClasses.text.secondary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
               >
                 Entendi
               </button>
@@ -142,9 +144,9 @@ export default function CreateProjectModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
+      <div className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 ${themeClasses.bg.primary} ${themeClasses.border.primary}`}>
+        <div className={`border-b p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">

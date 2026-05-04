@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTheme } from '../../hooks/useTheme';
 import { CheckCircle2, Zap, Users, Infinity, Star } from 'lucide-react';
 
 type Plan = {
@@ -74,6 +75,7 @@ const plans: Plan[] = [
 
 export default function PricingPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
 
   const handleUpgrade = (planId: string) => {
     if (planId === 'free') {

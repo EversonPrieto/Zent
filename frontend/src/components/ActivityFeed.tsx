@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
 import { api } from '../lib/api';
 import { io, Socket } from 'socket.io-client';
 import {

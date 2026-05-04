@@ -1,5 +1,7 @@
 'use client';
 
+import { useTheme } from '../hooks/useTheme';
+
 import { OnlineUser } from '../hooks/usePresence';
 import { PresenceIndicator } from './PresenceIndicator';
 

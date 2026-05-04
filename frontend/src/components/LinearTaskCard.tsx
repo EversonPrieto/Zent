@@ -1,5 +1,7 @@
 'use client';
 
+import { useTheme } from '../hooks/useTheme';
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Calendar, Tag, Users, Paperclip, Flag, Clock, AlertTriangle } from 'lucide-react';

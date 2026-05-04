@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useTheme } from '../../hooks/useTheme';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { api } from '../../lib/api';
 
 export default function ForgotPasswordPage() {
+  const { themeClasses } = useTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

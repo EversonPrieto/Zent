@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useTheme } from '../../../hooks/useTheme';
 import {
   CheckCircle2,
   XCircle,
@@ -33,6 +34,7 @@ type Invite = {
 export default function InvitePage() {
   const params = useParams();
   const router = useRouter();
+  const { themeClasses } = useTheme();
 
   const token = params?.token as string;
 

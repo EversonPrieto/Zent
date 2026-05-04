@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
+import { useTheme } from '../../../../hooks/useTheme';
 import { getWorkspacePermissions, type Permissions } from '../../../../lib/permissions';
 import {
   Building2,
@@ -34,6 +35,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function WorkspaceSettingsPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
 
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [name, setName] = useState('');

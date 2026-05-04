@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useTheme } from '../hooks/useTheme';
 import { ArrowRight, CheckCircle2, Layers, MessageSquare, Activity, Briefcase } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem('zent_token');
@@ -49,13 +51,13 @@ export default function HomePage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-white">
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h1 className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                 Zent
               </h1>
               <p className="text-xs text-zinc-500">

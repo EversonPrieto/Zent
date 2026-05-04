@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
+import { useTheme } from '../../../hooks/useTheme';
 import {
   BarChart,
   Bar,
