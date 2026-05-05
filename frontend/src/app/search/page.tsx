@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
+import { useTheme } from '../../hooks/useTheme';
 import {
   Search,
   FileText,
@@ -26,6 +27,7 @@ type SearchResult = {
 function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { themeClasses } = useTheme();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);

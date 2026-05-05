@@ -1,13 +1,18 @@
+'use client';
+
 import { ReactNode } from 'react';
 import AppHeader from '../../components/AppHeader';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function DashboardLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  const { themeClasses } = useTheme();
+  
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <div className={themeClasses.bg.primary}>
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />

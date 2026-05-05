@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useTheme } from '../../../hooks/useTheme';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 function CheckoutContent() {
@@ -10,6 +11,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const stripe = useStripe();
   const elements = useElements();
+  const { themeClasses } = useTheme();
 
   const [plan] = useState(searchParams.get('plan') || 'pro');
   const [loading, setLoading] = useState(false);
