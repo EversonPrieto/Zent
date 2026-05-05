@@ -351,7 +351,7 @@ export default function WorkspaceSettingsPage() {
           </div>
 
           <div>
-            <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+            <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.primary}`}>
               <Building2 className="h-4 w-4 text-violet-400" />
               Nome do workspace
             </label>
@@ -359,7 +359,7 @@ export default function WorkspaceSettingsPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!canEdit}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`w-full rounded-xl border px-4 py-2.5 outline-none transition-all disabled:cursor-not-allowed disabled:opacity-50 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               placeholder="Nome do workspace"
             />
             {name && (

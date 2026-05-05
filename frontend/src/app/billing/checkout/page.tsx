@@ -102,11 +102,11 @@ function CheckoutContent() {
 
   if (success) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 flex items-center justify-center px-4">
+      <main className={`min-h-screen flex items-center justify-center px-4 ${themeClasses.bg.primary}`}>
         <div className="max-w-md w-full text-center">
           <CheckCircle2 className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-2">Pagamento Realizado!</h1>
-          <p className="text-zinc-400 mb-6">
+          <h1 className={`text-3xl font-bold mb-2 ${themeClasses.text.primary}`}>Pagamento Realizado!</h1>
+          <p className={`mb-6 ${themeClasses.text.tertiary}`}>
             Sua assinatura foi ativada com sucesso. Redirecionando...
           </p>
         </div>
@@ -115,7 +115,7 @@ function CheckoutContent() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={themeClasses.bg.primary}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -124,14 +124,14 @@ function CheckoutContent() {
       <div className="relative z-10 max-w-md mx-auto px-4 py-12">
         <button
           onClick={() => router.back()}
-          className="mb-6 text-zinc-400 hover:text-white transition-colors"
+          className={`mb-6 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.text.primary}`}
         >
           ← Voltar
         </button>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Plano Pro</h1>
-          <p className="text-zinc-400 mb-6">R$ 29,00/mês • 14 dias de avaliação gratuita</p>
+        <div className={`rounded-2xl border backdrop-blur-sm p-8 ${themeClasses.border.primary} ${themeClasses.bg.secondary}`}>
+          <h1 className={`text-2xl font-bold mb-2 ${themeClasses.text.primary}`}>Plano Pro</h1>
+          <p className={`mb-6 ${themeClasses.text.tertiary}`}>R$ 29,00/mês • 14 dias de avaliação gratuita</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -142,30 +142,30 @@ function CheckoutContent() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Email</label>
+              <label className={`block text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>Email</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary}`}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Nome</label>
+              <label className={`block text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>Nome</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary}`}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Cartão</label>
-              <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+              <label className={`block text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>Cartão</label>
+              <div className={`rounded-lg border p-3 ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
                 <CardElement
                   options={{
                     style: {
@@ -200,7 +200,7 @@ function CheckoutContent() {
               )}
             </button>
 
-            <p className="text-xs text-zinc-500 text-center">
+            <p className={`text-xs text-center ${themeClasses.text.tertiary}`}>
               Ao prosseguir, você concorda com nossos{' '}
               <a href="#" className="text-violet-400 hover:underline">
                 Termos de Serviço
