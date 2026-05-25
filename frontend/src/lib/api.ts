@@ -15,11 +15,15 @@ export async function api(path: string, options: RequestOptions = {}) {
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    console.warn('[API] No token found in localStorage');
   }
 
   if (options.workspaceId) {
     headers.set('x-workspace-id', options.workspaceId);
   }
+
+  console.log(`[API] Request to: ${path}`, { token: !!token, workspaceId: options.workspaceId });
 
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -37,6 +41,7 @@ export async function api(path: string, options: RequestOptions = {}) {
       ? data.message.join(', ')
       : data?.message || 'Erro na requisição';
 
+    console.error(`[API] Error response:`, { status: response.status, path, message, data });
     throw new Error(message);
   }
 

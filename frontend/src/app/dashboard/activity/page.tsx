@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
+import { isPro } from '../../../lib/subscription';
 import {
   Activity,
   Clock,
@@ -90,6 +91,7 @@ export default function ActivityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'tasks' | 'projects' | 'members'>('all');
+  const [hasProAccess, setHasProAccess] = useState(false);
 
   useEffect(() => {
     async function loadPage() {
@@ -105,6 +107,20 @@ export default function ActivityPage() {
       if (!workspaceId) {
         router.push('/dashboard');
         return;
+      }
+
+      // Load user subscription status
+      const userData = localStorage.getItem('zent_user');
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData);
+          setHasProAccess(isPro({
+            plan: parsed.plan || 'free',
+            subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+          }));
+        } catch (err) {
+          console.error('Error parsing user data:', err);
+        }
       }
 
       if (workspaceRaw) {
@@ -201,8 +217,13 @@ export default function ActivityPage() {
                 )}
                 <span className={`text-sm ${themeClasses.text.tertiary}`}>Workspace</span>
               </div>
-              <h1 className={`text-3xl font-bold md:text-4xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent`}>
+              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 {workspace?.name ?? 'Atividade'}
+                {hasProAccess && (
+                  <span className="ml-3 px-3 py-1 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-sm font-semibold text-violet-400">
+                    Pro
+                  </span>
+                )}
               </h1>
               <p className={`mt-2 ${themeClasses.text.tertiary}`}>
                 Histórico de atividades do workspace

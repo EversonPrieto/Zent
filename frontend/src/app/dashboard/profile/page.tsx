@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../../hooks/useTheme';
 import { useThemeToggle } from '../../../hooks/useThemeToggle';
+import { PlanComparison } from '../../../components/PlanComparison';
 import {
   User,
   Mail,
@@ -14,6 +15,8 @@ import {
   Upload,
   Eye,
   EyeOff,
+  CreditCard,
+  X,
 } from 'lucide-react';
 
 type UserData = {
@@ -52,6 +55,12 @@ export default function ProfilePage() {
   });
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+  const [subscriptionData, setSubscriptionData] = useState<{
+    plan: string;
+    subscriptionEndsAt: string | null;
+  } | null>(null);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -76,6 +85,16 @@ export default function ProfilePage() {
         const savedEmailPrefs = localStorage.getItem('zent_email_notifications');
         if (savedEmailPrefs) {
           setEmailNotificationsEnabled(JSON.parse(savedEmailPrefs));
+        }
+
+        // Load subscription data from user
+        const subscriptionInfo = localStorage.getItem('zent_user');
+        if (subscriptionInfo) {
+          const parsed = JSON.parse(subscriptionInfo);
+          setSubscriptionData({
+            plan: parsed.plan || 'free',
+            subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+          });
         }
       } catch (err) {
         setError('Erro ao carregar perfil');
@@ -158,6 +177,69 @@ export default function ProfilePage() {
   function handleThemeChange(newTheme: 'light' | 'dark') {
     setTheme(newTheme);
     setToTheme(newTheme);
+  }
+
+  function formatDate(dateString: string | null): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  function isSubscriptionActive(): boolean {
+    if (!subscriptionData?.subscriptionEndsAt) return false;
+    return new Date(subscriptionData.subscriptionEndsAt) > new Date();
+  }
+
+  async function handleCancelSubscription() {
+    setCancelingSubscription(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('zent_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/billing/cancel-subscription`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao cancelar assinatura');
+      }
+
+      // Update subscription data
+      setSubscriptionData({
+        plan: 'free',
+        subscriptionEndsAt: null,
+      });
+
+      // Update localStorage
+      const userData = localStorage.getItem('zent_user');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        parsed.plan = 'free';
+        parsed.subscriptionEndsAt = null;
+        localStorage.setItem('zent_user', JSON.stringify(parsed));
+      }
+
+      setSuccess('Assinatura cancelada com sucesso! Você voltou ao plano gratuito.');
+      setShowCancelConfirmation(false);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Cancel subscription error:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao cancelar assinatura. Tente novamente.');
+    } finally {
+      setCancelingSubscription(false);
+    }
   }
 
   async function handleEmailNotificationsChange(enabled: boolean) {
@@ -576,6 +658,102 @@ export default function ProfilePage() {
               </label>
             </div>
           </div>
+        </div>
+
+        <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-8`}>
+          <div className="flex items-center gap-3 mb-6">
+            <CreditCard className={`h-6 w-6 ${themeClasses.text.primary}`} />
+            <h2 className={`text-xl font-bold ${themeClasses.text.primary}`}>Gerenciamento de Assinatura</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className={`flex items-center justify-between p-4 rounded-xl border ${themeClasses.border.primary} hover:${themeClasses.border.secondary} transition-all`}>
+              <div>
+                <p className={`font-medium ${themeClasses.text.primary}`}>Plano Atual</p>
+                <p className={`text-sm ${themeClasses.text.secondary}`}>
+                  {subscriptionData?.plan === 'pro' ? 'Plano Pro' : 'Plano Gratuito'}
+                </p>
+              </div>
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                subscriptionData?.plan === 'pro'
+                  ? 'bg-violet-500/20 text-violet-400'
+                  : 'bg-zinc-700/50 text-zinc-300'
+              }`}>
+                {subscriptionData?.plan === 'pro' ? 'Pro' : 'Free'}
+              </div>
+            </div>
+
+            {subscriptionData?.plan === 'pro' && subscriptionData?.subscriptionEndsAt && (
+              <>
+                <div className={`flex items-center justify-between p-4 rounded-xl border ${themeClasses.border.primary} hover:${themeClasses.border.secondary} transition-all`}>
+                  <div>
+                    <p className={`font-medium ${themeClasses.text.primary}`}>Validade da Assinatura</p>
+                    <p className={`text-sm ${themeClasses.text.secondary}`}>
+                      {isSubscriptionActive() ? 'Ativo até' : 'Expirou em'}
+                    </p>
+                  </div>
+                  <p className={`font-medium ${isSubscriptionActive() ? themeClasses.text.primary : 'text-red-400'}`}>
+                    {formatDate(subscriptionData.subscriptionEndsAt)}
+                  </p>
+                </div>
+
+                {!showCancelConfirmation ? (
+                  <button
+                    onClick={() => setShowCancelConfirmation(true)}
+                    className="w-full py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium transition-all"
+                  >
+                    Cancelar Assinatura
+                  </button>
+                ) : (
+                  <div className={`rounded-xl border ${themeClasses.border.primary} bg-red-500/10 p-4 space-y-3`}>
+                    <p className={`font-medium ${themeClasses.text.primary}`}>
+                      Tem certeza que deseja cancelar sua assinatura?
+                    </p>
+                    <p className={`text-sm ${themeClasses.text.secondary}`}>
+                      Você perderá acesso aos recursos premium imediatamente.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowCancelConfirmation(false)}
+                        disabled={cancelingSubscription}
+                        className="flex-1 py-2 rounded-lg border border-zinc-600 hover:border-zinc-500 text-zinc-300 font-medium transition-all disabled:opacity-50"
+                      >
+                        Manter Assinatura
+                      </button>
+                      <button
+                        onClick={handleCancelSubscription}
+                        disabled={cancelingSubscription}
+                        className="flex-1 py-2 rounded-lg bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white font-medium transition-all flex items-center justify-center gap-2"
+                      >
+                        {cancelingSubscription ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Cancelando...
+                          </>
+                        ) : (
+                          'Confirmar Cancelamento'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {subscriptionData?.plan === 'free' && (
+              <button
+                onClick={() => router.push('/pricing')}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white font-medium transition-all"
+              >
+                Atualizar para Pro
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-8`}>
+          <h2 className={`text-xl font-bold ${themeClasses.text.primary} mb-6`}>Comparação de Planos</h2>
+          <PlanComparison currentPlan={(subscriptionData?.plan as any) || 'free'} />
         </div>
       </div>
     </main>

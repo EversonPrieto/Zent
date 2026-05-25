@@ -151,7 +151,7 @@ function SearchContent() {
           >
             ← Voltar
           </button>
-          <h1 className={`text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent`}>
+          <h1 className={`text-3xl sm:text-4xl font-bold ${themeClasses.text.primary}`}>
             Busca Global
           </h1>
           <p className={`mt-2 ${themeClasses.text.tertiary}`}>Procure por tasks, projetos e workspaces</p>

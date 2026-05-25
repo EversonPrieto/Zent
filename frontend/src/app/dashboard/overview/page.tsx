@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
+import { isPro } from '../../../lib/subscription';
 import {
   BarChart,
   Bar,
@@ -68,6 +69,7 @@ export default function DashboardOverviewPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [hasProAccess, setHasProAccess] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('zent_token');
@@ -80,6 +82,20 @@ export default function DashboardOverviewPage() {
     if (!wsId) {
       router.push('/dashboard');
       return;
+    }
+
+    // Load user subscription status
+    const userData = localStorage.getItem('zent_user');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        setHasProAccess(isPro({
+          plan: parsed.plan || 'free',
+          subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+        }));
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+      }
     }
 
     setWorkspaceId(wsId);
@@ -206,9 +222,16 @@ export default function DashboardOverviewPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className={`text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent`}>
-            Dashboard
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className={`text-3xl sm:text-4xl font-bold ${themeClasses.text.primary}`}>
+              Dashboard
+            </h1>
+            {hasProAccess && (
+              <div className="px-3 py-1 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-sm font-semibold text-violet-400">
+                Pro
+              </div>
+            )}
+          </div>
           <p className={`mt-2 ${themeClasses.text.tertiary}`}>Visão geral dos seus projetos e tarefas</p>
         </div>
 

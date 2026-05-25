@@ -16,11 +16,9 @@ import {
   Loader2,
   UserCog,
   Shield,
-  Mail,
   Image,
   Edit2,
   X,
-  Sparkles,
   ArrowLeft
 } from 'lucide-react';
 
@@ -236,48 +234,58 @@ export default function WorkspaceSettingsPage() {
   const canDelete = permissions?.canDeleteWorkspace ?? false;
   const nameLength = name.length;
   const isNameChanged = name.trim() !== workspace.name;
+  
+  const isDarkMode = themeClasses.bg.primary === 'bg-zinc-950';
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
-      </div>
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
+      {/* Background decoration - apenas no modo dark */}
+      {isDarkMode && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
+        </div>
+      )}
 
       <div className="relative mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-12">
         <div className="mb-8">
           <button
             onClick={() => router.push('/dashboard/projects')}
-            className="group mb-4 inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
+            className={`group mb-4 inline-flex items-center gap-2 text-sm ${themeClasses.text.secondary} transition-colors hover:${themeClasses.text.primary}`}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Voltar para projetos
           </button>
 
           <div className="flex items-center gap-3 mb-2">
-            <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
-              <Building2 className="h-6 w-6 text-violet-400" />
+            <div className={`rounded-lg ${isDarkMode ? 'bg-gradient-to-br from-violet-500/20 to-indigo-500/20' : 'bg-gradient-to-br from-violet-100 to-indigo-100'} p-2`}>
+              <Building2 className={`h-6 w-6 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
             </div>
             <div>
-              <h1 className="text-3xl font-bold md:text-4xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 Configurações do workspace
               </h1>
-              <p className="mt-2 text-zinc-400">
+              <p className={`mt-2 ${themeClasses.text.secondary}`}>
                 Gerencie as configurações do seu workspace
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 backdrop-blur-sm">
+        {/* Identidade */}
+        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-6`}>
           <div className="flex items-center gap-2 mb-4">
-            <Image className="h-5 w-5 text-violet-400" />
-            <h2 className="text-lg font-semibold">Identidade</h2>
+            <Image className={`h-5 w-5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Identidade</h2>
           </div>
 
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-3xl font-semibold shadow-lg">
+              <div className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${
+                isDarkMode 
+                  ? 'bg-gradient-to-br from-violet-500/20 to-indigo-500/20' 
+                  : 'bg-gradient-to-br from-violet-100 to-indigo-100'
+              } text-3xl font-semibold shadow-lg ${themeClasses.text.primary}`}>
                 {logoPreview ? (
                   <img
                     src={logoPreview}
@@ -304,11 +312,11 @@ export default function WorkspaceSettingsPage() {
             </div>
 
             <div className="flex-1 text-center sm:text-left">
-              <p className="text-sm text-zinc-400 mb-2">
+              <p className={`text-sm ${themeClasses.text.secondary} mb-2`}>
                 Envie uma imagem para personalizar seu workspace
               </p>
               <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300 transition-all hover:bg-white/10">
+                <label className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover}`}>
                   {uploadingLogo ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -331,50 +339,51 @@ export default function WorkspaceSettingsPage() {
                 {logoPreview && (
                   <button
                     onClick={() => setLogoPreview(null)}
-                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10"
+                    className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover}`}
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
-              <p className="mt-2 text-xs text-zinc-500">
+              <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>
                 PNG, JPG ou GIF. Máximo 5MB.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 backdrop-blur-sm">
+        {/* Informações */}
+        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-6`}>
           <div className="flex items-center gap-2 mb-4">
-            <Edit2 className="h-5 w-5 text-violet-400" />
-            <h2 className="text-lg font-semibold">Informações</h2>
+            <Edit2 className={`h-5 w-5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Informações</h2>
           </div>
 
           <div>
             <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.primary}`}>
-              <Building2 className="h-4 w-4 text-violet-400" />
+              <Building2 className={`h-4 w-4 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
               Nome do workspace
             </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!canEdit}
-              className={`w-full rounded-xl border px-4 py-2.5 outline-none transition-all disabled:cursor-not-allowed disabled:opacity-50 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
+              className={`w-full rounded-xl border px-4 py-2.5 outline-none transition-all disabled:cursor-not-allowed disabled:opacity-50 ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               placeholder="Nome do workspace"
             />
             {name && (
               <div className="mt-2 flex items-center justify-between text-xs">
-                <span className="text-zinc-500">
+                <span className={themeClasses.text.muted}>
                   {nameLength} caracteres
                 </span>
                 {isNameChanged && nameLength >= 3 && nameLength <= 50 && (
-                  <span className="flex items-center gap-1 text-emerald-400">
+                  <span className={`flex items-center gap-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                     <CheckCircle2 className="h-3 w-3" />
                     Pronto para salvar
                   </span>
                 )}
                 {nameLength > 50 && (
-                  <span className="text-red-400">
+                  <span className="text-red-500">
                     Máximo 50 caracteres
                   </span>
                 )}
@@ -383,14 +392,14 @@ export default function WorkspaceSettingsPage() {
           </div>
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400">
+            <div className={`mt-4 flex items-center gap-2 rounded-lg border ${isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-emerald-200 bg-emerald-50 text-emerald-600'} p-3 text-sm`}>
               <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
               {success}
             </div>
@@ -415,33 +424,35 @@ export default function WorkspaceSettingsPage() {
           </button>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 backdrop-blur-sm">
+        {/* Membros */}
+        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-6`}>
           <div className="flex items-center gap-2 mb-4">
-            <UserCog className="h-5 w-5 text-violet-400" />
-            <h2 className="text-lg font-semibold">Membros</h2>
+            <UserCog className={`h-5 w-5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
+            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Membros</h2>
           </div>
-          <p className="text-sm text-zinc-400">
+          <p className={`text-sm ${themeClasses.text.secondary}`}>
             Gerencie os membros e permissões do workspace pelo menu superior.
           </p>
           <button
             onClick={() => router.push('/dashboard/projects')}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300 transition-all hover:bg-white/10"
+            className={`mt-4 inline-flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover}`}
           >
             <Shield className="h-4 w-4" />
             Gerenciar membros
           </button>
         </div>
 
+        {/* Zona de perigo */}
         {!checkingPerms && canDelete && (
-          <div className="rounded-2xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-6">
+          <div className={`rounded-2xl border ${isDarkMode ? 'border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent' : 'border-red-200 bg-red-50/50'} p-6`}>
             <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="h-5 w-5 text-red-400" />
-              <h2 className="text-lg font-semibold text-red-400">
+              <AlertTriangle className={`h-5 w-5 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
+              <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
                 Zona de perigo
               </h2>
             </div>
 
-            <p className="text-sm text-zinc-400 mb-4">
+            <p className={`text-sm ${themeClasses.text.secondary} mb-4`}>
               Deletar o workspace remove todos os projetos, tasks, membros e dados relacionados.
               Esta ação é irreversível.
             </p>
@@ -449,7 +460,11 @@ export default function WorkspaceSettingsPage() {
             <button
               onClick={handleDelete}
               disabled={loading}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-red-400 transition-all hover:bg-red-500/20 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                isDarkMode 
+                  ? 'border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300'
+                  : 'border-red-300 bg-red-100 text-red-700 hover:bg-red-200'
+              }`}
             >
               <Trash2 className="h-4 w-4" />
               {loading ? 'Deletando...' : 'Deletar workspace'}

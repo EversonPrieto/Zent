@@ -88,6 +88,55 @@ function CheckoutContent() {
       if (result.error) {
         setError(result.error.message || 'Erro ao processar pagamento');
       } else if (result.paymentIntent?.status === 'succeeded') {
+        // Confirmar pagamento no backend
+        try {
+          const token = localStorage.getItem('zent_token');
+          console.log('[Checkout] Payment succeeded, confirming with backend...');
+          
+          const confirmResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/billing/confirm-intent`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                paymentIntentId: result.paymentIntent.id,
+              }),
+            }
+          );
+
+          console.log('[Checkout] Confirm response status:', confirmResponse.status);
+
+          if (confirmResponse.ok) {
+            const updatedUser = await confirmResponse.json();
+            console.log('[Checkout] Updated user data received:', updatedUser);
+            console.log('[Checkout] Plan from backend:', updatedUser.plan);
+            console.log('[Checkout] Subscription ends at:', updatedUser.subscriptionEndsAt);
+            
+            // Save updated user data with subscription info
+            localStorage.setItem('zent_user', JSON.stringify(updatedUser));
+            console.log('[Checkout] User data saved to localStorage');
+          } else {
+            const errorData = await confirmResponse.json().catch(() => ({
+              error: 'Could not parse error response'
+            }));
+            console.error('[Checkout] Backend error response:', {
+              status: confirmResponse.status,
+              data: errorData,
+            });
+            setError(`Erro ao confirmar pagamento: ${errorData.message || 'Erro desconhecido'}`);
+            setLoading(false);
+            return;
+          }
+        } catch (confirmErr) {
+          console.error('[Checkout] Error confirming payment:', confirmErr);
+          setError(`Erro ao confirmar pagamento: ${confirmErr instanceof Error ? confirmErr.message : 'Erro desconhecido'}`);
+          setLoading(false);
+          return;
+        }
+        
         setSuccess(true);
         setTimeout(() => {
           router.push('/dashboard/overview');
@@ -128,6 +177,16 @@ function CheckoutContent() {
         >
           ← Voltar
         </button>
+
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 mb-6 flex gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-amber-400 font-medium text-sm">Modo de Teste</p>
+            <p className={`text-xs mt-1 ${themeClasses.text.tertiary}`}>
+              Use o cartão <span className="font-semibold text-amber-400">4242 4242 4242 4242</span> com qualquer data futura e CVC para testar. Nenhum valor será cobrado.
+            </p>
+          </div>
+        </div>
 
         <div className={`rounded-2xl border backdrop-blur-sm p-8 ${themeClasses.border.primary} ${themeClasses.bg.secondary}`}>
           <h1 className={`text-2xl font-bold mb-2 ${themeClasses.text.primary}`}>Plano Pro</h1>

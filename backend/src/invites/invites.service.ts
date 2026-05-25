@@ -6,15 +6,20 @@ import {
 import { PrismaService } from '../prisma/prisma.service'
 import { randomUUID } from 'crypto'
 import { EmailService } from '../common/email/email.service'
+import { LimitsService } from '../limits/limits.service'
 
 @Injectable()
 export class InvitesService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
+    private limits: LimitsService,
   ) {}
 
   async createInvite(email: string, workspaceId: string, userId: string) {
+    // Check team member limit
+    await this.limits.checkTeamMemberLimit(userId, workspaceId);
+
     const existingInvite = await this.prisma.workspaceInvite.findFirst({
       where: {
         email,

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../hooks/useTheme';
+import { PlanComparison } from '../../components/PlanComparison';
 import { CheckCircle2, Zap, Users, Infinity, Star } from 'lucide-react';
 
 type Plan = {
@@ -86,7 +87,7 @@ export default function PricingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -94,10 +95,10 @@ export default function PricingPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-4">
+          <h1 className={`text-4xl sm:text-5xl font-bold mb-4 ${themeClasses.text.primary}`}>
             Planos Simples e Transparentes
           </h1>
-          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+          <p className={`text-xl max-w-2xl mx-auto ${themeClasses.text.tertiary}`}>
             Escolha o plano perfeito para sua equipe. Sem taxas ocultas.
           </p>
         </div>
@@ -108,8 +109,8 @@ export default function PricingPage() {
               key={plan.id}
               className={`relative rounded-2xl transition-all ${
                 plan.highlight
-                  ? 'border-2 border-violet-500 bg-gradient-to-br from-violet-500/10 to-indigo-500/10 scale-105 md:scale-105'
-                  : 'border border-white/10 bg-white/5'
+                  ? `border-2 border-violet-500 bg-gradient-to-br from-violet-500/10 to-indigo-500/10 scale-105 md:scale-105 ${themeClasses.border.primary}`
+                  : `border ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`
               } p-8 hover:border-violet-500/50`}
             >
               {plan.highlight && (
@@ -164,18 +165,18 @@ export default function PricingPage() {
                 className={`w-full rounded-lg py-3 font-semibold transition-all mb-8 ${
                   plan.highlight
                     ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:scale-105 shadow-lg shadow-violet-500/25'
-                    : 'border border-white/10 text-white hover:border-white/20 hover:bg-white/5'
+                    : `border ${themeClasses.border.primary} ${themeClasses.text.primary} hover:border-violet-500/20 hover:${themeClasses.bg.secondary}`
                 }`}
               >
                 {plan.cta}
               </button>
 
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-zinc-300 uppercase">Incluso</p>
+                <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Incluso</p>
                 {plan.features.map((feature, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-zinc-300">{feature}</span>
+                    <span className={themeClasses.text.secondary}>{feature}</span>
                   </div>
                 ))}
               </div>
@@ -184,7 +185,7 @@ export default function PricingPage() {
         </div>
 
         <div className="max-w-3xl mx-auto mt-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Perguntas Frequentes</h2>
+          <h2 className={`text-3xl font-bold mb-8 text-center ${themeClasses.text.primary}`}>Perguntas Frequentes</h2>
           <div className="space-y-4">
             {[
               {
@@ -206,20 +207,27 @@ export default function PricingPage() {
             ].map((item, index) => (
               <details
                 key={index}
-                className="rounded-lg border border-white/10 bg-white/5 p-4 cursor-pointer hover:border-white/20 transition-colors"
+                className={`rounded-lg border p-4 cursor-pointer transition-colors ${themeClasses.border.primary} ${themeClasses.bg.tertiary} hover:border-violet-500/30`}
               >
-                <summary className="font-semibold text-white flex items-center justify-between">
+                <summary className={`font-semibold flex items-center justify-between ${themeClasses.text.primary}`}>
                   {item.q}
-                  <span className="text-zinc-400">+</span>
+                  <span className={themeClasses.text.tertiary}>+</span>
                 </summary>
-                <p className="mt-3 text-zinc-400">{item.a}</p>
+                <p className={`mt-3 ${themeClasses.text.tertiary}`}>{item.a}</p>
               </details>
             ))}
           </div>
         </div>
 
+        <div className="mt-20 mb-16">
+          <h2 className={`text-3xl font-bold text-center mb-12 ${themeClasses.text.primary}`}>
+            Comparação Detalhada de Planos
+          </h2>
+          <PlanComparison currentPlan="free" />
+        </div>
+
         <div className="mt-16 text-center">
-          <p className="text-zinc-400 mb-4">Pronto para começar?</p>
+          <p className={`mb-4 ${themeClasses.text.tertiary}`}>Pronto para começar?</p>
           <button
             onClick={() => router.push('/signup')}
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-8 py-3 font-semibold text-white hover:scale-105 transition-transform shadow-lg shadow-violet-500/25"
