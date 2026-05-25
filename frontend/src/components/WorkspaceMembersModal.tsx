@@ -266,19 +266,19 @@ export default function WorkspaceMembersModal({
   const viewerCount = members.filter(m => m.role === 'VIEWER').length;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        <div className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+    <div className={`fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
+      <div className={`relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 ${themeClasses.border.primary} bg-gradient-to-br ${themeClasses.bg.secondary}`}>
+        <div className={`sticky top-0 z-10 border-b bg-gradient-to-r p-6 ${themeClasses.border.primary} ${themeClasses.bg.secondary}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
                 <Users className="h-5 w-5 text-violet-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                <h2 className={`text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent`}>
                   Membros do workspace
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className={`mt-1 text-sm ${themeClasses.text.tertiary}`}>
                   Gerencie quem faz parte deste workspace.
                 </p>
               </div>
@@ -286,7 +286,7 @@ export default function WorkspaceMembersModal({
 
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className={`rounded-lg p-2 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.tertiary} hover:${themeClasses.text.primary}`}
             >
               <X className="h-5 w-5" />
             </button>
@@ -294,9 +294,9 @@ export default function WorkspaceMembersModal({
 
           {!loading && members.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-3">
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                <span className="text-xs text-zinc-500">Total</span>
-                <p className="text-lg font-bold text-white">{members.length}</p>
+              <div className={`rounded-lg border px-3 py-1.5 ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
+                <span className={`text-xs ${themeClasses.text.tertiary}`}>Total</span>
+                <p className={`text-lg font-bold ${themeClasses.text.primary}`}>{members.length}</p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
                 <span className="text-xs text-zinc-500">Proprietários</span>

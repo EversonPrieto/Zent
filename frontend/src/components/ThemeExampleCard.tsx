@@ -2,10 +2,6 @@
 
 import { useTheme } from '../hooks/useTheme';
 
-/**
- * Componente de exemplo mostrando como usar o sistema de temas
- * Este é um exemplo de como aplicar as cores do tema sem mexer na estrutura
- */
 export function ThemeExampleCard() {
   const { theme, themeClasses } = useTheme();
 
@@ -17,7 +13,6 @@ export function ThemeExampleCard() {
         </h3>
       </div>
 
-      {/* Exemplos de uso de cores */}
       <div className="space-y-3">
         <div className={`p-3 rounded-lg ${themeClasses.accent.violet}`}>
           <p className="text-sm font-medium">Violeta</p>
@@ -40,14 +35,12 @@ export function ThemeExampleCard() {
         </div>
       </div>
 
-      {/* Exemplo de input */}
       <input
         type="text"
         placeholder="Teste com input"
         className={`${themeClasses.input} w-full p-2 rounded-lg border`}
       />
 
-      {/* Exemplo de texto */}
       <div className="space-y-2">
         <p className={`text-sm ${themeClasses.text.primary}`}>Texto primário</p>
         <p className={`text-sm ${themeClasses.text.secondary}`}>Texto secundário</p>

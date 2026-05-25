@@ -13,6 +13,7 @@ import { MoveTaskDto } from './dto/move-task.dto';
 import { ActivityService } from 'src/activity/activity.service';
 import { AclService } from 'src/common/acl/acl.service';
 import { TasksGateway } from './tasks.gateway';
+import { LimitsService } from 'src/limits/limits.service';
 
 @Injectable()
 export class TasksService {
@@ -21,6 +22,7 @@ export class TasksService {
     private activity: ActivityService,
     private acl: AclService,
     private tasksGateway: TasksGateway,
+    private limits: LimitsService,
   ) { }
 
   private async ensureProjectInWorkspace(projectId: string, workspaceId: string) {
@@ -36,6 +38,11 @@ export class TasksService {
 
   async create(workspaceId: string, dto: CreateTaskDto, userId?: string) {
     await this.ensureProjectInWorkspace(dto.projectId, workspaceId);
+
+    // Check task limit
+    if (userId) {
+      await this.limits.checkTaskLimit(userId, dto.projectId);
+    }
 
     const status = dto.status ?? TaskStatus.TODO;
 

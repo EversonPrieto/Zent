@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ActivityService } from '../activity/activity.service';
 import { AclService } from 'src/common/acl/acl.service';
+import { LimitsService } from 'src/limits/limits.service';
 
 @Injectable()
 export class ProjectsService {
@@ -11,11 +12,14 @@ export class ProjectsService {
     private prisma: PrismaService,
     private activity: ActivityService,
     private acl: AclService,
+    private limits: LimitsService,
   ) {}
 
   async create(workspaceId: string, dto: CreateProjectDto, userId?: string) {
     if (userId) {
       await this.acl.requirePermission('project:create', workspaceId, userId);
+      // Check project limit
+      await this.limits.checkProjectLimit(userId, workspaceId);
     }
 
     const project = await this.prisma.project.create({

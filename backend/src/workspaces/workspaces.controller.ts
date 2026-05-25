@@ -29,7 +29,12 @@ export class WorkspacesController {
 
   @Post()
   create(@Req() req: any, @Body() dto: CreateWorkspaceDto) {
-    return this.service.create(req.user.sub, dto);
+    try {
+      return this.service.create(req.user.sub, dto);
+    } catch (error) {
+      console.error('[WorkspacesController] Error creating workspace:', error);
+      throw error;
+    }
   }
 
   @Get()

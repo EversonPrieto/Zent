@@ -20,7 +20,7 @@ export const themes = {
       primary: 'text-white',
       secondary: 'text-zinc-300',
       tertiary: 'text-zinc-500',
-      muted: 'text-zinc-600',
+      muted: 'text-zinc-500',
       hint: 'text-zinc-400',
       inverted: 'text-black',
     },
@@ -45,7 +45,7 @@ export const themes = {
     input: 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500',
   },
   light: {
-    // Backgrounds principais
+    // Backgrounds principais - mais limpos e profissionais
     bg: {
       primary: 'bg-white',
       secondary: 'bg-gray-50',
@@ -53,40 +53,40 @@ export const themes = {
       hover: 'hover:bg-gray-100',
       subtle: 'bg-gray-50',
     },
-    // Borders
+    // Borders - mais suaves
     border: {
-      primary: 'border-gray-300',
-      secondary: 'border-gray-400',
-      hover: 'hover:border-gray-500',
+      primary: 'border-gray-200',
+      secondary: 'border-gray-300',
+      hover: 'hover:border-gray-400',
     },
-    // Textos
+    // Textos - melhor contraste
     text: {
       primary: 'text-gray-900',
-      secondary: 'text-gray-800',
-      tertiary: 'text-gray-700',
-      muted: 'text-gray-600',
-      hint: 'text-gray-500',
+      secondary: 'text-gray-700',
+      tertiary: 'text-gray-600',
+      muted: 'text-gray-500',
+      hint: 'text-gray-400',
       inverted: 'text-white',
     },
-    // Acentos
+    // Acentos - mais vibrantes mas profissionais
     accent: {
-      violet: 'bg-violet-50 text-violet-700 border-violet-200',
-      blue: 'bg-blue-50 text-blue-700 border-blue-200',
-      emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      amber: 'bg-amber-50 text-amber-700 border-amber-200',
-      red: 'bg-red-50 text-red-700 border-red-200',
-      pink: 'bg-pink-50 text-pink-700 border-pink-200',
+      violet: 'bg-violet-50 text-violet-600 border-violet-200',
+      blue: 'bg-blue-50 text-blue-600 border-blue-200',
+      emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      amber: 'bg-amber-50 text-amber-600 border-amber-200',
+      red: 'bg-red-50 text-red-600 border-red-200',
+      pink: 'bg-pink-50 text-pink-600 border-pink-200',
     },
-    // Gradientes
+    // Gradientes - mais suaves para modo claro
     gradient: {
-      violet: 'from-violet-100 to-indigo-100',
-      blue: 'from-blue-100 to-cyan-100',
-      emerald: 'from-emerald-100 to-teal-100',
+      violet: 'from-violet-50 to-indigo-50',
+      blue: 'from-blue-50 to-cyan-50',
+      emerald: 'from-emerald-50 to-teal-50',
     },
-    // Shadows
-    shadow: 'shadow-slate/50',
-    // Inputs
-    input: 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400',
+    // Shadows - mais leves
+    shadow: 'shadow-gray-200/50',
+    // Inputs - mais claros
+    input: 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400',
   },
 } as const;
 

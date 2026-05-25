@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useTheme } from '../../../../hooks/useTheme';
 import {
   DndContext,
   DragEndEvent,
@@ -19,6 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { api } from '../../../../lib/api';
+import { useTheme } from '../../../../hooks/useTheme';
 import TaskModal from '../../../../components/TaskModal';
 import CreateTaskModal from '../../../../components/CreateTaskModal';
 import ActivityFeed from '../../../../components/ActivityFeed';
@@ -181,6 +181,7 @@ function findTaskStatus(tasks: Task[], taskId: string): TaskStatus | null {
 export default function ProjectBoardPage() {
   const params = useParams();
   const router = useRouter();
+  const { themeClasses } = useTheme();
   const projectId = params.id as string;
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -483,7 +484,7 @@ export default function ProjectBoardPage() {
                 <FolderKanban className="h-5 w-5 text-violet-400" />
                 <span className="text-xs text-zinc-500">Projeto</span>
               </div>
-              <h1 className="text-3xl font-bold md:text-4xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 {projectName || 'Carregando...'}
               </h1>
               <p className="mt-2 text-zinc-400">

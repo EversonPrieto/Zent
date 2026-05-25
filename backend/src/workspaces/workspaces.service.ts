@@ -4,6 +4,7 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { Role } from '@prisma/client';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { AclService } from 'src/common/acl/acl.service';
+import { LimitsService } from 'src/limits/limits.service';
 
 @Injectable()
 export class WorkspacesService {
@@ -11,24 +12,38 @@ export class WorkspacesService {
         private prisma: PrismaService,
         private cloudinary: CloudinaryService,
         private acl: AclService,
+        private limits: LimitsService,
     ) { }
 
     async create(userId: string, dto: CreateWorkspaceDto) {
-        return this.prisma.$transaction(async (tx) => {
-            const workspace = await tx.workspace.create({
-                data: { name: dto.name },
-            });
+        try {
+            console.log(`[WorkspacesService] Creating workspace for user: ${userId}`, dto);
+            
+            // Check workspace limit
+            await this.limits.checkWorkspaceLimit(userId);
+            
+            console.log(`[WorkspacesService] Workspace limit check passed`);
 
-            await tx.workspaceMember.create({
-                data: {
-                    userId,
-                    workspaceId: workspace.id,
-                    role: Role.OWNER,
-                },
-            });
+            return this.prisma.$transaction(async (tx) => {
+                const workspace = await tx.workspace.create({
+                    data: { name: dto.name },
+                });
 
-            return workspace;
-        });
+                await tx.workspaceMember.create({
+                    data: {
+                        userId,
+                        workspaceId: workspace.id,
+                        role: Role.OWNER,
+                    },
+                });
+
+                console.log(`[WorkspacesService] Workspace created:`, workspace);
+                return workspace;
+            });
+        } catch (error) {
+            console.error(`[WorkspacesService] Error creating workspace:`, error);
+            throw error;
+        }
     }
 
     async listForUser(userId: string) {

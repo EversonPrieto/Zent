@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
+import { isPro } from '../../../lib/subscription';
 import {
   Activity,
   Clock,
@@ -90,6 +91,7 @@ export default function ActivityPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'tasks' | 'projects' | 'members'>('all');
+  const [hasProAccess, setHasProAccess] = useState(false);
 
   useEffect(() => {
     async function loadPage() {
@@ -105,6 +107,20 @@ export default function ActivityPage() {
       if (!workspaceId) {
         router.push('/dashboard');
         return;
+      }
+
+      // Load user subscription status
+      const userData = localStorage.getItem('zent_user');
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData);
+          setHasProAccess(isPro({
+            plan: parsed.plan || 'free',
+            subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+          }));
+        } catch (err) {
+          console.error('Error parsing user data:', err);
+        }
       }
 
       if (workspaceRaw) {
@@ -172,7 +188,7 @@ export default function ActivityPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={themeClasses.bg.primary}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -181,9 +197,9 @@ export default function ActivityPage() {
       <div className="relative mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-12">
         <div className="mb-8 md:mb-12">
           <div className="mb-4 flex items-center gap-2">
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm backdrop-blur-sm">
+            <div className={`inline-flex items-center rounded-full border px-3 py-1 text-sm backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
               <Activity className="h-3.5 w-3.5 mr-1.5 text-violet-400" />
-              <span className="text-xs text-zinc-400">Histórico</span>
+              <span className={`text-xs ${themeClasses.text.tertiary}`}>Histórico</span>
             </div>
           </div>
 
@@ -199,26 +215,31 @@ export default function ActivityPage() {
                 ) : (
                   <Building2 className="h-6 w-6 text-violet-400" />
                 )}
-                <span className="text-sm text-zinc-500">Workspace</span>
+                <span className={`text-sm ${themeClasses.text.tertiary}`}>Workspace</span>
               </div>
-              <h1 className="text-3xl font-bold md:text-4xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 {workspace?.name ?? 'Atividade'}
+                {hasProAccess && (
+                  <span className="ml-3 px-3 py-1 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-sm font-semibold text-violet-400">
+                    Pro
+                  </span>
+                )}
               </h1>
-              <p className="mt-2 text-zinc-400">
+              <p className={`mt-2 ${themeClasses.text.tertiary}`}>
                 Histórico de atividades do workspace
               </p>
             </div>
 
             <div className="flex gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-sm">
-                <p className="text-2xl font-bold text-white">{activities.length}</p>
-                <p className="text-xs text-zinc-500">Total de atividades</p>
+              <div className={`rounded-2xl border px-4 py-2 backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
+                <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{activities.length}</p>
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>Total de atividades</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-sm">
-                <p className="text-2xl font-bold text-white">
+              <div className={`rounded-2xl border px-4 py-2 backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
+                <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                   {activities.filter(a => new Date(a.createdAt).toDateString() === new Date().toDateString()).length}
                 </p>
-                <p className="text-xs text-zinc-500">Hoje</p>
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>Hoje</p>
               </div>
             </div>
           </div>
@@ -235,7 +256,7 @@ export default function ActivityPage() {
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-lg shadow-violet-500/25'
-                    : 'border border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
+                    : `border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.tertiary} hover:${themeClasses.bg.secondary} hover:${themeClasses.text.primary}`
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -268,12 +289,12 @@ export default function ActivityPage() {
         )}
 
         {!loading && !error && filteredActivities.length === 0 && (
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 p-12 text-center backdrop-blur-sm">
+          <div className={`rounded-3xl border p-12 text-center backdrop-blur-sm ${themeClasses.border.primary} bg-gradient-to-br ${themeClasses.bg.secondary}`}>
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
               <Activity className="h-12 w-12 text-violet-400" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">Nenhuma atividade encontrada</h3>
-            <p className="text-zinc-400 mb-8 max-w-md mx-auto">
+            <h3 className={`text-2xl font-semibold mb-2 ${themeClasses.text.primary}`}>Nenhuma atividade encontrada</h3>
+            <p className={`mb-8 max-w-md mx-auto ${themeClasses.text.tertiary}`}>
               {filter === 'all' 
                 ? 'Ainda não há atividades registradas nesta workspace.'
                 : `Nenhuma atividade do tipo "${filter}" encontrada.`}
@@ -285,14 +306,14 @@ export default function ActivityPage() {
           <div className="space-y-8">
             {Object.entries(groupedActivities).map(([date, dateActivities]) => (
               <div key={date}>
-                <div className="sticky top-0 z-10 mb-4 -mt-2 bg-gradient-to-b from-zinc-950 to-transparent pt-2 pb-1">
+                <div className={`sticky top-0 z-10 mb-4 -mt-2 bg-gradient-to-b pt-2 pb-1 ${themeClasses.bg.primary}`}>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-violet-400" />
-                    <h3 className="text-sm font-semibold text-zinc-400">
+                    <h3 className={`text-sm font-semibold ${themeClasses.text.tertiary}`}>
                       {date === new Date().toLocaleDateString('pt-BR') ? 'Hoje' : date}
                     </h3>
-                    <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-xs text-zinc-500">
+                    <div className={`flex-1 h-px ${themeClasses.border.primary}`} />
+                    <span className={`text-xs ${themeClasses.text.tertiary}`}>
                       {dateActivities.length} {dateActivities.length === 1 ? 'atividade' : 'atividades'}
                     </span>
                   </div>
@@ -350,7 +371,7 @@ export default function ActivityPage() {
                             </div>
 
                             <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <p className="text-[10px] text-zinc-600">
+                              <p className={`text-[10px] ${themeClasses.text.tertiary}`}>
                                 {new Date(activity.createdAt).toLocaleString('pt-BR', {
                                   day: '2-digit',
                                   month: '2-digit',
@@ -371,7 +392,7 @@ export default function ActivityPage() {
             ))}
 
             <div className="mt-8 text-center">
-              <p className="text-sm text-zinc-500">
+              <p className={`text-sm ${themeClasses.text.tertiary}`}>
                 Mostrando {filteredActivities.length} {filteredActivities.length === 1 ? 'atividade' : 'atividades'}
               </p>
             </div>

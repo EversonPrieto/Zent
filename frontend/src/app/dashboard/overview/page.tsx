@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
+import { isPro } from '../../../lib/subscription';
 import {
   BarChart,
   Bar,
@@ -60,6 +61,7 @@ type DashboardStats = {
 
 export default function DashboardOverviewPage() {
   const router = useRouter();
+  const { themeClasses } = useTheme();
   const [workspaceId, setWorkspaceId] = useState('');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +69,7 @@ export default function DashboardOverviewPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [hasProAccess, setHasProAccess] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('zent_token');
@@ -79,6 +82,20 @@ export default function DashboardOverviewPage() {
     if (!wsId) {
       router.push('/dashboard');
       return;
+    }
+
+    // Load user subscription status
+    const userData = localStorage.getItem('zent_user');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        setHasProAccess(isPro({
+          plan: parsed.plan || 'free',
+          subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+        }));
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+      }
     }
 
     setWorkspaceId(wsId);
@@ -197,7 +214,7 @@ export default function DashboardOverviewPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -205,10 +222,17 @@ export default function DashboardOverviewPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="text-zinc-400 mt-2">Visão geral dos seus projetos e tarefas</p>
+          <div className="flex items-center gap-3">
+            <h1 className={`text-3xl sm:text-4xl font-bold ${themeClasses.text.primary}`}>
+              Dashboard
+            </h1>
+            {hasProAccess && (
+              <div className="px-3 py-1 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-sm font-semibold text-violet-400">
+                Pro
+              </div>
+            )}
+          </div>
+          <p className={`mt-2 ${themeClasses.text.tertiary}`}>Visão geral dos seus projetos e tarefas</p>
         </div>
 
         {loading && (
@@ -291,7 +315,7 @@ export default function DashboardOverviewPage() {
             <div className="grid gap-8 lg:grid-cols-2 mb-8">
               {stats.tasksByStatus && stats.tasksByStatus.length > 0 && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                  <h3 className="text-lg font-semibold text-white mb-4">Tasks por Status</h3>
+                  <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Tasks por Status</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={stats.tasksByStatus}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -320,7 +344,7 @@ export default function DashboardOverviewPage() {
 
               {stats.tasksByPriority && stats.tasksByPriority.length > 0 && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                  <h3 className="text-lg font-semibold text-white mb-4">Tasks por Prioridade</h3>
+                  <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Tasks por Prioridade</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -356,7 +380,7 @@ export default function DashboardOverviewPage() {
 
             {projects.length > 0 && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-                <h3 className="text-lg font-semibold text-white mb-4">Projetos Ativos</h3>
+                <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Projetos Ativos</h3>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {projects.map((project) => {
                     const projectTasks = tasks.filter(

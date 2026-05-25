@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../lib/api';
+import { useTheme } from '../../hooks/useTheme';
 import {
   Search,
   FileText,
@@ -26,6 +27,7 @@ type SearchResult = {
 function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { themeClasses } = useTheme();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -135,7 +137,7 @@ function SearchContent() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -145,33 +147,33 @@ function SearchContent() {
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="mb-4 text-zinc-400 hover:text-white transition-colors"
+            className={`mb-4 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.text.primary}`}
           >
             ← Voltar
           </button>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+          <h1 className={`text-3xl sm:text-4xl font-bold ${themeClasses.text.primary}`}>
             Busca Global
           </h1>
-          <p className="text-zinc-400 mt-2">Procure por tasks, projetos e workspaces</p>
+          <p className={`mt-2 ${themeClasses.text.tertiary}`}>Procure por tasks, projetos e workspaces</p>
         </div>
 
         <div className="mb-8">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-zinc-500" />
+              <Search className={`h-5 w-5 ${themeClasses.text.tertiary}`} />
             </div>
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Digitar para buscar... (Ctrl+K)"
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-zinc-500 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              className={`w-full pl-12 pr-4 py-3 rounded-xl border outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary}`}
               autoFocus
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-white transition-colors"
+                className={`absolute inset-y-0 right-0 pr-4 flex items-center transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.text.primary}`}
               >
                 <X className="h-5 w-5" />
               </button>

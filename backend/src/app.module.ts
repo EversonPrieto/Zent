@@ -15,6 +15,7 @@ import { EmailModule } from './common/email/email.module';
 import { LabelsModule } from './labels/labels.module';
 import { AttachmentsModule } from './attachments/attachments.module';
 import { BillingModule } from './billing/billing.module';
+import { LimitsModule } from './limits/limits.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { BillingModule } from './billing/billing.module';
     LabelsModule,
     AttachmentsModule,
     BillingModule,
+    LimitsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
