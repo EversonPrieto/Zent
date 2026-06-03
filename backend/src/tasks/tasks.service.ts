@@ -68,6 +68,30 @@ export class TasksService {
         assigneeId: dto.assigneeId,
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         position,
+        // Add label associations
+        taskLabels: dto.labelIds && dto.labelIds.length > 0 ? {
+          create: dto.labelIds.map(labelId => ({
+            labelId,
+          })),
+        } : undefined,
+        // Add assignee associations (if labelIds are provided as assigneeIds)
+        taskAssignees: dto.assigneeIds && dto.assigneeIds.length > 0 ? {
+          create: dto.assigneeIds.map(userId => ({
+            userId,
+          })),
+        } : undefined,
+      },
+      include: {
+        taskLabels: {
+          include: {
+            label: true,
+          },
+        },
+        taskAssignees: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -120,6 +144,16 @@ export class TasksService {
           project: { select: { id: true, name: true } },
           assignee: {
             select: { id: true, name: true, email: true, avatarUrl: true },
+          },
+          taskLabels: {
+            include: {
+              label: { select: { id: true, name: true, color: true } },
+            },
+          },
+          taskAssignees: {
+            include: {
+              user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+            },
           },
         },
       }),
@@ -240,7 +274,6 @@ export class TasksService {
         where: {
           id,
           projectId: task.projectId,
-          status: dto.status,
           project: { workspaceId },
         },
         select: { position: true },

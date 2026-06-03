@@ -21,6 +21,7 @@ import { api } from '../../../../lib/api';
 import { useTheme } from '../../../../hooks/useTheme';
 import TaskModal from '../../../../components/TaskModal';
 import CreateTaskModal from '../../../../components/CreateTaskModal';
+import TaskFiltersModal, { type TaskFilters } from '../../../../components/TaskFiltersModal';
 import ActivityFeed from '../../../../components/ActivityFeed';
 import { useTaskSync } from '../../../../hooks/useTaskSync';
 import { usePresence } from '../../../../hooks/usePresence';
@@ -40,10 +41,13 @@ import {
   Flag,
   GripVertical,
   Sparkles,
-  Users
+  Users,
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
-type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
+type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
 
 type Task = {
   id: string;
@@ -56,7 +60,6 @@ type Task = {
   assigneeId?: string | null;
   createdAt: string;
   updatedAt: string;
-  // Linear features
   dueDate?: string | null;
   taskLabels?: Array<{ label: { id: string; name: string; color: string } }>;
   taskAssignees?: Array<{ user: { id: string; name: string; avatarUrl: string | null } }>;
@@ -72,6 +75,7 @@ const columns: { key: TaskStatus; label: string; icon: typeof Circle; color: str
   { key: 'IN_PROGRESS', label: 'Em progresso', icon: Clock, color: 'text-blue-400' },
   { key: 'IN_REVIEW', label: 'Em revisão', icon: AlertTriangle, color: 'text-amber-400' },
   { key: 'DONE', label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400' },
+  { key: 'ABORTED', label: 'Cancelado', icon: AlertCircle, color: 'text-red-400' },
 ];
 
 const priorityConfig = {
@@ -120,27 +124,26 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-2xl border transition-all ${isOver ? 'border-violet-500 bg-violet-500/5' : 'border-white/10 bg-white/5'
-        } backdrop-blur-sm`}
+      className={`rounded-2xl border shadow transition-all flex-1 min-w-[280px] max-w-[400px] flex flex-col h-full ${isOver ? 'border-violet-400 bg-violet-400/10' : 'border-zinc-700 bg-zinc-900/95'}`}
     >
-      <div className="p-4 border-b border-white/10">
+      <div className="p-5 border-b border-zinc-700 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Icon className={`h-5 w-5 ${column.color}`} />
-            <h2 className="font-semibold text-white">{column.label}</h2>
+            <Icon className={`h-6 w-6 ${column.color}`} />
+            <h2 className="font-semibold text-lg text-white">{column.label}</h2>
           </div>
-          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-zinc-300">
+          <span className="rounded-full bg-zinc-700/20 px-2.5 py-0.5 text-sm font-medium text-zinc-200">
             {tasks.length}
           </span>
         </div>
       </div>
 
-      <div className="p-3">
+      <div className="p-4 flex-1 flex flex-col min-h-0">
         <SortableContext
           items={tasks.map((task) => task.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-3 min-h-[300px] max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
+          <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {tasks.map((task) => (
               <LinearTaskCard
                 key={task.id}
@@ -150,10 +153,10 @@ function KanbanColumn({
             ))}
 
             {tasks.length === 0 && (
-              <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-center">
-                <Sparkles className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
-                <p className="text-sm text-zinc-500">Nenhuma task</p>
-                <p className="text-xs text-zinc-600">Arraste ou crie uma nova</p>
+              <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-800/80 p-6 text-center">
+                <Sparkles className="h-8 w-8 text-zinc-500 mx-auto mb-2" />
+                <p className="text-sm text-zinc-400">Nenhuma task</p>
+                <p className="text-xs text-zinc-500">Arraste ou crie uma nova</p>
               </div>
             )}
 
@@ -163,7 +166,7 @@ function KanbanColumn({
 
         <button
           onClick={() => onOpenCreateModal(column.key)}
-          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 py-2.5 text-sm text-zinc-400 transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400"
+          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-2.5 text-sm text-zinc-400 transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400 flex-shrink-0"
         >
           <PlusCircle className="h-4 w-4 transition-transform group-hover:rotate-90" />
           Nova task
@@ -194,6 +197,11 @@ export default function ProjectBoardPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [createTaskStatus, setCreateTaskStatus] = useState<TaskStatus>('TODO');
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [filters, setFilters] = useState<TaskFilters>({});
+  const [availableAssignees, setAvailableAssignees] = useState<Array<{ id: string; name: string; avatarUrl: string | null }>>([]);
+  const [projectMembers, setProjectMembers] = useState<Array<{ id: string; name: string; email: string; avatarUrl: string | null }>>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatarUrl: string | null } | null>(null);
 
@@ -237,7 +245,7 @@ export default function ProjectBoardPage() {
       const token = localStorage.getItem('zent_token');
       let wsId: string | null = localStorage.getItem('zent_workspace_id');
       const workspaceRaw = localStorage.getItem('zent_workspace');
-      
+
       const userRaw = localStorage.getItem('zent_user');
       if (userRaw) {
         try {
@@ -338,6 +346,29 @@ export default function ProjectBoardPage() {
       );
 
       setTasks(data.items.sort((a, b) => a.position - b.position));
+
+      // Load workspace members
+      try {
+        const members = await api(`/workspaces/members`, { workspaceId: ws });
+        if (members && Array.isArray(members)) {
+          const membersList = members.map((m: any) => ({
+            id: m.user.id,
+            name: m.user.name,
+            email: m.user.email,
+            avatarUrl: m.user.avatarUrl || null,
+          }));
+          setProjectMembers(membersList);
+          
+          // Use workspace members as available assignees for filters
+          setAvailableAssignees(membersList.map((m) => ({
+            id: m.id,
+            name: m.name,
+            avatarUrl: m.avatarUrl,
+          })));
+        }
+      } catch (err) {
+        console.log('Erro ao carregar membros do workspace:', err);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar tasks');
     } finally {
@@ -351,21 +382,59 @@ export default function ProjectBoardPage() {
   }
 
   const grouped = useMemo(() => {
+    let filteredTasks = tasks;
+
+    // Apply filters
+    if (filters.searchTerm) {
+      filteredTasks = filteredTasks.filter((t) =>
+        t.title.toLowerCase().includes(filters.searchTerm!.toLowerCase())
+      );
+    }
+
+    if (filters.status && filters.status.length > 0) {
+      filteredTasks = filteredTasks.filter((t) => filters.status!.includes(t.status));
+    }
+
+    if (filters.priority && filters.priority.length > 0) {
+      filteredTasks = filteredTasks.filter((t) => filters.priority!.includes(t.priority));
+    }
+
+    if (filters.assigneeIds && filters.assigneeIds.length > 0) {
+      filteredTasks = filteredTasks.filter((t) =>
+        t.taskAssignees?.some((a) => filters.assigneeIds!.includes(a.user.id))
+      );
+    }
+
+    if (filters.dueDateFrom) {
+      filteredTasks = filteredTasks.filter((t) =>
+        t.dueDate && new Date(t.dueDate) >= new Date(filters.dueDateFrom!)
+      );
+    }
+
+    if (filters.dueDateTo) {
+      filteredTasks = filteredTasks.filter((t) =>
+        t.dueDate && new Date(t.dueDate) <= new Date(filters.dueDateTo!)
+      );
+    }
+
     return {
-      TODO: tasks
+      TODO: filteredTasks
         .filter((t) => t.status === 'TODO')
         .sort((a, b) => a.position - b.position),
-      IN_PROGRESS: tasks
+      IN_PROGRESS: filteredTasks
         .filter((t) => t.status === 'IN_PROGRESS')
         .sort((a, b) => a.position - b.position),
-      IN_REVIEW: tasks
+      IN_REVIEW: filteredTasks
         .filter((t) => t.status === 'IN_REVIEW')
         .sort((a, b) => a.position - b.position),
-      DONE: tasks
+      DONE: filteredTasks
         .filter((t) => t.status === 'DONE')
         .sort((a, b) => a.position - b.position),
+      ABORTED: filteredTasks
+        .filter((t) => t.status === 'ABORTED')
+        .sort((a, b) => a.position - b.position),
     };
-  }, [tasks]);
+  }, [tasks, filters]);
 
   function getDestinationStatus(overId: string): TaskStatus | null {
     if (columns.some((col) => col.key === overId)) return overId as TaskStatus;
@@ -468,8 +537,9 @@ export default function ProjectBoardPage() {
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
-        <div className="mb-6 md:mb-8">
+      <div className="relative w-full px-4 py-6 md:px-6 md:py-8">
+        {/* Header Section */}
+        <div className="mb-6 md:mb-8 max-w-[1600px] mx-auto">
           <button
             onClick={() => router.push('/dashboard/projects')}
             className="group mb-4 inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
@@ -478,8 +548,9 @@ export default function ProjectBoardPage() {
             Voltar para projetos
           </button>
 
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            {/* Left: Project Title */}
+            <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <FolderKanban className="h-5 w-5 text-violet-400" />
                 <span className="text-xs text-zinc-500">Projeto</span>
@@ -492,8 +563,25 @@ export default function ProjectBoardPage() {
               </p>
             </div>
 
+            {/* Center: Filter Button */}
+            <div className="flex justify-center md:justify-end md:flex-shrink-0 md:ml-4">
+              <button
+                onClick={() => setShowFiltersModal(true)}
+                className="inline-flex items-center gap-2 rounded-lg border border-violet-500/50 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-400 transition-all hover:border-violet-500 hover:bg-violet-500/20"
+              >
+                <Filter className="h-4 w-4" />
+                Filtrar Tasks
+                {Object.keys(filters).length > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center rounded-full bg-violet-500/30 px-2 py-0.5 text-xs font-semibold">
+                    {Object.values(filters).filter((v) => v).length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Right: Progress Card */}
             {totalTasks > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-2xl font-bold text-white">{progress}%</p>
@@ -505,7 +593,7 @@ export default function ProjectBoardPage() {
                       {completedTasks}/{totalTasks} tasks
                     </p>
                     <div className="mt-1 h-1.5 w-32 rounded-full bg-white/10 overflow-hidden">
-                      <div 
+                      <div
                         className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
                         style={{ width: `${progress}%` }}
                       />
@@ -525,7 +613,7 @@ export default function ProjectBoardPage() {
         )}
 
         {error && !loading && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm max-w-[1600px] mx-auto">
             <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
               <AlertCircle className="h-6 w-6 text-red-400" />
             </div>
@@ -540,51 +628,82 @@ export default function ProjectBoardPage() {
         )}
 
         {!loading && !error && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex flex-col lg:flex-row gap-6">
-              <div className="flex-1 min-w-0">
-                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-                  {columns.map((col) => (
-                    <KanbanColumn
-                      key={col.key}
-                      column={col}
-                      tasks={grouped[col.key]}
-                      onTaskClick={setSelectedTask}
-                      onOpenCreateModal={openCreateTaskModal}
-                    />
-                  ))}
-                </div>
+          <>
+            <div className="flex gap-4 w-full">
+              {/* Main Kanban Board - Flex and takes all available space */}
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCorners}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="overflow-x-auto pb-4 h-[calc(100vh-240px)]">
+                    <div className="flex gap-5 min-w-fit h-full">
+                      {columns.map((col) => (
+                        <KanbanColumn
+                          key={col.key}
+                          column={col}
+                          tasks={grouped[col.key]}
+                          onTaskClick={setSelectedTask}
+                          onOpenCreateModal={openCreateTaskModal}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </DndContext>
               </div>
 
-              <div className="lg:w-80 flex-shrink-0">
-                <div className="sticky top-24">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm mb-4">
+              {/* Collapsible Sidebar - Right side - No scrollbar horizontal */}
+              <div className={`hidden lg:flex flex-col transition-all duration-300 ease-in-out flex-shrink-0 ${
+                sidebarCollapsed ? 'w-16' : 'w-80'
+              }`}>
+                <div className="sticky top-24 space-y-4 h-[calc(100vh-200px)] overflow-y-auto">
+                  {/* Collapse/Expand Button */}
+                  <button
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2 hover:bg-white/10 transition-all w-full"
+                    title={sidebarCollapsed ? 'Expandir' : 'Colapsar'}
+                  >
+                    {sidebarCollapsed ? (
+                      <ChevronLeft className="h-5 w-5 text-zinc-400" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-zinc-400" />
+                    )}
+                  </button>
+
+                  {/* Online Users - Hidden but mounted */}
+                  <div className={`rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm ${
+                    sidebarCollapsed ? 'hidden' : 'block'
+                  }`}>
                     {currentUser && (
-                      <OnlineUsers 
-                        users={onlineUsers} 
+                      <OnlineUsers
+                        users={onlineUsers}
                         currentUserId={currentUser.id}
                       />
                     )}
                   </div>
 
-                  <div>
-                    <div className="mb-3 flex items-center gap-2 px-2">
-                      <Users className="h-4 w-4 text-violet-400" />
-                      <h3 className="text-sm font-medium text-zinc-400">Atividade recente</h3>
+                  {/* Activity Feed - Hidden but mounted */}
+                  <div className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden ${
+                    sidebarCollapsed ? 'hidden' : 'block'
+                  }`}>
+                    <div className="p-4 pb-2 border-b border-white/10">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-violet-400 flex-shrink-0" />
+                        <h3 className="text-sm font-medium text-zinc-400">Atividade recente</h3>
+                      </div>
                     </div>
-                    <ActivityFeed
-                      workspaceId={workspaceId}
-                      projectId={projectId}
-                    />
+                    <div className="p-4">
+                      <ActivityFeed
+                        workspaceId={workspaceId}
+                        projectId={projectId}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </DndContext>
+          </>
         )}
 
         <TaskModal
@@ -614,8 +733,19 @@ export default function ProjectBoardPage() {
             onCreated={() => {
               setShowCreateTaskModal(false);
             }}
+            projectMembers={projectMembers}
           />
         )}
+
+        <TaskFiltersModal
+          isOpen={showFiltersModal}
+          onClose={() => setShowFiltersModal(false)}
+          onApplyFilters={(newFilters) => {
+            setFilters(newFilters);
+            setShowFiltersModal(false);
+          }}
+          availableAssignees={availableAssignees}
+        />
       </div>
 
       <style jsx>{`

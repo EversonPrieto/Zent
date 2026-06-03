@@ -159,108 +159,106 @@ export default function ActivityFeed({
   const hasActivities = activities.length > 0;
 
   return (
-    <div className="w-full lg:w-80 flex-shrink-0">
-      <div className="sticky top-24">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-violet-400" />
-            <h3 className="text-sm font-semibold text-white">Atividade recente</h3>
-            {hasActivities && (
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-zinc-400">
-                {activities.length}
-              </span>
-            )}
-          </div>
-          
-          {socketConnected ? (
-            <div className="flex items-center gap-1 text-xs text-emerald-400" title="Conexão em tempo real ativa">
-              <Wifi className="h-3 w-3" />
-              <span className="hidden sm:inline">Live</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 text-xs text-zinc-500" title="Conexão em tempo real inativa">
-              <WifiOff className="h-3 w-3" />
-              <span className="hidden sm:inline">Offline</span>
-            </div>
+    <div className="w-full">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Activity className="h-4 w-4 text-violet-400 flex-shrink-0" />
+          <h3 className="text-sm font-medium text-white">N° de Atividades</h3>
+          {hasActivities && (
+            <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-zinc-400">
+              {activities.length}
+            </span>
           )}
         </div>
-
-        {loading && (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+        
+        {socketConnected ? (
+          <div className="flex items-center gap-1 text-xs text-emerald-400" title="Conexão em tempo real ativa">
+            <Wifi className="h-3 w-3" />
+            <span className="hidden sm:inline">Live</span>
           </div>
-        )}
-
-        {error && !loading && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-center">
-            <p className="text-xs text-red-400">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 text-xs text-red-400 hover:text-red-300"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && !hasActivities && (
-          <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-center">
-            <Sparkles className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
-            <p className="text-sm text-zinc-500">
-              Nenhuma atividade ainda
-            </p>
-            <p className="text-xs text-zinc-600 mt-1">
-              Atividades aparecerão aqui em tempo real
-            </p>
-          </div>
-        )}
-
-        {!loading && !error && hasActivities && (
-          <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
-            {activities.map((act, index) => {
-              const { icon: Icon, color, bg } = getActivityIcon(act.type);
-              const isNew = index === 0 && !loading;
-              
-              return (
-                <div
-                  key={act.id}
-                  className={`group relative rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-3 transition-all hover:scale-[1.02] hover:border-white/20 hover:shadow-lg ${
-                    isNew ? 'animate-in slide-in-from-top-2 fade-in duration-300' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
-                      <Icon className={`h-4 w-4 ${color}`} />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-zinc-300 leading-relaxed">
-                        <span className="font-medium text-white">
-                          {act.user?.name ?? 'Alguém'}
-                        </span>{' '}
-                        {act.description}
-                      </p>
-
-                      <div className="mt-1.5 flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 text-zinc-500" />
-                        <p className="text-[10px] text-zinc-500">
-                          {getRelativeDate(act.createdAt)}
-                        </p>
-                        <span className="text-zinc-600">•</span>
-                        <p className="text-[10px] text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {formatDate(act.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="absolute left-0 top-0 h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500 opacity-0 transition-opacity group-hover:opacity-100" />
-                </div>
-              );
-            })}
+        ) : (
+          <div className="flex items-center gap-1 text-xs text-zinc-500" title="Conexão em tempo real inativa">
+            <WifiOff className="h-3 w-3" />
+            <span className="hidden sm:inline">Offline</span>
           </div>
         )}
       </div>
+
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-center">
+          <p className="text-xs text-red-400">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 text-xs text-red-400 hover:text-red-300"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && !hasActivities && (
+        <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-center">
+          <Sparkles className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
+          <p className="text-sm text-zinc-500">
+            Nenhuma atividade ainda
+          </p>
+          <p className="text-xs text-zinc-600 mt-1">
+            Atividades aparecerão aqui em tempo real
+          </p>
+        </div>
+      )}
+
+      {!loading && !error && hasActivities && (
+        <div className="space-y-2 max-h-[400px] overflow-y-auto overflow-x-hidden pr-1 custom-scrollbar">
+          {activities.map((act, index) => {
+            const { icon: Icon, color, bg } = getActivityIcon(act.type);
+            const isNew = index === 0 && !loading;
+            
+            return (
+              <div
+                key={act.id}
+                className={`group relative rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-3 transition-all hover:scale-[1.02] hover:border-white/20 hover:shadow-lg ${
+                  isNew ? 'animate-in slide-in-from-top-2 fade-in duration-300' : ''
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
+                    <Icon className={`h-3.5 w-3.5 ${color}`} />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-zinc-300 leading-relaxed break-words">
+                      <span className="font-medium text-white">
+                        {act.user?.name ?? 'Alguém'}
+                      </span>{' '}
+                      {act.description}
+                    </p>
+
+                    <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                      <Clock className="h-3 w-3 text-zinc-500 flex-shrink-0" />
+                      <p className="text-[10px] text-zinc-500">
+                        {getRelativeDate(act.createdAt)}
+                      </p>
+                      <span className="text-zinc-600">•</span>
+                      <p className="text-[10px] text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {formatDate(act.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute left-0 top-0 h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500 opacity-0 transition-opacity group-hover:opacity-100" />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
