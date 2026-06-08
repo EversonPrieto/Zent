@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../../hooks/useTheme';
-import { useThemeToggle } from '../../../hooks/useThemeToggle';
 import { PlanComparison } from '../../../components/PlanComparison';
 import {
   User,
@@ -29,7 +28,6 @@ type UserData = {
 export default function ProfilePage() {
   const router = useRouter();
   const { themeClasses } = useTheme();
-  const { setToTheme } = useThemeToggle();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState({
@@ -53,7 +51,6 @@ export default function ProfilePage() {
     new: false,
     confirm: false,
   });
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
   const [subscriptionData, setSubscriptionData] = useState<{
     plan: string;
@@ -78,9 +75,6 @@ export default function ProfilePage() {
             setAvatarUrl(parsed.avatarUrl);
           }
         }
-
-        const savedTheme = localStorage.getItem('zent_theme') || 'dark';
-        setTheme(savedTheme as 'light' | 'dark');
 
         const savedEmailPrefs = localStorage.getItem('zent_email_notifications');
         if (savedEmailPrefs) {
@@ -172,11 +166,6 @@ export default function ProfilePage() {
         fileInputRef.current.value = '';
       }
     }
-  }
-
-  function handleThemeChange(newTheme: 'light' | 'dark') {
-    setTheme(newTheme);
-    setToTheme(newTheme);
   }
 
   function formatDate(dateString: string | null): string {
@@ -625,22 +614,6 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={emailNotificationsEnabled}
                   onChange={(e) => handleEmailNotificationsChange(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-500"></div>
-              </label>
-            </div>
-
-            <div className={`flex items-center justify-between p-4 rounded-xl border ${themeClasses.border.primary} hover:${themeClasses.border.secondary} transition-all`}>
-              <div>
-                <p className={`font-medium ${themeClasses.text.primary}`}>Tema Escuro</p>
-                <p className={`text-sm ${themeClasses.text.secondary}`}>Usar tema escuro ou claro</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={theme === 'dark'}
-                  onChange={(e) => handleThemeChange(e.target.checked ? 'dark' : 'light')}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-500"></div>

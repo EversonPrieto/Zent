@@ -3,6 +3,7 @@ import { api } from './api';
 export type Permissions = {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | null;
   canCreateProject: boolean;
+  canUpdateProject: boolean;
   canDeleteWorkspace: boolean;
   canInviteMembers: boolean;
   canRemoveMembers: boolean;
@@ -19,6 +20,7 @@ export async function getWorkspacePermissions(workspaceId: string): Promise<Perm
     return {
       role: null,
       canCreateProject: false,
+      canUpdateProject: false,
       canDeleteWorkspace: false,
       canInviteMembers: false,
       canRemoveMembers: false,

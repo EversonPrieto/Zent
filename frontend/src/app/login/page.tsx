@@ -97,7 +97,7 @@ function LoginContent() {
         <div className={`grid w-full max-w-5xl overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
           <div className={`hidden border-r p-8 lg:block lg:p-10 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
             <div className="flex items-center gap-2 mb-6">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
+              <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
               <span className={`text-xl font-bold ${themeClasses.text.primary}`}>
                 Zent
               </span>
@@ -145,7 +145,7 @@ function LoginContent() {
             <div className="mb-6 text-center lg:text-left">
               <div className="flex justify-center lg:justify-start mb-4 lg:hidden">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
+                  <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
                   <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                     Zent
                   </span>

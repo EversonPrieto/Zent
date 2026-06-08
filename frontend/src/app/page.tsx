@@ -55,7 +55,7 @@ export default function HomePage() {
       <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
+            <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
             <div>
               <h1 className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                 Zent

@@ -44,8 +44,11 @@ import {
   Users,
   Filter,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Pencil,
+  Archive
 } from 'lucide-react';
+import EditProjectModal from '../../../../components/EditProjectModal';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
 
@@ -193,10 +196,15 @@ export default function ProjectBoardPage() {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projectName, setProjectName] = useState('');
+  const [projectDescription, setProjectDescription] = useState<string | null>(null);
+  const [projectCompleted, setProjectCompleted] = useState(false);
+  const [projectCreatedAt, setProjectCreatedAt] = useState('');
+  const [projectUpdatedAt, setProjectUpdatedAt] = useState('');
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
@@ -337,6 +345,10 @@ export default function ProjectBoardPage() {
     try {
       const project = await api(`/projects/${projectId}`, { workspaceId: ws });
       setProjectName(project.name);
+      setProjectDescription(project.description || null);
+      setProjectCompleted(project.completed || false);
+      setProjectCreatedAt(project.createdAt || '');
+      setProjectUpdatedAt(project.updatedAt || '');
     } catch {
       setProjectName('Projeto');
     }
@@ -530,8 +542,10 @@ export default function ProjectBoardPage() {
     }
   }
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.status === 'DONE').length;
+  const activeTasks = tasks.filter(t => t.status !== 'ABORTED');
+  const totalTasks = activeTasks.length;
+  const completedTasks = activeTasks.filter(t => t.status === 'DONE').length;
+  const abortedTasks = tasks.filter(t => t.status === 'ABORTED').length;
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
@@ -558,10 +572,25 @@ export default function ProjectBoardPage() {
               <div className="flex items-center gap-2 mb-2">
                 <FolderKanban className="h-5 w-5 text-violet-400" />
                 <span className={`text-xs ${themeClasses.text.muted}`}>Projeto</span>
+                {projectCompleted && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                    <Archive className="h-3 w-3" />
+                    Finalizado
+                  </span>
+                )}
               </div>
-              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
-                {projectName || 'Carregando...'}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
+                  {projectName || 'Carregando...'}
+                </h1>
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className={`rounded-lg p-2 text-sm transition-all ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+                  title="Editar projeto"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
               <p className={`mt-2 ${themeClasses.text.tertiary}`}>
                 {workspaceName} • Board Kanban
               </p>
@@ -594,7 +623,11 @@ export default function ProjectBoardPage() {
                   <div className={`h-12 w-px ${themeClasses.border.secondary}`} />
                   <div>
                     <p className={`text-sm ${themeClasses.text.primary}`}>
-                      {completedTasks}/{totalTasks} tasks
+                      {completedTasks}/{totalTasks} tasks{abortedTasks > 0 && (
+                        <span className="ml-2 inline-flex items-center gap-0.5 text-xs text-red-400 font-medium">
+                          <AlertCircle className="h-3 w-3" />{abortedTasks}
+                        </span>
+                      )}
                     </p>
                     <div className={`mt-1 h-1.5 w-32 rounded-full ${themeClasses.bg.subtle} overflow-hidden`}>
                       <div
@@ -714,6 +747,7 @@ export default function ProjectBoardPage() {
         <TaskModal
           task={selectedTask}
           workspaceId={workspaceId}
+          projectCompleted={projectCompleted}
           onClose={() => setSelectedTask(null)}
           onSaved={(updatedTask) => {
             setTasks((prev) =>
@@ -739,6 +773,7 @@ export default function ProjectBoardPage() {
               setShowCreateTaskModal(false);
             }}
             projectMembers={projectMembers}
+            projectCompleted={projectCompleted}
           />
         )}
 
@@ -751,6 +786,29 @@ export default function ProjectBoardPage() {
           }}
           availableAssignees={availableAssignees}
         />
+
+        {showEditModal && workspaceId !== '' && (
+          <EditProjectModal
+            workspaceId={workspaceId}
+            project={{
+              id: projectId,
+              name: projectName,
+              description: projectDescription,
+              completed: projectCompleted,
+              completedAt: null,
+              createdAt: projectCreatedAt,
+              updatedAt: projectUpdatedAt,
+            }}
+            onClose={() => setShowEditModal(false)}
+            onUpdated={(updated) => {
+              setProjectName(updated.name);
+              setProjectDescription(updated.description ?? null);
+              setProjectCompleted(updated.completed);
+              setProjectUpdatedAt(updated.updatedAt);
+              setShowEditModal(false);
+            }}
+          />
+        )}
       </div>
 
       <style jsx>{`

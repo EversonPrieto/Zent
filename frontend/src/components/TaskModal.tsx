@@ -30,6 +30,7 @@ import {
   Lock,
   Users,
   Paperclip,
+  Archive,
 } from 'lucide-react';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
@@ -81,6 +82,7 @@ type Props = {
   onClose: () => void;
   onSaved: (task: Task) => void;
   onDeleted?: (taskId: string) => void;
+  projectCompleted?: boolean;
 };
 
 const statusOptions: TaskStatus[] = [
@@ -104,6 +106,7 @@ export default function TaskModal({
   onClose,
   onSaved,
   onDeleted,
+  projectCompleted = false,
 }: Props) {
   const { theme, themeClasses } = useTheme();
 
@@ -305,7 +308,8 @@ export default function TaskModal({
 
   const currentTask = task;
 
-  const canEdit = permissions?.canEditTasks && !checkingPerms;
+  const canEdit = permissions?.canEditTasks && !checkingPerms && !projectCompleted;
+  const isReadOnly = projectCompleted;
   const currentStatusConfig = statusConfig[status];
   const currentPriorityConfig = priorityConfig[priority];
   const StatusIcon = currentStatusConfig.icon;
@@ -717,6 +721,16 @@ export default function TaskModal({
                   <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
                     <Lock className="h-4 w-4 flex-shrink-0" />
                     Você não tem permissão para editar tasks. Apenas MEMBER+ podem editar.
+                  </div>
+                )}
+
+                {isReadOnly && (
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400 mb-4">
+                    <Archive className="h-4 w-4 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Projeto Finalizado</p>
+                      <p className="text-emerald-400/70">Este projeto está finalizado. Aguarde até que um ADMIN reabra para editar.</p>
+                    </div>
                   </div>
                 )}
               </div>
