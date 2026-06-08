@@ -99,6 +99,7 @@ export class AclService {
   ): Promise<{
     role: Role | null;
     canCreateProject: boolean;
+    canUpdateProject: boolean;
     canDeleteWorkspace: boolean;
     canInviteMembers: boolean;
     canRemoveMembers: boolean;
@@ -109,6 +110,7 @@ export class AclService {
     return {
       role,
       canCreateProject: role ? this.permissions['project:create'].includes(role) : false,
+      canUpdateProject: role ? this.permissions['project:update'].includes(role) : false,
       canDeleteWorkspace: role ? this.permissions['workspace:delete'].includes(role) : false,
       canInviteMembers: role ? this.permissions['workspace:invite'].includes(role) : false,
       canRemoveMembers: role ? this.permissions['workspace:remove-member'].includes(role) : false,

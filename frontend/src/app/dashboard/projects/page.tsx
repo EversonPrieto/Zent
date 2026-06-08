@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
+import { getWorkspacePermissions, type Permissions } from '../../../lib/permissions';
 import CreateProjectModal from '../../../components/CreateProjectModal';
+import EditProjectModal from '../../../components/EditProjectModal';
 import {
   FolderKanban,
   PlusCircle,
@@ -17,13 +19,17 @@ import {
   MoreHorizontal,
   Users,
   CheckCircle2,
-  Star
+  Star,
+  Archive,
+  Pencil
 } from 'lucide-react';
 
 type Project = {
   id: string;
   name: string;
   description?: string | null;
+  completed: boolean;
+  completedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -45,6 +51,10 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [permissions, setPermissions] = useState<Permissions | null>(null);
+  const [checkingPerms, setCheckingPerms] = useState(true);
 
   useEffect(() => {
     async function loadPage() {
@@ -104,12 +114,38 @@ export default function ProjectsPage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    async function loadPermissions() {
+      if (!workspaceId) return;
+      try {
+        const perms = await getWorkspacePermissions(workspaceId);
+        setPermissions(perms);
+      } catch (err) {
+        console.error('Erro ao carregar permissões:', err);
+      } finally {
+        setCheckingPerms(false);
+      }
+    }
+    loadPermissions();
+  }, [workspaceId]);
+
   function openProject(projectId: string) {
     router.push(`/dashboard/projects/${projectId}`);
   }
 
   function handleProjectCreated(createdProject: Project) {
     setProjects((prev) => [createdProject, ...prev]);
+  }
+
+  function handleEditProject(project: Project) {
+    setSelectedProject(project);
+    setShowEditModal(true);
+  }
+
+  function handleProjectUpdated(updated: Project) {
+    setProjects((prev) => prev.map(p => p.id === updated.id ? updated : p));
+    setShowEditModal(false);
+    setSelectedProject(null);
   }
 
   function getRelativeDate(date: string) {
@@ -259,25 +295,28 @@ export default function ProjectsPage() {
                   
                   <div className="relative">
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
-                        <FolderKanban className="h-5 w-5 text-violet-400" />
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
+                          <FolderKanban className="h-5 w-5 text-violet-400" />
+                        </div>
+                        {project.completed && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                            <Archive className="h-3 w-3" />
+                            Finalizado
+                          </span>
+                        )}
                       </div>
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                        className={`rounded-lg p-1 ${themeClasses.text.secondary} opacity-0 transition-opacity group-hover:opacity-100 ${themeClasses.bg.hover} cursor-pointer`}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
+                      {!checkingPerms && permissions?.canUpdateProject && (
+                        <button
+                          onClick={(e) => {
                             e.stopPropagation();
-                          }
-                        }}
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </div>
+                            handleEditProject(project);
+                          }}
+                          className={`rounded-lg p-1 ${themeClasses.text.secondary} opacity-0 transition-opacity group-hover:opacity-100 ${themeClasses.bg.hover} cursor-pointer`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
 
                     <h2 className={`text-xl font-semibold ${themeClasses.text.primary} group-hover:text-violet-400 transition-colors`}>
@@ -322,6 +361,18 @@ export default function ProjectsPage() {
             handleProjectCreated(createdProject);
             setShowModal(false);
           }}
+        />
+      )}
+
+      {showEditModal && selectedProject && workspaceId !== '' && (
+        <EditProjectModal
+          workspaceId={workspaceId}
+          project={selectedProject}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedProject(null);
+          }}
+          onUpdated={handleProjectUpdated}
         />
       )}
     </main>

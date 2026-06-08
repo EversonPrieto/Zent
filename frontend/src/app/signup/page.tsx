@@ -178,7 +178,7 @@ export default function SignupPage() {
                 <div className={`grid w-full max-w-5xl overflow-hidden rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                     <div className={`hidden border-r ${themeClasses.border.primary} ${themeClasses.bg.primary} p-8 lg:block lg:p-10`}>
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
+                            <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
                             <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                                 Zent
                             </span>

@@ -15,7 +15,8 @@ import {
   Sparkles,
   Calendar,
   Users,
-  ChevronDown
+  ChevronDown,
+  Archive,
 } from 'lucide-react';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
@@ -51,6 +52,7 @@ type Props = {
   onClose: () => void;
   onCreated: (task: Task) => void;
   projectMembers?: WorkspaceMember[];
+  projectCompleted?: boolean;
 };
 
 const priorityOptions: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
@@ -63,6 +65,7 @@ export default function CreateTaskModal({
   onClose,
   onCreated,
   projectMembers = [],
+  projectCompleted = false,
 }: Props) {
   const { theme, themeClasses } = useTheme();
 
@@ -178,6 +181,16 @@ export default function CreateTaskModal({
 
         <div className="overflow-y-auto flex-1">
           <div className="p-6 space-y-5">
+            {projectCompleted && (
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400">
+                <Archive className="h-4 w-4 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Projeto Finalizado</p>
+                  <p className="text-emerald-400/70">Não é possível criar tasks em um projeto finalizado.</p>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Sparkles className="h-4 w-4 text-violet-400" />
@@ -188,7 +201,8 @@ export default function CreateTaskModal({
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex.: Implementar onboarding, Corrigir bug de login..."
                 autoFocus
-                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
+                disabled={projectCompleted}
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:opacity-50`}
               />
             </div>
 
@@ -202,7 +216,8 @@ export default function CreateTaskModal({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Descreva os detalhes da task, requisitos, etc..."
-                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none`}
+                disabled={projectCompleted}
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none disabled:opacity-50`}
               />
             </div>
 
@@ -425,7 +440,7 @@ export default function CreateTaskModal({
 
           <button
             onClick={handleCreate}
-            disabled={loading || !title.trim()}
+            disabled={loading || !title.trim() || projectCompleted}
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
           >
             {loading ? (

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
@@ -10,6 +10,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 
 @ApiTags('Projects')
 @ApiBearerAuth()
@@ -36,5 +37,12 @@ export class ProjectsController {
   @Get(':id')
   get(@Req() req: any, @Param('id') id: string) {
     return this.service.get(req.workspaceId, id);
+  }
+
+  @ApiOperation({ summary: 'Atualizar projeto' })
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Patch(':id')
+  update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateProjectDto) {
+    return this.service.update(req.workspaceId, id, dto, req.user.sub);
   }
 }

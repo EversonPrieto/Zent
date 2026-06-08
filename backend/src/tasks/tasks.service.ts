@@ -39,6 +39,15 @@ export class TasksService {
   async create(workspaceId: string, dto: CreateTaskDto, userId?: string) {
     await this.ensureProjectInWorkspace(dto.projectId, workspaceId);
 
+    const project = await this.prisma.project.findFirst({
+      where: { id: dto.projectId, workspaceId },
+      select: { id: true, completed: true },
+    });
+
+    if (project?.completed) {
+      throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para criar tasks.');
+    }
+
     // Check task limit
     if (userId) {
       await this.limits.checkTaskLimit(userId, dto.projectId);
@@ -215,10 +224,15 @@ export class TasksService {
         id: true,
         title: true,
         projectId: true,
+        project: { select: { id: true, completed: true } },
       },
     });
 
     if (!existingTask) throw new NotFoundException('Task não encontrada.');
+
+    if (existingTask.project.completed) {
+      throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar as tasks.');
+    }
 
     const updatedTask = await this.prisma.task.update({
       where: { id },
@@ -264,10 +278,15 @@ export class TasksService {
         projectId: true,
         status: true,
         position: true,
+        project: { select: { id: true, completed: true } },
       },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+
+    if (task.project.completed) {
+      throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar as tasks.');
+    }
 
     const getNeighbor = async (id: string) => {
       const neighbor = await this.prisma.task.findFirst({
@@ -343,11 +362,16 @@ export class TasksService {
         id: true,
         title: true,
         projectId: true,
+        project: { select: { id: true, completed: true } },
       },
     });
 
     if (!task) {
       throw new NotFoundException('Task não encontrada.');
+    }
+
+    if (task.project.completed) {
+      throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar as tasks.');
     }
 
     await this.activity.create({
@@ -371,10 +395,11 @@ export class TasksService {
   async addLabel(workspaceId: string, taskId: string, labelId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, project: { select: { id: true, completed: true } } },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+    if (task.project.completed) throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar.');
 
     const label = await this.prisma.label.findFirst({
       where: { id: labelId, workspaceId },
@@ -398,10 +423,11 @@ export class TasksService {
   async removeLabel(workspaceId: string, taskId: string, labelId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, project: { select: { id: true, completed: true } } },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+    if (task.project.completed) throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar.');
 
     await this.prisma.taskLabel.delete({
       where: { taskId_labelId: { taskId, labelId } },
@@ -413,10 +439,11 @@ export class TasksService {
   async addAssignee(workspaceId: string, taskId: string, userId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, project: { select: { id: true, completed: true } } },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+    if (task.project.completed) throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar.');
 
     const member = await this.prisma.workspaceMember.findFirst({
       where: { workspaceId, userId },
@@ -440,10 +467,11 @@ export class TasksService {
   async removeAssignee(workspaceId: string, taskId: string, userId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, project: { select: { id: true, completed: true } } },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+    if (task.project.completed) throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar.');
 
     await this.prisma.taskAssignee.delete({
       where: { taskId_userId: { taskId, userId } },
@@ -455,10 +483,11 @@ export class TasksService {
   async addAttachment(workspaceId: string, taskId: string, data: { url: string; fileName: string; fileType: string; size?: number }) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, project: { select: { id: true, completed: true } } },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+    if (task.project.completed) throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar.');
 
     await this.prisma.attachment.create({
       data: {
@@ -476,10 +505,11 @@ export class TasksService {
   async removeAttachment(workspaceId: string, taskId: string, attachmentId: string) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, project: { select: { id: true, completed: true } } },
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
+    if (task.project.completed) throw new ForbiddenException('Projeto está finalizado. Reabra o projeto para editar.');
 
     const attachment = await this.prisma.attachment.findUnique({
       where: { id: attachmentId },

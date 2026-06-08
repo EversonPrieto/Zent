@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
 import { useTheme } from '../hooks/useTheme';
+import { useThemeToggle } from '../hooks/useThemeToggle';
 import {
   ChevronDown,
   ChevronRight,
@@ -26,6 +27,8 @@ import {
   FolderKanban,
   Search,
   Bell,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 import CreateWorkspaceModal from './CreateWorkspaceModal';
@@ -80,6 +83,7 @@ export default function AppHeader() {
   const notificationsRef = useRef<HTMLDivElement | null>(null);
 
   const { themeClasses } = useTheme();
+  const { theme, toggleTheme } = useThemeToggle();
 
   useEffect(() => {
     function syncFromStorage() {
@@ -200,6 +204,13 @@ export default function AppHeader() {
   }, []);
 
   function handleLogout() {
+    // Reset state immediately before navigation to prevent icon flash
+    setUser(null);
+    setWorkspace(null);
+    setWorkspaces([]);
+    setUserMenuOpen(false);
+    setWorkspaceMenuOpen(false);
+
     // Manter configurações de usuário, limpar apenas dados de sessão
     localStorage.removeItem('zent_token');
     localStorage.removeItem('zent_user');
@@ -288,7 +299,11 @@ export default function AppHeader() {
               onClick={() => router.push('/dashboard/projects')}
               className="group flex items-center gap-2"
             >
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 shadow-lg shadow-violet-500/25 transition-all group-hover:scale-105" />
+              <img
+                src="/logo.png"
+                alt="Zent"
+                className="h-8 w-8 rounded-lg shadow-lg shadow-violet-500/25 transition-all group-hover:scale-105"
+              />
               <span className={`text-xl font-bold hidden sm:inline ${themeClasses.text.primary}`}>
                 Zent
               </span>
@@ -581,6 +596,19 @@ export default function AppHeader() {
                 </div>
               )}
             </div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
+              title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
 
             <div className="relative" ref={userMenuRef}>
               <button
