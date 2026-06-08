@@ -250,11 +250,11 @@ export default function DashboardOverviewPage() {
         {!loading && !error && stats && (
           <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-zinc-400 text-sm font-medium">Total de Tasks</p>
-                    <p className="text-3xl font-bold text-white mt-2">{stats.totalTasks}</p>
+                    <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Total de Tasks</p>
+                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.totalTasks}</p>
                   </div>
                   <div className="rounded-lg bg-violet-500/20 p-3">
                     <FolderKanban className="h-6 w-6 text-violet-400" />
@@ -262,11 +262,11 @@ export default function DashboardOverviewPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-zinc-400 text-sm font-medium">Em Progresso</p>
-                    <p className="text-3xl font-bold text-white mt-2">{stats.inProgressTasks}</p>
+                    <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Em Progresso</p>
+                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.inProgressTasks}</p>
                   </div>
                   <div className="rounded-lg bg-blue-500/20 p-3">
                     <Clock className="h-6 w-6 text-blue-400" />
@@ -274,11 +274,11 @@ export default function DashboardOverviewPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-zinc-400 text-sm font-medium">Concluídas</p>
-                    <p className="text-3xl font-bold text-white mt-2">{stats.completedTasks}</p>
+                    <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Concluídas</p>
+                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.completedTasks}</p>
                   </div>
                   <div className="rounded-lg bg-emerald-500/20 p-3">
                     <CheckCircle2 className="h-6 w-6 text-emerald-400" />
@@ -286,11 +286,11 @@ export default function DashboardOverviewPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-zinc-400 text-sm font-medium">Atrasadas</p>
-                    <p className="text-3xl font-bold text-white mt-2">{stats.overdueTasks}</p>
+                    <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Atrasadas</p>
+                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.overdueTasks}</p>
                   </div>
                   <div className="rounded-lg bg-red-500/20 p-3">
                     <AlertCircle className="h-6 w-6 text-red-400" />
@@ -299,12 +299,12 @@ export default function DashboardOverviewPage() {
               </div>
             </div>
 
-            <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+            <div className={`mb-8 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Taxa de Conclusão</h3>
+                <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Taxa de Conclusão</h3>
                 <span className="text-2xl font-bold text-violet-400">{completionRate}%</span>
               </div>
-              <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+              <div className={`w-full rounded-full h-3 overflow-hidden ${themeClasses.bg.tertiary}`}>
                 <div
                   className="bg-gradient-to-r from-violet-500 to-indigo-500 h-full transition-all duration-500"
                   style={{ width: `${completionRate}%` }}
@@ -314,7 +314,7 @@ export default function DashboardOverviewPage() {
 
             <div className="grid gap-8 lg:grid-cols-2 mb-8">
               {stats.tasksByStatus && stats.tasksByStatus.length > 0 && (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                   <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Tasks por Status</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={stats.tasksByStatus}>
@@ -343,7 +343,7 @@ export default function DashboardOverviewPage() {
               )}
 
               {stats.tasksByPriority && stats.tasksByPriority.length > 0 && (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                   <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Tasks por Prioridade</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
@@ -379,7 +379,7 @@ export default function DashboardOverviewPage() {
             </div>
 
             {projects.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                 <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Projetos Ativos</h3>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {projects.map((project) => {
@@ -392,18 +392,18 @@ export default function DashboardOverviewPage() {
                     return (
                       <div
                         key={project.id}
-                        className="rounded-lg border border-white/10 bg-white/5 p-4 hover:border-violet-500/50 transition-colors"
+                        className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 hover:border-violet-500/50 transition-colors`}
                       >
-                        <h4 className="font-semibold text-white truncate">{project.name}</h4>
+                        <h4 className={`font-semibold ${themeClasses.text.primary} truncate`}>{project.name}</h4>
                         {project.description && (
-                          <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{project.description}</p>
+                          <p className={`text-xs ${themeClasses.text.tertiary} mt-1 line-clamp-2`}>{project.description}</p>
                         )}
                         <div className="mt-3">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs text-zinc-400">{completed} concluídas</span>
+                            <span className={`text-xs ${themeClasses.text.tertiary}`}>{completed} concluídas</span>
                             <span className="text-xs font-semibold text-violet-400">{rate}%</span>
                           </div>
-                          <div className="w-full bg-zinc-800 rounded-full h-2">
+                          <div className={`w-full rounded-full h-2 ${themeClasses.bg.tertiary}`}>
                             <div
                               className="bg-gradient-to-r from-violet-500 to-indigo-500 h-full rounded-full transition-all"
                               style={{ width: `${rate}%` }}

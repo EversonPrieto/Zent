@@ -305,7 +305,7 @@ export default function WorkspaceSettingsPage() {
                 )}
               </div>
               {uploadingLogo && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 dark:bg-black/50">
                   <Loader2 className="h-6 w-6 animate-spin text-violet-400" />
                 </div>
               )}
@@ -368,7 +368,7 @@ export default function WorkspaceSettingsPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={!canEdit}
-              className={`w-full rounded-xl border px-4 py-2.5 outline-none transition-all disabled:cursor-not-allowed disabled:opacity-50 ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
+              className={`w-full rounded-xl border px-4 py-2.5 outline-none transition-all disabled:cursor-not-allowed disabled:opacity-50 ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               placeholder="Nome do workspace"
             />
             {name && (

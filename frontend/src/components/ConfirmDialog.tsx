@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
 import {
   Trash2,
   UserMinus,
@@ -116,6 +117,7 @@ const actionConfig = {
 export default function ConfirmDialog() {
   const [state, setState] = useState<ConfirmDialogState | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+  const { themeClasses } = useTheme();
 
   useEffect(() => {
     const unsubscribe = onConfirmDialog((newState) => {
@@ -151,23 +153,23 @@ export default function ConfirmDialog() {
   };
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className={`fixed inset-0 z-[999] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200 ${themeClasses.bg.primary}`}>
       <div
-        className={`relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl transition-all duration-200 ${
+        className={`relative w-full max-w-md overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl transition-all duration-200 ${
           isClosing ? 'animate-out fade-out slide-out-to-bottom-4 scale-95' : 'animate-in slide-in-from-bottom-4 fade-in duration-300'
         }`}
       >
-        <div className={`border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6 ${config.bg}`}>
+        <div className={`border-b ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 ${config.bg}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className={`rounded-lg ${config.bg} p-2`}>
                 <Icon className={`h-6 w-6 ${config.color}`} />
               </div>
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                <h2 className={`text-xl font-bold ${themeClasses.text.primary}`}>
                   {state.title}
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>
                   {state.message}
                 </p>
               </div>
@@ -181,7 +183,7 @@ export default function ConfirmDialog() {
             <div className={`mb-6 rounded-lg border ${config.border} ${config.bg} p-3`}>
               <div className="flex items-start gap-2">
                 <AlertTriangle className={`h-4 w-4 ${config.color} mt-0.5 flex-shrink-0`} />
-                <p className="text-xs text-zinc-400">
+                <p className={`text-xs ${themeClasses.text.secondary}`}>
                   Esta ação não pode ser desfeita. Tenha certeza antes de continuar.
                 </p>
               </div>
@@ -192,14 +194,14 @@ export default function ConfirmDialog() {
             <button
               onClick={handleCancel}
               disabled={state.isLoading}
-              className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className={`flex-1 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 text-sm font-medium ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover} ${themeClasses.text.primary} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirm}
               disabled={state.isLoading}
-              className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium text-white transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 ${
+              className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-medium ${themeClasses.text.inverted} transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 ${
                 state.isDangerous
                   ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 hover:shadow-red-500/40'
                   : 'bg-gradient-to-r from-violet-500 to-indigo-500 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40'
@@ -216,13 +218,13 @@ export default function ConfirmDialog() {
             </button>
           </div>
 
-          <div className="mt-4 flex justify-center gap-3 text-center text-xs text-zinc-600">
+          <div className={`mt-4 flex justify-center gap-3 text-center text-xs ${themeClasses.text.muted}`}>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px]">Enter</kbd>
+              <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-1.5 py-0.5 text-[10px]`}>Enter</kbd>
               <span>para confirmar</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px]">Esc</kbd>
+              <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-1.5 py-0.5 text-[10px]`}>Esc</kbd>
               <span>para cancelar</span>
             </span>
           </div>

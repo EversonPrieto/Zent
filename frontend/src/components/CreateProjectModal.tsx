@@ -153,17 +153,17 @@ export default function CreateProjectModal({
                 <FolderKanban className="h-5 w-5 text-violet-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                <h2 className={`text-xl font-bold ${themeClasses.text.primary}`}>
                   Novo projeto
                 </h2>
-                <p className="mt-1 text-xs text-zinc-500">
+                <p className={`mt-1 text-xs ${themeClasses.text.muted}`}>
                   Organize suas tasks em um novo espaço
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className={`rounded-lg p-1 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
             >
               <X className="h-5 w-5" />
             </button>
@@ -173,7 +173,7 @@ export default function CreateProjectModal({
         <div className="p-6">
           <div className="space-y-5">
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Tag className="h-4 w-4 text-violet-400" />
                 Nome do projeto
               </label>
@@ -182,17 +182,17 @@ export default function CreateProjectModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex.: Zent Core, Landing Page, Mobile App..."
                 autoFocus
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               />
               {name && (
-                <p className="mt-2 text-xs text-zinc-500">
+                <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>
                   {name.length} caracteres
                 </p>
               )}
             </div>
 
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <FileText className="h-4 w-4 text-violet-400" />
                 Descrição
               </label>
@@ -201,20 +201,20 @@ export default function CreateProjectModal({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Descreva o objetivo do projeto..."
                 rows={4}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none"
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none`}
               />
               {description && (
-                <p className="mt-2 text-xs text-zinc-500">
+                <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>
                   {description.length} caracteres
                 </p>
               )}
             </div>
 
-            <div className="rounded-lg border border-white/5 bg-white/5 p-3">
+            <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
-                <div className="text-xs text-zinc-500">
-                  <p className="mb-1 font-medium text-zinc-400">Dicas para um bom projeto:</p>
+                <div className={`text-xs ${themeClasses.text.muted}`}>
+                  <p className={`mb-1 font-medium ${themeClasses.text.tertiary}`}>Dicas para um bom projeto:</p>
                   <ul className="space-y-1">
                     <li className="flex items-center gap-1">
                       <CheckCircle2 className="h-3 w-3 text-emerald-400" />
@@ -243,7 +243,7 @@ export default function CreateProjectModal({
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
+                className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
               >
                 Cancelar
               </button>

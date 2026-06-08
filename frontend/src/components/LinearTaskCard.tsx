@@ -70,6 +70,7 @@ export function LinearTaskCard({
   task: LinearTask | any;
   onClick: (task: LinearTask | any) => void;
 }) {
+  const { themeClasses } = useTheme();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     data: { type: 'task', task },
@@ -97,23 +98,23 @@ export function LinearTaskCard({
         e.stopPropagation();
         onClick(task);
       }}
-      className="group relative rounded-lg border border-white/10 bg-white/5 p-3 cursor-grab active:cursor-grabbing transition-all hover:border-white/20 hover:bg-white/10"
+      className={`group relative rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3 cursor-grab active:cursor-grabbing transition-all hover:${themeClasses.border.hover} hover:${themeClasses.bg.hover}`}
     >
       <div className="relative space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2 flex-1 min-w-0">
-            <GripVertical className="h-4 w-4 text-zinc-600 mt-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100" />
-            <h3 className="font-medium text-white group-hover:text-violet-400 transition-colors line-clamp-2 text-sm">
+            <GripVertical className={`h-4 w-4 ${themeClasses.text.tertiary} mt-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100`} />
+            <h3 className={`font-medium ${themeClasses.text.primary} group-hover:text-violet-400 transition-colors line-clamp-2 text-sm`}>
               {task.title}
             </h3>
           </div>
-          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 text-xs font-medium flex-shrink-0 ${priority.color}`}>
+          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${themeClasses.bg.subtle} text-xs font-medium flex-shrink-0 ${priority.color}`}>
             <div className={`h-1.5 w-1.5 rounded-full ${priority.dot}`} />
             {priority.label}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap text-xs text-zinc-400 px-6">
+        <div className={`flex items-center gap-2 flex-wrap text-xs ${themeClasses.text.tertiary} px-6`}>
           {dueStatus && (
             <div className={`flex items-center gap-1 ${dueStatus.color}`}>
               <Calendar className="h-3 w-3" />
@@ -155,7 +156,7 @@ export function LinearTaskCard({
               </span>
             ))}
             {labels.length > 2 && (
-              <span className="text-[10px] text-zinc-500">+{labels.length - 2}</span>
+              <span className={`text-[10px] ${themeClasses.text.muted}`}>+{labels.length - 2}</span>
             )}
           </div>
         )}
@@ -165,7 +166,7 @@ export function LinearTaskCard({
             {assignees.slice(0, 3).map(({ user }: any) => (
               <div
                 key={user.id}
-                className="h-6 w-6 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-white/10 flex items-center justify-center text-[10px] font-bold text-white"
+                className={`h-6 w-6 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border ${themeClasses.border.primary} flex items-center justify-center text-[10px] font-bold ${themeClasses.text.primary}`}
                 title={user.name}
               >
                 {user.avatarUrl ? (
@@ -176,7 +177,7 @@ export function LinearTaskCard({
               </div>
             ))}
             {assignees.length > 3 && (
-              <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+              <div className={`h-6 w-6 rounded-full ${themeClasses.bg.subtle} flex items-center justify-center text-[10px] font-bold ${themeClasses.text.tertiary}`}>
                 +{assignees.length - 3}
               </div>
             )}

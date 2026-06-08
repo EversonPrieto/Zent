@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../lib/api';
+import { useTheme } from '../hooks/useTheme';
 import {
   Search,
   Zap,
@@ -35,6 +36,7 @@ export default function CommandPalette({ isOpen, onClose }: Props) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [workspaceId, setWorkspaceId] = useState('');
+  const { themeClasses } = useTheme();
 
   useEffect(() => {
     const wsId = localStorage.getItem('zent_workspace_id');
@@ -181,13 +183,13 @@ export default function CommandPalette({ isOpen, onClose }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className={`fixed inset-0 z-[100] ${themeClasses.bg.primary} opacity-50 backdrop-blur-sm`} onClick={onClose} />
 
       <div className="fixed inset-0 z-[101] flex items-start justify-center pt-20 px-4">
-        <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl">
-          <div className="border-b border-white/10 p-4">
+        <div className={`w-full max-w-2xl overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl`}>
+          <div className={`border-b ${themeClasses.border.primary} p-4`}>
             <div className="flex items-center gap-3">
-              <Search className="h-5 w-5 text-zinc-400" />
+              <Search className={`h-5 w-5 ${themeClasses.text.tertiary}`} />
               <input
                 ref={inputRef}
                 type="text"
@@ -195,11 +197,11 @@ export default function CommandPalette({ isOpen, onClose }: Props) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent text-lg text-white placeholder:text-zinc-500 outline-none"
+                className={`flex-1 bg-transparent text-lg ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none`}
               />
               <button
                 onClick={onClose}
-                className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+                className={`rounded-lg p-2 ${themeClasses.text.tertiary} ${themeClasses.bg.hover} ${themeClasses.text.primary} transition-colors`}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -209,8 +211,8 @@ export default function CommandPalette({ isOpen, onClose }: Props) {
           <div className="max-h-96 overflow-y-auto">
             {results.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4">
-                <AlertCircle className="h-12 w-12 text-zinc-600 mb-3" />
-                <p className="text-zinc-400 text-center">
+                <AlertCircle className={`h-12 w-12 ${themeClasses.text.muted} mb-3`} />
+                <p className={`${themeClasses.text.secondary} text-center`}>
                   {query.trim() ? 'Nenhum resultado encontrado' : 'Digite para buscar'}
                 </p>
               </div>
@@ -225,17 +227,17 @@ export default function CommandPalette({ isOpen, onClose }: Props) {
                       className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
                         index === selectedIndex
                           ? 'bg-violet-500/20 text-white'
-                          : 'text-zinc-300 hover:bg-white/5'
+                          : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
                       }`}
                     >
                       <Icon className="h-4 w-4 flex-shrink-0 text-violet-400" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{result.title}</p>
+                        <p className={`font-medium truncate ${themeClasses.text.primary}`}>{result.title}</p>
                         {result.description && (
-                          <p className="text-xs text-zinc-500 truncate">{result.description}</p>
+                          <p className={`text-xs ${themeClasses.text.tertiary} truncate`}>{result.description}</p>
                         )}
                       </div>
-                      <ChevronRight className="h-4 w-4 text-zinc-600 flex-shrink-0" />
+                      <ChevronRight className={`h-4 w-4 ${themeClasses.text.muted} flex-shrink-0`} />
                     </button>
                   );
                 })}
@@ -243,19 +245,19 @@ export default function CommandPalette({ isOpen, onClose }: Props) {
             )}
           </div>
 
-          <div className="border-t border-white/10 bg-zinc-950 px-4 py-3 text-xs text-zinc-500 flex items-center justify-between">
+          <div className={`border-t ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-3 text-xs ${themeClasses.text.muted} flex items-center justify-between`}>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
-                <kbd className="rounded border border-zinc-600 bg-zinc-900 px-2 py-1">↑↓</kbd>
+                <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-2 py-1`}>↑↓</kbd>
                 <span>Navegar</span>
               </div>
               <div className="flex items-center gap-1">
-                <kbd className="rounded border border-zinc-600 bg-zinc-900 px-2 py-1">Enter</kbd>
+                <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-2 py-1`}>Enter</kbd>
                 <span>Selecionar</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <kbd className="rounded border border-zinc-600 bg-zinc-900 px-2 py-1">Esc</kbd>
+              <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-2 py-1`}>Esc</kbd>
               <span>Fechar</span>
             </div>
           </div>

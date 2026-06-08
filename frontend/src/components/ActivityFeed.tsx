@@ -69,6 +69,7 @@ export default function ActivityFeed({
   workspaceId: string;
   projectId: string;
 }) {
+  const { themeClasses } = useTheme();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -163,9 +164,9 @@ export default function ActivityFeed({
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-violet-400 flex-shrink-0" />
-          <h3 className="text-sm font-medium text-white">N° de Atividades</h3>
+          <h3 className={`text-sm font-medium ${themeClasses.text.primary}`}>N° de Atividades</h3>
           {hasActivities && (
-            <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-zinc-400">
+            <span className={`rounded-full ${themeClasses.bg.subtle} px-2 py-0.5 text-xs ${themeClasses.text.tertiary}`}>
               {activities.length}
             </span>
           )}
@@ -177,7 +178,7 @@ export default function ActivityFeed({
             <span className="hidden sm:inline">Live</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1 text-xs text-zinc-500" title="Conexão em tempo real inativa">
+          <div className={`flex items-center gap-1 text-xs ${themeClasses.text.muted}`} title="Conexão em tempo real inativa">
             <WifiOff className="h-3 w-3" />
             <span className="hidden sm:inline">Offline</span>
           </div>
@@ -203,12 +204,12 @@ export default function ActivityFeed({
       )}
 
       {!loading && !error && !hasActivities && (
-        <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-6 text-center">
-          <Sparkles className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
-          <p className="text-sm text-zinc-500">
+        <div className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 text-center`}>
+          <Sparkles className={`h-8 w-8 ${themeClasses.text.muted} mx-auto mb-2`} />
+          <p className={`text-sm ${themeClasses.text.tertiary}`}>
             Nenhuma atividade ainda
           </p>
-          <p className="text-xs text-zinc-600 mt-1">
+          <p className={`text-xs ${themeClasses.text.muted} mt-1`}>
             Atividades aparecerão aqui em tempo real
           </p>
         </div>
@@ -219,11 +220,11 @@ export default function ActivityFeed({
           {activities.map((act, index) => {
             const { icon: Icon, color, bg } = getActivityIcon(act.type);
             const isNew = index === 0 && !loading;
-            
+
             return (
               <div
                 key={act.id}
-                className={`group relative rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-3 transition-all hover:scale-[1.02] hover:border-white/20 hover:shadow-lg ${
+                className={`group relative rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-3 transition-all hover:scale-[1.02] hover:${themeClasses.border.hover} hover:shadow-lg ${
                   isNew ? 'animate-in slide-in-from-top-2 fade-in duration-300' : ''
                 }`}
               >
@@ -233,20 +234,20 @@ export default function ActivityFeed({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-zinc-300 leading-relaxed break-words">
-                      <span className="font-medium text-white">
+                    <p className={`text-xs ${themeClasses.text.secondary} leading-relaxed break-words`}>
+                      <span className={`font-medium ${themeClasses.text.primary}`}>
                         {act.user?.name ?? 'Alguém'}
                       </span>{' '}
                       {act.description}
                     </p>
 
                     <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                      <Clock className="h-3 w-3 text-zinc-500 flex-shrink-0" />
-                      <p className="text-[10px] text-zinc-500">
+                      <Clock className={`h-3 w-3 ${themeClasses.text.muted} flex-shrink-0`} />
+                      <p className={`text-[10px] ${themeClasses.text.muted}`}>
                         {getRelativeDate(act.createdAt)}
                       </p>
-                      <span className="text-zinc-600">•</span>
-                      <p className="text-[10px] text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className={themeClasses.text.muted}>•</span>
+                      <p className={`text-[10px] ${themeClasses.text.muted} opacity-0 group-hover:opacity-100 transition-opacity`}>
                         {formatDate(act.createdAt)}
                       </p>
                     </div>

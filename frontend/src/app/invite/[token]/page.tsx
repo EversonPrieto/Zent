@@ -84,11 +84,11 @@ export default function InvitePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+      <main className={`min-h-screen ${themeClasses.bg.primary}`}>
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500 mx-auto mb-4" />
-            <p className="text-zinc-400">Carregando convite...</p>
+            <p className={themeClasses.text.tertiary}>Carregando convite...</p>
           </div>
         </div>
       </main>
@@ -97,14 +97,14 @@ export default function InvitePage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+      <main className={`min-h-screen ${themeClasses.bg.primary}`}>
         <div className="flex min-h-screen items-center justify-center px-4">
           <div className="max-w-md w-full text-center">
             <div className="rounded-full bg-red-500/10 p-3 w-fit mx-auto mb-4">
               <XCircle className="h-12 w-12 text-red-400" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">Convite inválido</h1>
-            <p className="text-zinc-400 mb-6">{error}</p>
+            <h1 className={`text-2xl font-bold ${themeClasses.text.primary} mb-2`}>Convite inválido</h1>
+            <p className={`${themeClasses.text.tertiary} mb-6`}>{error}</p>
             <button
               onClick={() => router.push('/dashboard/projects')}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-6 py-3 text-white font-medium shadow-lg shadow-violet-500/25 transition-all hover:scale-105"
@@ -121,7 +121,7 @@ export default function InvitePage() {
   if (!invite) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -129,28 +129,28 @@ export default function InvitePage() {
       </div>
 
       <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
-        <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6 md:p-8 text-center">
+        <div className={`w-full max-w-2xl overflow-hidden rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+          <div className={`border-b ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 md:p-8 text-center`}>
             <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-3 mb-4">
               <Sparkles className="h-8 w-8 text-violet-400" />
             </div>
-            <h1 className="text-2xl font-bold md:text-3xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold md:text-3xl bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
               Você foi convidado! 🎉
             </h1>
-            <p className="mt-2 text-zinc-400">
+            <p className={`mt-2 ${themeClasses.text.tertiary}`}>
               Junte-se ao time e comece a colaborar
             </p>
           </div>
 
           <div className="p-6 md:p-8">
-            <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className={`mb-6 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
               <div className="flex items-center gap-3 mb-4">
                 <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
                   <Building2 className="h-5 w-5 text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500">Workspace</p>
-                  <p className="text-lg font-semibold text-white">{invite.workspace.name}</p>
+                  <p className={`text-xs ${themeClasses.text.muted}`}>Workspace</p>
+                  <p className={`text-lg font-semibold ${themeClasses.text.primary}`}>{invite.workspace.name}</p>
                 </div>
               </div>
 
@@ -159,11 +159,11 @@ export default function InvitePage() {
                   <User className="h-5 w-5 text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500">Convidado por</p>
-                  <p className="text-md font-medium text-white">{invite.invitedBy.name}</p>
+                  <p className={`text-xs ${themeClasses.text.muted}`}>Convidado por</p>
+                  <p className={`text-md font-medium ${themeClasses.text.primary}`}>{invite.invitedBy.name}</p>
                   <div className="flex items-center gap-1 mt-1">
-                    <Mail className="h-3 w-3 text-zinc-500" />
-                    <p className="text-xs text-zinc-500">{invite.invitedBy.email}</p>
+                    <Mail className={`h-3 w-3 ${themeClasses.text.muted}`} />
+                    <p className={`text-xs ${themeClasses.text.muted}`}>{invite.invitedBy.email}</p>
                   </div>
                 </div>
               </div>
@@ -177,9 +177,9 @@ export default function InvitePage() {
               ].map((feature, idx) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={idx} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2">
+                  <div key={idx} className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2`}>
                     <Icon className="h-4 w-4 text-violet-400" />
-                    <span className="text-xs text-zinc-400">{feature.text}</span>
+                    <span className={`text-xs ${themeClasses.text.tertiary}`}>{feature.text}</span>
                   </div>
                 );
               })}
@@ -205,11 +205,11 @@ export default function InvitePage() {
               </span>
             </button>
 
-            <div className="mt-6 rounded-lg border border-white/5 bg-white/5 p-4">
+            <div className={`mt-6 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
-                <div className="text-xs text-zinc-500">
-                  <p className="mb-1 font-medium text-zinc-400">Ao aceitar este convite, você:</p>
+                <div className={`text-xs ${themeClasses.text.muted}`}>
+                  <p className={`mb-1 font-medium ${themeClasses.text.tertiary}`}>Ao aceitar este convite, você:</p>
                   <ul className="space-y-1">
                     <li className="flex items-center gap-1">
                       <CheckCircle2 className="h-3 w-3 text-emerald-400" />
@@ -229,7 +229,7 @@ export default function InvitePage() {
             </div>
 
             <div className="mt-4 text-center">
-              <p className="text-xs text-zinc-500">
+              <p className={`text-xs ${themeClasses.text.muted}`}>
                 Já tem uma conta? Faça login para aceitar o convite.
               </p>
             </div>

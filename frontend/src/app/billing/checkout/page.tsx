@@ -230,9 +230,9 @@ function CheckoutContent() {
                     style: {
                       base: {
                         fontSize: '16px',
-                        color: '#ffffff',
+                        color: themeClasses.text.primary === 'text-white' ? '#ffffff' : '#18181b',
                         '::placeholder': {
-                          color: '#71717a',
+                          color: themeClasses.text.hint === 'text-zinc-400' ? '#71717a' : '#a1a1aa',
                         },
                       },
                       invalid: {
@@ -278,7 +278,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
       <CheckoutContent />
     </Suspense>
   );

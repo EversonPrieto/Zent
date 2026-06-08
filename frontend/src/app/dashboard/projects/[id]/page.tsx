@@ -85,7 +85,7 @@ const priorityConfig = {
   URGENT: { label: 'Urgente', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
 };
 
-function ColumnEndDropZone({ id }: { id: string }) {
+function ColumnEndDropZone({ id, themeClasses }: { id: string; themeClasses: any }) {
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: 'column-end' },
@@ -94,7 +94,7 @@ function ColumnEndDropZone({ id }: { id: string }) {
   return (
     <div
       ref={setNodeRef}
-      className={`mt-3 h-12 rounded-xl border border-dashed transition-all ${isOver ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/10'
+      className={`mt-3 h-12 rounded-xl border border-dashed transition-all ${isOver ? 'border-emerald-500 bg-emerald-500/10' : themeClasses.border.primary
         }`}
     />
   );
@@ -105,11 +105,13 @@ function KanbanColumn({
   tasks,
   onTaskClick,
   onOpenCreateModal,
+  themeClasses,
 }: {
   column: { key: TaskStatus; label: string; icon: typeof Circle; color: string };
   tasks: Task[];
   onTaskClick: (task: Task) => void;
   onOpenCreateModal: (status: TaskStatus) => void;
+  themeClasses: any;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.key,
@@ -124,15 +126,15 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-2xl border shadow transition-all flex-1 min-w-[280px] max-w-[400px] flex flex-col h-full ${isOver ? 'border-violet-400 bg-violet-400/10' : 'border-zinc-700 bg-zinc-900/95'}`}
+      className={`rounded-2xl border shadow transition-all flex-1 min-w-[280px] max-w-[400px] flex flex-col h-full ${isOver ? 'border-violet-400 bg-violet-400/10' : `${themeClasses.border.primary} ${themeClasses.bg.secondary}`}`}
     >
-      <div className="p-5 border-b border-zinc-700 flex-shrink-0">
+      <div className={`p-5 border-b ${themeClasses.border.primary} flex-shrink-0`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon className={`h-6 w-6 ${column.color}`} />
-            <h2 className="font-semibold text-lg text-white">{column.label}</h2>
+            <h2 className={`font-semibold text-lg ${themeClasses.text.primary}`}>{column.label}</h2>
           </div>
-          <span className="rounded-full bg-zinc-700/20 px-2.5 py-0.5 text-sm font-medium text-zinc-200">
+          <span className={`rounded-full ${themeClasses.bg.subtle} px-2.5 py-0.5 text-sm font-medium ${themeClasses.text.secondary}`}>
             {tasks.length}
           </span>
         </div>
@@ -153,23 +155,25 @@ function KanbanColumn({
             ))}
 
             {tasks.length === 0 && (
-              <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-800/80 p-6 text-center">
-                <Sparkles className="h-8 w-8 text-zinc-500 mx-auto mb-2" />
-                <p className="text-sm text-zinc-400">Nenhuma task</p>
-                <p className="text-xs text-zinc-500">Arraste ou crie uma nova</p>
+              <div className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 text-center`}>
+                <Sparkles className={`h-8 w-8 mx-auto mb-2 ${themeClasses.text.muted}`} />
+                <p className={`text-sm ${themeClasses.text.secondary}`}>Nenhuma task</p>
+                <p className={`text-xs ${themeClasses.text.muted}`}>Arraste ou crie uma nova</p>
               </div>
             )}
 
-            <ColumnEndDropZone id={`${column.key}-end`} />
+            <ColumnEndDropZone id={`${column.key}-end`} themeClasses={themeClasses} />
           </div>
         </SortableContext>
 
         <button
           onClick={() => onOpenCreateModal(column.key)}
-          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 py-2.5 text-sm text-zinc-400 transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400 flex-shrink-0"
+          className={`group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed ${themeClasses.border.secondary} ${themeClasses.bg.subtle} py-2.5 text-sm font-medium ${themeClasses.text.secondary} transition-all duration-300 hover:border-violet-500/70 hover:bg-gradient-to-r hover:from-violet-500/20 hover:to-indigo-500/20 hover:${themeClasses.text.accent} hover:shadow-lg hover:shadow-violet-500/20 hover:scale-[1.02] active:scale-[0.98] flex-shrink-0`}
         >
-          <PlusCircle className="h-4 w-4 transition-transform group-hover:rotate-90" />
-          Nova task
+          <PlusCircle className="h-4 w-4 transition-all duration-300 group-hover:rotate-90 group-hover:scale-110" />
+          <span className="transition-all duration-300 group-hover:tracking-wide">
+            Nova task
+          </span>
         </button>
       </div>
     </div>
@@ -531,7 +535,7 @@ export default function ProjectBoardPage() {
   const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -542,7 +546,7 @@ export default function ProjectBoardPage() {
         <div className="mb-6 md:mb-8 max-w-[1600px] mx-auto">
           <button
             onClick={() => router.push('/dashboard/projects')}
-            className="group mb-4 inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
+            className={`group mb-4 inline-flex items-center gap-2 text-sm ${themeClasses.text.tertiary} transition-colors hover:${themeClasses.text.primary}`}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Voltar para projetos
@@ -553,12 +557,12 @@ export default function ProjectBoardPage() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <FolderKanban className="h-5 w-5 text-violet-400" />
-                <span className="text-xs text-zinc-500">Projeto</span>
+                <span className={`text-xs ${themeClasses.text.muted}`}>Projeto</span>
               </div>
               <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 {projectName || 'Carregando...'}
               </h1>
-              <p className="mt-2 text-zinc-400">
+              <p className={`mt-2 ${themeClasses.text.tertiary}`}>
                 {workspaceName} • Board Kanban
               </p>
             </div>
@@ -567,7 +571,7 @@ export default function ProjectBoardPage() {
             <div className="flex justify-center md:justify-end md:flex-shrink-0 md:ml-4">
               <button
                 onClick={() => setShowFiltersModal(true)}
-                className="inline-flex items-center gap-2 rounded-lg border border-violet-500/50 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-400 transition-all hover:border-violet-500 hover:bg-violet-500/20"
+                className={`inline-flex items-center gap-2 rounded-lg border border-violet-500/50 ${themeClasses.bg.subtle} px-4 py-2 text-sm font-medium text-violet-400 transition-all hover:border-violet-500 hover:${themeClasses.bg.hover}`}
               >
                 <Filter className="h-4 w-4" />
                 Filtrar Tasks
@@ -581,18 +585,18 @@ export default function ProjectBoardPage() {
 
             {/* Right: Progress Card */}
             {totalTasks > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm flex-shrink-0">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm flex-shrink-0`}>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-white">{progress}%</p>
-                    <p className="text-xs text-zinc-500">Concluído</p>
+                    <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{progress}%</p>
+                    <p className={`text-xs ${themeClasses.text.muted}`}>Concluído</p>
                   </div>
-                  <div className="h-12 w-px bg-white/10" />
+                  <div className={`h-12 w-px ${themeClasses.border.secondary}`} />
                   <div>
-                    <p className="text-sm text-white">
+                    <p className={`text-sm ${themeClasses.text.primary}`}>
                       {completedTasks}/{totalTasks} tasks
                     </p>
-                    <div className="mt-1 h-1.5 w-32 rounded-full bg-white/10 overflow-hidden">
+                    <div className={`mt-1 h-1.5 w-32 rounded-full ${themeClasses.bg.subtle} overflow-hidden`}>
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
                         style={{ width: `${progress}%` }}
@@ -608,7 +612,7 @@ export default function ProjectBoardPage() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
-            <p className="mt-4 text-zinc-400">Carregando board...</p>
+            <p className={`mt-4 ${themeClasses.text.tertiary}`}>Carregando board...</p>
           </div>
         )}
 
@@ -646,6 +650,7 @@ export default function ProjectBoardPage() {
                           tasks={grouped[col.key]}
                           onTaskClick={setSelectedTask}
                           onOpenCreateModal={openCreateTaskModal}
+                          themeClasses={themeClasses}
                         />
                       ))}
                     </div>
@@ -661,18 +666,18 @@ export default function ProjectBoardPage() {
                   {/* Collapse/Expand Button */}
                   <button
                     onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                    className="flex items-center justify-center rounded-lg border border-white/10 bg-white/5 p-2 hover:bg-white/10 transition-all w-full"
+                    className={`flex items-center justify-center rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2 hover:${themeClasses.bg.hover} transition-all w-full`}
                     title={sidebarCollapsed ? 'Expandir' : 'Colapsar'}
                   >
                     {sidebarCollapsed ? (
-                      <ChevronLeft className="h-5 w-5 text-zinc-400" />
+                      <ChevronLeft className={`h-5 w-5 ${themeClasses.text.tertiary}`} />
                     ) : (
-                      <ChevronRight className="h-5 w-5 text-zinc-400" />
+                      <ChevronRight className={`h-5 w-5 ${themeClasses.text.tertiary}`} />
                     )}
                   </button>
 
                   {/* Online Users - Hidden but mounted */}
-                  <div className={`rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm ${
+                  <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm ${
                     sidebarCollapsed ? 'hidden' : 'block'
                   }`}>
                     {currentUser && (
@@ -684,13 +689,13 @@ export default function ProjectBoardPage() {
                   </div>
 
                   {/* Activity Feed - Hidden but mounted */}
-                  <div className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden ${
+                  <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm overflow-hidden ${
                     sidebarCollapsed ? 'hidden' : 'block'
                   }`}>
-                    <div className="p-4 pb-2 border-b border-white/10">
+                    <div className={`p-4 pb-2 border-b ${themeClasses.border.primary}`}>
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-violet-400 flex-shrink-0" />
-                        <h3 className="text-sm font-medium text-zinc-400">Atividade recente</h3>
+                        <h3 className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Atividade recente</h3>
                       </div>
                     </div>
                     <div className="p-4">

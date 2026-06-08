@@ -1,7 +1,6 @@
 'use client';
 
 import { useTheme } from '../hooks/useTheme';
-
 import React from 'react';
 import {
   Users,
@@ -55,12 +54,6 @@ const descriptionSizes = {
   lg: 'text-base',
 };
 
-const variantStyles = {
-  default: 'border border-dashed border-white/10 bg-white/5',
-  compact: 'border border-white/10 bg-white/5',
-  centered: 'border-none bg-transparent',
-};
-
 export function EmptyState({
   icon,
   title,
@@ -69,6 +62,14 @@ export function EmptyState({
   size = 'md',
   variant = 'default',
 }: EmptyStateProps) {
+  const { themeClasses } = useTheme();
+
+  const variantStyles = {
+    default: `border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle}`,
+    compact: `border ${themeClasses.border.primary} ${themeClasses.bg.subtle}`,
+    centered: 'border-none bg-transparent',
+  };
+
   return (
     <div
       className={`flex flex-col items-center justify-center gap-4 rounded-2xl text-center transition-all ${variantStyles[variant]} ${containerSizes[size]}`}
@@ -78,11 +79,11 @@ export function EmptyState({
       </div>
 
       <div className="max-w-md space-y-2">
-        <h3 className={`font-semibold text-white ${titleSizes[size]}`}>
+        <h3 className={`font-semibold ${themeClasses.text.primary} ${titleSizes[size]}`}>
           {title}
         </h3>
         {description && (
-          <p className={`text-zinc-400 ${descriptionSizes[size]}`}>
+          <p className={`${themeClasses.text.tertiary} ${descriptionSizes[size]}`}>
             {description}
           </p>
         )}
@@ -223,14 +224,16 @@ export function EmptyDashboard() {
 }
 
 export function EmptyStateSkeleton() {
+  const { themeClasses } = useTheme();
+
   return (
-    <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
+    <div className={`flex flex-col items-center justify-center gap-4 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-12 text-center`}>
       <div className="h-12 w-12 animate-pulse rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20" />
       <div className="space-y-2">
-        <div className="h-5 w-32 animate-pulse rounded bg-white/10 mx-auto" />
-        <div className="h-4 w-48 animate-pulse rounded bg-white/5 mx-auto" />
+        <div className={`h-5 w-32 animate-pulse rounded ${themeClasses.bg.hover} mx-auto`} />
+        <div className={`h-4 w-48 animate-pulse rounded ${themeClasses.bg.subtle} mx-auto`} />
       </div>
-      <div className="h-9 w-32 animate-pulse rounded-xl bg-white/10" />
+      <div className={`h-9 w-32 animate-pulse rounded-xl ${themeClasses.bg.hover}`} />
     </div>
   );
 }

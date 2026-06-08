@@ -63,7 +63,7 @@ export default function WorkspaceOnboardingPage() {
   const isFormValid = name.trim() && nameLength <= 50;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
@@ -71,17 +71,17 @@ export default function WorkspaceOnboardingPage() {
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-10 md:px-6">
-        <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6 md:p-8">
+        <div className={`w-full max-w-2xl overflow-hidden rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+          <div className={`border-b ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 md:p-8`}>
             <div className="flex items-center gap-3 mb-4">
               <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
                 <Building2 className="h-6 w-6 text-violet-400" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold md:text-3xl bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold md:text-3xl bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                   Crie seu workspace
                 </h1>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className={`mt-1 text-sm ${themeClasses.text.tertiary}`}>
                   Escolha um nome para seu primeiro ambiente no Zent
                 </p>
               </div>
@@ -98,16 +98,16 @@ export default function WorkspaceOnboardingPage() {
                 ].map((feature, idx) => {
                   const Icon = feature.icon;
                   return (
-                    <div key={idx} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2">
+                    <div key={idx} className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2`}>
                       <Icon className="h-4 w-4 text-violet-400" />
-                      <span className="text-xs text-zinc-400">{feature.text}</span>
+                      <span className={`text-xs ${themeClasses.text.tertiary}`}>{feature.text}</span>
                     </div>
                   );
                 })}
               </div>
 
               <div>
-                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                   <Tag className="h-4 w-4 text-violet-400" />
                   Nome do workspace
                 </label>
@@ -116,11 +116,11 @@ export default function WorkspaceOnboardingPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex.: Equipe Zent, Marketing, Desenvolvimento..."
                   autoFocus
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 ${themeClasses.text.primary} ${themeClasses.input} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                 />
                 {name && (
                   <div className="mt-2 flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">
+                    <span className={themeClasses.text.muted}>
                       {nameLength} caracteres
                     </span>
                     {isFormValid && nameLength >= 3 ? (
@@ -142,15 +142,15 @@ export default function WorkspaceOnboardingPage() {
               </div>
 
               {!name && (
-                <div className="rounded-lg border border-white/5 bg-white/5 p-3">
-                  <p className="text-xs text-zinc-500 mb-2">💡 Sugestões de nomes:</p>
+                <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
+                  <p className={`text-xs ${themeClasses.text.muted} mb-2`}>💡 Sugestões de nomes:</p>
                   <div className="flex flex-wrap gap-2">
                     {['Equipe Design', 'Desenvolvimento', 'Marketing', 'Produto', 'Vendas'].map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
                         onClick={() => setName(suggestion)}
-                        className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs text-zinc-400 transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400"
+                        className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-2 py-1 text-xs ${themeClasses.text.tertiary} transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400`}
                       >
                         {suggestion}
                       </button>
@@ -187,11 +187,11 @@ export default function WorkspaceOnboardingPage() {
               </button>
             </form>
 
-            <div className="mt-6 rounded-lg border border-white/5 bg-white/5 p-4">
+            <div className={`mt-6 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
-                <div className="text-xs text-zinc-500">
-                  <p className="mb-1 font-medium text-zinc-400">O que você pode fazer com um workspace?</p>
+                <div className={`text-xs ${themeClasses.text.muted}`}>
+                  <p className={`mb-1 font-medium ${themeClasses.text.tertiary}`}>O que você pode fazer com um workspace?</p>
                   <ul className="space-y-1">
                     <li className="flex items-center gap-1">
                       <CheckCircle2 className="h-3 w-3 text-emerald-400" />

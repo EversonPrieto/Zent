@@ -98,21 +98,6 @@ const priorityOptions: TaskPriority[] = [
   'URGENT',
 ];
 
-const statusConfig = {
-  TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20' },
-  IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-  DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-  ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-};
-
-const priorityConfig = {
-  LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-  HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
-  URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-};
-
 export default function TaskModal({
   task,
   workspaceId,
@@ -120,7 +105,34 @@ export default function TaskModal({
   onSaved,
   onDeleted,
 }: Props) {
-  const { themeClasses } = useTheme();
+  const { theme, themeClasses } = useTheme();
+
+  // Status e Priority configs dinâmicos baseados no tema
+  const statusConfig = theme === 'dark' ? {
+    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20' },
+    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  } : {
+    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-500', bg: 'bg-zinc-100', border: 'border-zinc-200' },
+    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
+    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' },
+  };
+
+  const priorityConfig = theme === 'dark' ? {
+    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  } : {
+    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200' },
+    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' },
+  };
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('TODO');
@@ -137,6 +149,7 @@ export default function TaskModal({
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
@@ -431,10 +444,11 @@ export default function TaskModal({
   }
 
   async function handleAddComment() {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || commentSubmitting) return;
 
     try {
       setError('');
+      setCommentSubmitting(true);
 
       const created = await api(`/tasks/${currentTask.id}/comments`, {
         method: 'POST',
@@ -447,15 +461,22 @@ export default function TaskModal({
       setNewComment('');
 
       try {
-        const activityData = await api(`/activity?taskId=${currentTask.id}`, {
+        const activityData = await api(`/activities?taskId=${currentTask.id}`, {
           workspaceId,
         });
-        setActivities(activityData);
-      } catch {}
+        const activityList = activityData?.items || activityData;
+        if (Array.isArray(activityList)) {
+          setActivities(activityList);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar atividades:', err);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao criar comentário';
       setError(message);
       showToast(message, 'error', 4000);
+    } finally {
+      setCommentSubmitting(false);
     }
   }
 
@@ -489,8 +510,8 @@ export default function TaskModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-        <div className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-zinc-900 to-zinc-950 p-6">
+      <div className={`relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl animate-in slide-in-from-bottom-4 duration-300`}>
+        <div className={`sticky top-0 z-10 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} p-6`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
@@ -507,10 +528,10 @@ export default function TaskModal({
                   </span>
                 </div>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                 {currentTask.title}
               </h2>
-              <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500">
+              <div className={`mt-2 flex items-center gap-3 text-xs ${themeClasses.text.muted}`}>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   <span>Criado {new Date(currentTask.createdAt).toLocaleDateString('pt-BR')}</span>
@@ -524,7 +545,7 @@ export default function TaskModal({
 
             <button
               onClick={onClose}
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+              className={`rounded-lg p-2 ${themeClasses.text.tertiary} transition-colors hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
             >
               <X className="h-5 w-5" />
             </button>
@@ -536,7 +557,7 @@ export default function TaskModal({
             <div className="lg:col-span-2 space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                  <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                     <Edit2 className="h-4 w-4" />
                     Título
                   </label>
@@ -544,13 +565,13 @@ export default function TaskModal({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={!canEdit}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                     placeholder="Título da task"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                  <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                     <Tag className="h-4 w-4" />
                     Descrição
                   </label>
@@ -559,14 +580,14 @@ export default function TaskModal({
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!canEdit}
                     rows={5}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                     placeholder="Descreva os detalhes da task..."
                   />
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                       <Clock className="h-4 w-4" />
                       Status
                     </label>
@@ -574,10 +595,10 @@ export default function TaskModal({
                       value={status}
                       onChange={(e) => setStatus(e.target.value as TaskStatus)}
                       disabled={!canEdit}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {statusOptions.map((option) => (
-                        <option key={option} value={option} className="bg-zinc-900">
+                        <option key={option} value={option} className={themeClasses.bg.secondary}>
                           {statusConfig[option].label}
                         </option>
                       ))}
@@ -585,7 +606,7 @@ export default function TaskModal({
                   </div>
 
                   <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                       <Flag className="h-4 w-4" />
                       Prioridade
                     </label>
@@ -593,10 +614,10 @@ export default function TaskModal({
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as TaskPriority)}
                       disabled={!canEdit}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       {priorityOptions.map((option) => (
-                        <option key={option} value={option} className="bg-zinc-900">
+                        <option key={option} value={option} className={themeClasses.bg.secondary}>
                           {priorityConfig[option].label}
                         </option>
                       ))}
@@ -606,7 +627,7 @@ export default function TaskModal({
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                       <Calendar className="h-4 w-4" />
                       Data de Entrega
                     </label>
@@ -615,18 +636,18 @@ export default function TaskModal({
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
                       disabled={!canEdit}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                       <Users className="h-4 w-4" />
                       Responsáveis
                     </label>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {availableAssignees.map((member: any) => (
-                        <label key={member.user?.id || member.id} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2.5 cursor-pointer hover:bg-white/10 transition-colors">
+                        <label key={member.user?.id || member.id} className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 cursor-pointer hover:${themeClasses.bg.hover} transition-colors`}>
                           <input
                             type="checkbox"
                             checked={selectedAssignees.includes(member.user?.id || member.id)}
@@ -641,7 +662,7 @@ export default function TaskModal({
                             disabled={!canEdit}
                             className="cursor-pointer disabled:cursor-not-allowed"
                           />
-                          <span className="text-sm text-white">{member.user?.name || member.name}</span>
+                          <span className={`text-sm ${themeClasses.text.primary}`}>{member.user?.name || member.name}</span>
                         </label>
                       ))}
                     </div>
@@ -649,7 +670,7 @@ export default function TaskModal({
                 </div>
 
                 <div>
-                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                  <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                     <Tag className="h-4 w-4" />
                     Labels
                   </label>
@@ -660,7 +681,7 @@ export default function TaskModal({
                   ) : (
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {labels.map((label: any) => (
-                        <label key={label.id} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-2.5 cursor-pointer hover:bg-white/10 transition-colors">
+                        <label key={label.id} className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 cursor-pointer hover:${themeClasses.bg.hover} transition-colors`}>
                           <input
                             type="checkbox"
                             checked={selectedLabels.includes(label.id)}
@@ -678,7 +699,7 @@ export default function TaskModal({
                             className="w-3 h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: label.color }}
                           />
-                          <span className="text-sm text-white">{label.name}</span>
+                          <span className={`text-sm ${themeClasses.text.primary}`}>{label.name}</span>
                         </label>
                       ))}
                     </div>
@@ -700,11 +721,11 @@ export default function TaskModal({
                 )}
               </div>
 
-              <div className="border-t border-white/10 pt-6">
+              <div className={`border-t ${themeClasses.border.primary} pt-6`}>
                 <div className="mb-4 flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-violet-400" />
-                  <h3 className="text-lg font-semibold">Comentários</h3>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-zinc-400">
+                  <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Comentários</h3>
+                  <span className={`rounded-full ${themeClasses.bg.subtle} px-2 py-0.5 text-xs ${themeClasses.text.tertiary}`}>
                     {comments.length}
                   </span>
                 </div>
@@ -716,39 +737,39 @@ export default function TaskModal({
                 ) : (
                   <div className="max-h-64 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
                     {comments.map((comment) => (
-                      <div key={comment.id} className="group rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-white/20">
+                      <div key={comment.id} className={`group rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 transition-all hover:${themeClasses.border.hover}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                               <User className="h-4 w-4 text-violet-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-white">
+                              <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
                                 {comment.user?.name ?? 'Usuário'}
                               </p>
-                              <p className="text-xs text-zinc-500">
+                              <p className={`text-xs ${themeClasses.text.muted}`}>
                                 {new Date(comment.createdAt).toLocaleString('pt-BR')}
                               </p>
                             </div>
                           </div>
                           <button
                             onClick={() => handleDeleteComment(comment.id)}
-                            className="rounded-lg p-1 text-zinc-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400"
+                            className={`rounded-lg p-1 ${themeClasses.text.muted} opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400`}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
-                        <p className="mt-2 text-sm text-zinc-300">{comment.content}</p>
+                        <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>{comment.content}</p>
                       </div>
                     ))}
 
                     {comments.length === 0 && (
-                      <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-8 text-center">
-                        <MessageSquare className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
-                        <p className="text-sm text-zinc-500">
+                      <div className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-8 text-center`}>
+                        <MessageSquare className={`h-8 w-8 ${themeClasses.text.muted} mx-auto mb-2`} />
+                        <p className={`text-sm ${themeClasses.text.tertiary}`}>
                           Nenhum comentário ainda
                         </p>
-                        <p className="text-xs text-zinc-600">
+                        <p className={`text-xs ${themeClasses.text.muted}`}>
                           Seja o primeiro a comentar
                         </p>
                       </div>
@@ -768,15 +789,24 @@ export default function TaskModal({
                     }}
                     placeholder="Escreva um comentário..."
                     disabled={!canEdit}
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`flex-1 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 text-sm ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                   />
                   <button
                     onClick={handleAddComment}
-                    disabled={!newComment.trim() || !canEdit}
+                    disabled={!newComment.trim() || !canEdit || commentSubmitting}
                     className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                   >
-                    <Send className="h-4 w-4" />
-                    Enviar
+                    {commentSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Enviar
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -786,7 +816,7 @@ export default function TaskModal({
               <div className="sticky top-24">
                 <div className="mb-4 flex items-center gap-2">
                   <Activity className="h-5 w-5 text-violet-400" />
-                  <h3 className="text-lg font-semibold">Atividade</h3>
+                  <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Atividade</h3>
                 </div>
 
                 {activitiesLoading ? (
@@ -795,20 +825,20 @@ export default function TaskModal({
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="rounded-xl border border-white/10 bg-white/5 p-3 transition-all hover:border-white/20">
+                    {(Array.isArray(activities) ? activities : []).map((activity) => (
+                      <div key={activity.id} className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3 transition-all hover:${themeClasses.border.hover}`}>
                         <div className="flex items-start gap-2">
                           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                             <Activity className="h-3 w-3 text-violet-400" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-xs text-zinc-300">
-                              <span className="font-medium text-white">
+                            <p className={`text-xs ${themeClasses.text.secondary}`}>
+                              <span className={`font-medium ${themeClasses.text.primary}`}>
                                 {activity.user?.name ?? 'Sistema'}
                               </span>{' '}
                               {activity.description}
                             </p>
-                            <p className="mt-1 text-[10px] text-zinc-500">
+                            <p className={`mt-1 text-[10px] ${themeClasses.text.muted}`}>
                               {new Date(activity.createdAt).toLocaleString('pt-BR')}
                             </p>
                           </div>
@@ -817,9 +847,9 @@ export default function TaskModal({
                     ))}
 
                     {activities.length === 0 && (
-                      <div className="rounded-xl border border-dashed border-white/10 bg-white/5 p-8 text-center">
-                        <Activity className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
-                        <p className="text-sm text-zinc-500">
+                      <div className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-8 text-center`}>
+                        <Activity className={`h-8 w-8 ${themeClasses.text.muted} mx-auto mb-2`} />
+                        <p className={`text-sm ${themeClasses.text.tertiary}`}>
                           Nenhuma atividade ainda
                         </p>
                       </div>
@@ -830,7 +860,7 @@ export default function TaskModal({
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-6">
+          <div className={`mt-6 flex items-center justify-between border-t ${themeClasses.border.primary} pt-6`}>
             <button
               onClick={handleDelete}
               disabled={!canEdit || loading}
@@ -843,7 +873,7 @@ export default function TaskModal({
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
+                className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.tertiary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
               >
                 Cancelar
               </button>
