@@ -269,7 +269,7 @@ export default function ActivityPage() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-violet-500" />
-            <p className="mt-4 text-zinc-400">Carregando atividades...</p>
+            <p className={`mt-4 ${themeClasses.text.tertiary}`}>Carregando atividades...</p>
           </div>
         )}
 
@@ -326,7 +326,7 @@ export default function ActivityPage() {
                     return (
                       <div
                         key={activity.id}
-                        className="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5 transition-all hover:scale-[1.02] hover:border-white/20 hover:shadow-xl"
+                        className={`group relative rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-5 transition-all hover:scale-[1.02] hover:border-violet-500/30 hover:shadow-xl`}
                       >
                         <div className="flex items-start gap-4">
                           <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
@@ -342,28 +342,28 @@ export default function ActivityPage() {
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-zinc-300">
-                              <span className="font-medium text-white">
+                            <p className={`text-sm ${themeClasses.text.secondary}`}>
+                              <span className={`font-medium ${themeClasses.text.primary}`}>
                                 {activity.user?.name ?? 'Sistema'}
                               </span>{' '}
                               {activity.description}
                             </p>
 
-                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-                              <div className="flex items-center gap-1 text-zinc-500">
+                            <div className={`mt-2 flex flex-wrap items-center gap-3 text-xs ${themeClasses.text.muted}`}>
+                              <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 <span>{getRelativeDate(activity.createdAt)}</span>
                               </div>
-                              
+
                               {activity.project && (
-                                <div className="flex items-center gap-1 text-zinc-500">
+                                <div className="flex items-center gap-1">
                                   <FolderKanban className="h-3 w-3" />
                                   <span>{activity.project.name}</span>
                                 </div>
                               )}
 
                               {activity.task && (
-                                <div className="flex items-center gap-1 text-zinc-500">
+                                <div className="flex items-center gap-1">
                                   <ChevronRight className="h-3 w-3" />
                                   <span>{activity.task.title}</span>
                                 </div>
@@ -371,7 +371,7 @@ export default function ActivityPage() {
                             </div>
 
                             <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <p className={`text-[10px] ${themeClasses.text.tertiary}`}>
+                              <p className={`text-[10px] ${themeClasses.text.muted}`}>
                                 {new Date(activity.createdAt).toLocaleString('pt-BR', {
                                   day: '2-digit',
                                   month: '2-digit',

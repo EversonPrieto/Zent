@@ -34,23 +34,23 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 p-4">
+      <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg.primary} p-4`}>
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
           <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
         </div>
 
-        <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className={`relative w-full max-w-md rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl backdrop-blur-sm p-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
           <div className="flex justify-center mb-6">
             <CheckCircle className="w-16 h-16 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold text-center bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-4">
+          <h1 className="text-2xl font-bold text-center bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent mb-4">
             Email Enviado!
           </h1>
-          <p className="text-zinc-400 text-center mb-6">
+          <p className={`text-center mb-6 ${themeClasses.text.tertiary}`}>
             Se uma conta com esse email existir, você receberá um link de recuperação em poucos minutos.
           </p>
-          <p className="text-sm text-zinc-500 text-center mb-8">
+          <p className={`text-sm text-center mb-8 ${themeClasses.text.muted}`}>
             Verifique sua pasta de spam caso não receba o email.
           </p>
           <Link
@@ -66,25 +66,25 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 p-4">
+    <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg.primary} p-4`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-md rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className={`relative w-full max-w-md rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl backdrop-blur-sm p-8 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-zinc-400 hover:text-violet-400 mb-6 transition"
+          className={`inline-flex items-center gap-2 ${themeClasses.text.tertiary} hover:text-violet-400 mb-6 transition`}
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar
         </Link>
 
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-2">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent mb-2">
           Recuperar Senha
         </h1>
-        <p className="text-zinc-400 mb-6">
+        <p className={`mb-6 ${themeClasses.text.tertiary}`}>
           Digite seu email e enviaremos um link para redefinir sua senha.
         </p>
 
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="email" className={`block text-sm font-medium ${themeClasses.text.secondary} mb-2`}>
               Email
             </label>
             <input
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu.email@example.com"
               required
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               disabled={loading}
             />
           </div>
@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
           </button>
         </form>
 
-        <p className="text-center text-zinc-400 text-sm mt-6">
+        <p className={`text-center text-sm mt-6 ${themeClasses.text.tertiary}`}>
           Lembrou sua senha?{' '}
           <Link href="/login" className="text-violet-400 hover:underline font-medium transition-colors hover:text-violet-300">
             Fazer login

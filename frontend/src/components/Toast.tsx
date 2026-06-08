@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
 import {
   CheckCircle2,
   XCircle,
@@ -84,6 +85,7 @@ const toastConfig = {
 
 export default function Toast() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const { themeClasses } = useTheme();
 
   useEffect(() => {
     console.log('🍞 Toast component montado');
@@ -155,7 +157,7 @@ export default function Toast() {
 
               <button
                 onClick={() => removeToast(toast.id)}
-                className="flex-shrink-0 rounded-lg p-1 text-zinc-500 transition-colors hover:bg-white/10 hover:text-white"
+                className={`flex-shrink-0 rounded-lg p-1 ${themeClasses.text.tertiary} transition-colors ${themeClasses.bg.hover} ${themeClasses.text.primary}`}
                 aria-label="Fechar"
               >
                 <X className="h-4 w-4" />

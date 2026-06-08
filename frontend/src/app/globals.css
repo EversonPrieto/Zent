@@ -3,29 +3,35 @@
 :root {
   --background: #09090b;
   --foreground: #ffffff;
-  color-scheme: dark;
+  color-scheme: dark light;
 }
 
 html.light {
-  --background: #ffffff;
-  --foreground: #09090b;
+  --background: #f9fafb;
+  --foreground: #111827;
   color-scheme: light;
+}
+
+html.dark {
+  --background: #09090b;
+  --foreground: #ffffff;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-html.light {
-  background: #ffffff;
-  color: #000;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html.light body {
-  background: #ffffff;
-  color: #09090b;
+  background: #f9fafb;
+  color: #111827;
+}
+
+html.dark body {
+  background: #09090b;
+  color: #ffffff;
 }
 
 

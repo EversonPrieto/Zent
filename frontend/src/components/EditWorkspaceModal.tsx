@@ -103,7 +103,7 @@ export default function EditWorkspaceModal({
 
         <div className="p-6">
           <div className="space-y-5">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+            <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
                   {workspace.logoUrl ? (
@@ -117,8 +117,8 @@ export default function EditWorkspaceModal({
                   )}
                 </div>
                 <div>
-                  <p className="text-xs text-zinc-500">Nome atual</p>
-                  <p className="text-sm font-medium text-white">{workspace.name}</p>
+                  <p className={`text-xs ${themeClasses.text.muted}`}>Nome atual</p>
+                  <p className={`text-sm font-medium ${themeClasses.text.primary}`}>{workspace.name}</p>
                 </div>
               </div>
             </div>

@@ -163,31 +163,31 @@ export default function SignupPage() {
         return valid ? (
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
         ) : (
-            <XCircle className="h-3.5 w-3.5 text-zinc-500" />
+            <XCircle className={`h-3.5 w-3.5 ${themeClasses.text.muted}`} />
         );
     }
 
     return (
-        <main className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900">
+        <main className={`min-h-screen ${themeClasses.bg.primary}`}>
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
             </div>
 
             <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10 md:px-6">
-                <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="hidden border-r border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 lg:block lg:p-10">
+                <div className={`grid w-full max-w-5xl overflow-hidden rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl backdrop-blur-sm lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                    <div className={`hidden border-r ${themeClasses.border.primary} ${themeClasses.bg.primary} p-8 lg:block lg:p-10`}>
                         <div className="flex items-center gap-2 mb-6">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
-                            <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                            <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                                 Zent
                             </span>
                         </div>
 
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                             Crie sua conta
                         </h1>
-                        <p className="mt-4 text-zinc-400 leading-relaxed">
+                        <p className={`mt-4 leading-relaxed ${themeClasses.text.tertiary}`}>
                             Organize projetos, acompanhe tarefas, mova cards no Kanban e
                             centralize o trabalho do seu time em uma experiência moderna.
                         </p>
@@ -201,7 +201,7 @@ export default function SignupPage() {
                             ].map((item, idx) => {
                                 const Icon = item.icon;
                                 return (
-                                    <div key={idx} className="flex items-center gap-3 text-sm text-zinc-400">
+                                    <div key={idx} className={`flex items-center gap-3 text-sm ${themeClasses.text.tertiary}`}>
                                         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/10">
                                             <Icon className="h-3.5 w-3.5 text-violet-400" />
                                         </div>
@@ -211,12 +211,12 @@ export default function SignupPage() {
                             })}
                         </div>
 
-                        <div className="mt-8 rounded-xl border border-white/10 bg-white/5 p-4">
+                        <div className={`mt-8 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
                             <div className="flex items-center gap-2 mb-2">
                                 <Sparkles className="h-4 w-4 text-violet-400" />
-                                <span className="text-xs font-medium text-zinc-400">Grátis por 14 dias</span>
+                                <span className={`text-xs font-medium ${themeClasses.text.tertiary}`}>Grátis por 14 dias</span>
                             </div>
-                            <p className="text-xs text-zinc-500">
+                            <p className={`text-xs ${themeClasses.text.muted}`}>
                                 Experimente o Zent sem compromisso. Cancelamento a qualquer momento.
                             </p>
                         </div>
@@ -224,17 +224,17 @@ export default function SignupPage() {
 
                     <div className="p-6 md:p-8 lg:p-10">
                         <div className="mb-6 text-center lg:text-left">
-                            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                                 Criar conta
                             </h2>
-                            <p className="mt-2 text-sm text-zinc-400">
+                            <p className={`mt-2 text-sm ${themeClasses.text.tertiary}`}>
                                 Comece a usar o Zent agora mesmo.
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                                     <User className="h-4 w-4 text-violet-400" />
                                     Nome
                                 </label>
@@ -242,13 +242,13 @@ export default function SignupPage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     type="text"
-                                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                                     placeholder="Seu nome completo"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                                     <Mail className="h-4 w-4 text-violet-400" />
                                     Email
                                 </label>
@@ -256,13 +256,13 @@ export default function SignupPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     type="email"
-                                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                                     placeholder="voce@email.com"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                                     <Lock className="h-4 w-4 text-violet-400" />
                                     Senha
                                 </label>
@@ -271,13 +271,13 @@ export default function SignupPage() {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         type={showPassword ? 'text' : 'password'}
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                                        className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 pr-10 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                                         placeholder="Crie uma senha forte"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.tertiary} hover:${themeClasses.text.secondary}`}
                                     >
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
@@ -293,7 +293,7 @@ export default function SignupPage() {
                                     ].map((req) => (
                                         <div key={req.key} className="flex items-center gap-2 text-xs">
                                             {getPasswordCheckIcon(passwordChecks[req.key as keyof typeof passwordChecks])}
-                                            <span className={passwordChecks[req.key as keyof typeof passwordChecks] ? 'text-zinc-300' : 'text-zinc-500'}>
+                                            <span className={passwordChecks[req.key as keyof typeof passwordChecks] ? themeClasses.text.secondary : themeClasses.text.muted}>
                                                 {req.text}
                                             </span>
                                         </div>
@@ -302,7 +302,7 @@ export default function SignupPage() {
                             </div>
 
                             <div>
-                                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                                     <Lock className="h-4 w-4 text-violet-400" />
                                     Confirmar senha
                                 </label>
@@ -311,13 +311,13 @@ export default function SignupPage() {
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         type={showConfirmPassword ? 'text' : 'password'}
-                                        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                                        className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 pr-10 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                                         placeholder="Repita sua senha"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.tertiary} hover:${themeClasses.text.secondary}`}
                                     >
                                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
@@ -374,7 +374,7 @@ export default function SignupPage() {
                         </form>
 
                         <div className="mt-6 text-center">
-                            <p className="text-sm text-zinc-400">
+                            <p className={`text-sm ${themeClasses.text.tertiary}`}>
                                 Já tem conta?{' '}
                                 <Link 
                                     href="/login" 
@@ -386,12 +386,12 @@ export default function SignupPage() {
                         </div>
 
                         <div className="mt-6 block lg:hidden">
-                            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                            <div className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
                                 <div className="flex items-center gap-2 mb-3">
                                     <Sparkles className="h-4 w-4 text-violet-400" />
-                                    <span className="text-xs font-medium text-zinc-400">Grátis por 14 dias</span>
+                                    <span className={`text-xs font-medium ${themeClasses.text.tertiary}`}>Grátis por 14 dias</span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500">
+                                <div className={`grid grid-cols-2 gap-2 text-xs ${themeClasses.text.muted}`}>
                                     <div className="flex items-center gap-1">
                                         <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                                         <span>Workspaces</span>

@@ -121,40 +121,40 @@ export default function PricingPage() {
               )}
 
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <p className="text-zinc-400 text-sm">{plan.description}</p>
+                <h3 className={`text-2xl font-bold ${themeClasses.text.primary} mb-2`}>{plan.name}</h3>
+                <p className={`${themeClasses.text.tertiary} text-sm`}>{plan.description}</p>
               </div>
 
               <div className="mb-8">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">
+                  <span className={`text-4xl font-bold ${themeClasses.text.primary}`}>
                     {plan.price === 0 ? 'Gratuito' : `R$ ${plan.price}`}
                   </span>
                   {plan.period && plan.price > 0 && (
-                    <span className="text-zinc-400">/{plan.period}</span>
+                    <span className={themeClasses.text.tertiary}>/{plan.period}</span>
                   )}
                 </div>
               </div>
 
               {plan.limits && (
-                <div className="mb-8 rounded-lg bg-white/5 p-4 space-y-3">
-                  <p className="text-xs font-semibold text-zinc-300 uppercase">Limites</p>
+                <div className={`mb-8 rounded-lg ${themeClasses.bg.subtle} p-4 space-y-3`}>
+                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Limites</p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-zinc-400">Workspaces</p>
-                      <p className="text-white font-semibold">{plan.limits.workspaces}</p>
+                      <p className={themeClasses.text.tertiary}>Workspaces</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.workspaces}</p>
                     </div>
                     <div>
-                      <p className="text-zinc-400">Membros</p>
-                      <p className="text-white font-semibold">{plan.limits.members}</p>
+                      <p className={themeClasses.text.tertiary}>Membros</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.members}</p>
                     </div>
                     <div>
-                      <p className="text-zinc-400">Projetos</p>
-                      <p className="text-white font-semibold">{plan.limits.projects}</p>
+                      <p className={themeClasses.text.tertiary}>Projetos</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.projects}</p>
                     </div>
                     <div>
-                      <p className="text-zinc-400">Storage</p>
-                      <p className="text-white font-semibold">{plan.limits.storage}</p>
+                      <p className={themeClasses.text.tertiary}>Storage</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.storage}</p>
                     </div>
                   </div>
                 </div>

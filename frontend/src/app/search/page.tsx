@@ -188,7 +188,7 @@ function SearchContent() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'all'
                   ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
-                  : 'bg-white/5 text-zinc-400 hover:text-white border border-white/10'
+                  : `${themeClasses.bg.subtle} ${themeClasses.text.tertiary} hover:${themeClasses.text.primary} ${themeClasses.border.primary}`
               }`}
             >
               Tudo ({results.length})
@@ -198,7 +198,7 @@ function SearchContent() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'tasks'
                   ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
-                  : 'bg-white/5 text-zinc-400 hover:text-white border border-white/10'
+                  : `${themeClasses.bg.subtle} ${themeClasses.text.tertiary} hover:${themeClasses.text.primary} ${themeClasses.border.primary}`
               }`}
             >
               Tasks ({taskCount})
@@ -208,7 +208,7 @@ function SearchContent() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'projects'
                   ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
-                  : 'bg-white/5 text-zinc-400 hover:text-white border border-white/10'
+                  : `${themeClasses.bg.subtle} ${themeClasses.text.tertiary} hover:${themeClasses.text.primary} ${themeClasses.border.primary}`
               }`}
             >
               Projetos ({projectCount})
@@ -218,7 +218,7 @@ function SearchContent() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'workspaces'
                   ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
-                  : 'bg-white/5 text-zinc-400 hover:text-white border border-white/10'
+                  : `${themeClasses.bg.subtle} ${themeClasses.text.tertiary} hover:${themeClasses.text.primary} ${themeClasses.border.primary}`
               }`}
             >
               Workspaces ({workspaceCount})
@@ -235,10 +235,10 @@ function SearchContent() {
         {!loading && query && (
           <>
             {filteredResults.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-                <Search className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">Nenhum resultado encontrado</h3>
-                <p className="text-zinc-400">
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-12 text-center`}>
+                <Search className={`h-12 w-12 ${themeClasses.text.muted} mx-auto mb-4`} />
+                <h3 className={`text-lg font-semibold ${themeClasses.text.primary} mb-2`}>Nenhum resultado encontrado</h3>
+                <p className={`text-sm ${themeClasses.text.tertiary}`}>
                   Tente ajustar sua busca ou procure por outro termo
                 </p>
               </div>
@@ -253,21 +253,21 @@ function SearchContent() {
                     <button
                       key={result.id}
                       onClick={() => handleResultClick(result)}
-                      className="w-full group rounded-xl border border-white/10 bg-white/5 p-4 hover:border-violet-500/50 hover:bg-white/10 transition-all text-left"
+                      className={`w-full group rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 hover:border-violet-500/50 hover:${themeClasses.bg.hover} transition-all text-left`}
                     >
                       <div className="flex items-start gap-4">
                         <div className="rounded-lg bg-violet-500/20 p-2 flex-shrink-0">
                           <Icon className="h-5 w-5 text-violet-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-white truncate group-hover:text-violet-400 transition-colors">
+                          <h4 className={`font-semibold ${themeClasses.text.primary} truncate group-hover:text-violet-400 transition-colors`}>
                             {result.title}
                           </h4>
                           {result.description && (
-                            <p className="text-sm text-zinc-400 truncate mt-1">{result.description}</p>
+                            <p className={`text-sm ${themeClasses.text.tertiary} truncate mt-1`}>{result.description}</p>
                           )}
                         </div>
-                        <ArrowRight className="h-5 w-5 text-zinc-600 flex-shrink-0 group-hover:text-violet-400 transition-colors" />
+                        <ArrowRight className={`h-5 w-5 ${themeClasses.text.muted} flex-shrink-0 group-hover:text-violet-400 transition-colors`} />
                       </div>
                     </button>
                   );
@@ -278,16 +278,16 @@ function SearchContent() {
         )}
 
         {!loading && !query && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-12 text-center">
-            <Search className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Comece a buscar</h3>
-            <p className="text-zinc-400 mb-6">
+          <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-12 text-center`}>
+            <Search className={`h-12 w-12 ${themeClasses.text.muted} mx-auto mb-4`} />
+            <h3 className={`text-lg font-semibold ${themeClasses.text.primary} mb-2`}>Comece a buscar</h3>
+            <p className={`${themeClasses.text.tertiary} mb-6`}>
               Digite algo para buscar tasks, projetos e workspaces
             </p>
-            <div className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400">
-              <kbd className="rounded border border-zinc-600 bg-zinc-950 px-2 py-1 text-xs">Ctrl</kbd>
+            <div className={`inline-flex items-center gap-2 rounded-lg ${themeClasses.bg.tertiary} px-3 py-1.5 text-sm ${themeClasses.text.tertiary}`}>
+              <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-2 py-1 text-xs`}>Ctrl</kbd>
               <span>+</span>
-              <kbd className="rounded border border-zinc-600 bg-zinc-950 px-2 py-1 text-xs">K</kbd>
+              <kbd className={`rounded border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-2 py-1 text-xs`}>K</kbd>
             </div>
           </div>
         )}
@@ -298,7 +298,7 @@ function SearchContent() {
 
 export default function GlobalSearchPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
       <SearchContent />
     </Suspense>
   );

@@ -56,21 +56,6 @@ type Props = {
 const priorityOptions: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 const statusOptions: TaskStatus[] = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'ABORTED'];
 
-const statusConfig = {
-  TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20' },
-  IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-  DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-  ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-};
-
-const priorityConfig = {
-  LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-  HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
-  URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-};
-
 export default function CreateTaskModal({
   workspaceId,
   projectId,
@@ -79,7 +64,34 @@ export default function CreateTaskModal({
   onCreated,
   projectMembers = [],
 }: Props) {
-  const { themeClasses } = useTheme();
+  const { theme, themeClasses } = useTheme();
+
+  // Status e Priority configs dinâmicos baseados no tema
+  const statusConfig = theme === 'dark' ? {
+    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20' },
+    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  } : {
+    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-500', bg: 'bg-zinc-100', border: 'border-zinc-200' },
+    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
+    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' },
+  };
+
+  const priorityConfig = theme === 'dark' ? {
+    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
+    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+  } : {
+    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200' },
+    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' },
+  };
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -167,7 +179,7 @@ export default function CreateTaskModal({
         <div className="overflow-y-auto flex-1">
           <div className="p-6 space-y-5">
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Sparkles className="h-4 w-4 text-violet-400" />
                 Título
               </label>
@@ -176,12 +188,12 @@ export default function CreateTaskModal({
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex.: Implementar onboarding, Corrigir bug de login..."
                 autoFocus
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
               />
             </div>
 
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <FileText className="h-4 w-4 text-violet-400" />
                 Descrição
               </label>
@@ -190,34 +202,34 @@ export default function CreateTaskModal({
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 placeholder="Descreva os detalhes da task, requisitos, etc..."
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none"
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.muted} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 resize-none`}
               />
             </div>
 
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Clock className="h-4 w-4 text-violet-400" />
                 Status
               </label>
               <div className="relative">
                 <button
                   onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all hover:bg-white/10 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className={`w-full flex items-center justify-between rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all hover:${themeClasses.bg.hover} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                 >
                   <div className="flex items-center gap-2">
                     <StatusIcon className={`h-4 w-4 ${currentStatusConfig.color}`} />
                     <span>{currentStatusConfig.label}</span>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                  <ChevronDown className={`h-4 w-4 ${themeClasses.text.tertiary}`} />
                 </button>
-                
+
                 {showStatusDropdown && (
-                  <div className="absolute top-full left-0 right-0 z-10 mt-2 rounded-xl border border-white/10 bg-zinc-900 shadow-lg">
+                  <div className={`absolute top-full left-0 right-0 z-10 mt-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-lg`}>
                     {statusOptions.map((option) => {
                       const config = statusConfig[option];
                       const Icon = config.icon;
                       const isSelected = status === option;
-                      
+
                       return (
                         <button
                           key={option}
@@ -228,7 +240,7 @@ export default function CreateTaskModal({
                           className={`w-full flex items-center gap-2 px-4 py-3 text-sm transition-all first:rounded-t-lg last:rounded-b-lg ${
                             isSelected
                               ? `${config.bg} ${config.color}`
-                              : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                              : `${themeClasses.text.secondary} hover:${themeClasses.bg.hover}`
                           }`}
                         >
                           <Icon className="h-4 w-4" />
@@ -245,7 +257,7 @@ export default function CreateTaskModal({
             </div>
 
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Flag className="h-4 w-4 text-violet-400" />
                 Prioridade
               </label>
@@ -254,7 +266,7 @@ export default function CreateTaskModal({
                   const config = priorityConfig[option];
                   const Icon = config.icon;
                   const isSelected = priority === option;
-                  
+
                   return (
                     <button
                       key={option}
@@ -262,7 +274,7 @@ export default function CreateTaskModal({
                       className={`group relative flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all ${
                         isSelected
                           ? `${config.bg} ${config.border} border-opacity-100`
-                          : 'border-white/10 bg-white/5 hover:bg-white/10'
+                          : `${themeClasses.border.primary} ${themeClasses.bg.subtle} hover:${themeClasses.bg.hover}`
                       }`}
                     >
                       <Icon className={`h-5 w-5 ${config.color} ${isSelected ? 'scale-110' : ''} transition-transform`} />
@@ -270,7 +282,7 @@ export default function CreateTaskModal({
                         {config.label}
                       </span>
                       {isSelected && (
-                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-zinc-900" />
+                        <div className={`absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 ring-2 ${themeClasses.bg.primary}`} />
                       )}
                     </button>
                   );
@@ -280,7 +292,7 @@ export default function CreateTaskModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                   <Calendar className="h-4 w-4 text-violet-400" />
                   Data de vencimento
                 </label>
@@ -288,41 +300,41 @@ export default function CreateTaskModal({
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+              <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                 <Users className="h-4 w-4 text-violet-400" />
                 Responsáveis
               </label>
               <div className="relative">
                 <button
                   onClick={() => setShowAssigneesDropdown(!showAssigneesDropdown)}
-                  className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white outline-none transition-all hover:bg-white/10 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className={`w-full flex items-center justify-between rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all hover:${themeClasses.bg.hover} focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                 >
                   <span className="text-sm">
                     {selectedAssignees.length > 0 ? `${selectedAssignees.length} responsável(is)` : 'Selecione responsáveis...'}
                   </span>
-                  <ChevronDown className="h-4 w-4 text-zinc-400" />
+                  <ChevronDown className={`h-4 w-4 ${themeClasses.text.tertiary}`} />
                 </button>
-                
+
                 {showAssigneesDropdown && (
-                  <div className="absolute top-full left-0 right-0 z-10 mt-2 max-h-48 overflow-y-auto rounded-xl border border-white/10 bg-zinc-900 shadow-lg">
+                  <div className={`absolute top-full left-0 right-0 z-10 mt-2 max-h-48 overflow-y-auto rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-lg`}>
                     {projectMembers && projectMembers.length > 0 ? (
                       projectMembers.map((member: WorkspaceMember) => (
                         <button
                           key={member.id}
                           onClick={() => {
-                            setSelectedAssignees(prev => 
+                            setSelectedAssignees(prev =>
                               prev.includes(member.id)
                                 ? prev.filter(id => id !== member.id)
                                 : [...prev, member.id]
                             );
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-zinc-300 transition-all hover:bg-white/5 first:rounded-t-lg last:rounded-b-lg"
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} first:rounded-t-lg last:rounded-b-lg`}
                         >
                           {member.avatarUrl ? (
                             <img
@@ -336,8 +348,8 @@ export default function CreateTaskModal({
                             </div>
                           )}
                           <div className="text-left">
-                            <div className="font-medium">{member.name}</div>
-                            <div className="text-xs text-zinc-500">{member.email}</div>
+                            <div className={`font-medium ${themeClasses.text.primary}`}>{member.name}</div>
+                            <div className={`text-xs ${themeClasses.text.muted}`}>{member.email}</div>
                           </div>
                           {selectedAssignees.includes(member.id) && (
                             <div className="ml-auto h-4 w-4 rounded border border-emerald-500 bg-emerald-500/20" />
@@ -345,7 +357,7 @@ export default function CreateTaskModal({
                         </button>
                       ))
                     ) : (
-                      <div className="px-4 py-3 text-sm text-zinc-500">Nenhum membro disponível</div>
+                      <div className={`px-4 py-3 text-sm ${themeClasses.text.muted}`}>Nenhum membro disponível</div>
                     )}
                   </div>
                 )}
@@ -357,7 +369,7 @@ export default function CreateTaskModal({
                     return member ? (
                       <div
                         key={assigneeId}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white"
+                        className={`inline-flex items-center gap-1.5 rounded-full ${themeClasses.bg.subtle} px-2.5 py-1 text-xs font-medium ${themeClasses.text.primary}`}
                       >
                         {member.avatarUrl ? (
                           <img
@@ -391,10 +403,10 @@ export default function CreateTaskModal({
               </div>
             )}
 
-            <div className="mt-2 rounded-lg border border-white/5 bg-white/5 p-3">
+            <div className={`mt-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
               <div className="flex items-start gap-2">
                 <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
-                <p className="text-xs text-zinc-500">
+                <p className={`text-xs ${themeClasses.text.muted}`}>
                   Dica: Você pode usar <span className="text-violet-400">#</span> para mencionar tasks e{' '}
                   <span className="text-violet-400">@</span> para mencionar membros da equipe.
                 </p>
@@ -406,7 +418,7 @@ export default function CreateTaskModal({
         <div className={`border-t p-6 flex justify-end gap-3 ${themeClasses.border.primary} ${themeClasses.bg.primary} flex-shrink-0`}>
           <button
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm text-zinc-400 transition-all hover:bg-white/10 hover:text-white"
+            className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.tertiary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
           >
             Cancelar
           </button>

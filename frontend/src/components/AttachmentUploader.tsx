@@ -30,6 +30,7 @@ export default function AttachmentUploader({
   onAttachmentAdded,
   onAttachmentRemoved,
 }: Props) {
+  const { themeClasses } = useTheme();
   const [loading, setLoading] = useState(false);
 
   async function handleUploadSuccess(result: any) {
@@ -91,7 +92,7 @@ export default function AttachmentUploader({
           <button
             onClick={() => open()}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/20 bg-white/5 py-3 text-sm font-medium text-zinc-300 hover:border-white/40 hover:bg-white/10 transition-colors disabled:opacity-50"
+            className={`w-full flex items-center justify-center gap-2 rounded-lg border-2 border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} py-3 text-sm font-medium ${themeClasses.text.secondary} hover:${themeClasses.border.hover} hover:${themeClasses.bg.hover} transition-colors disabled:opacity-50`}
           >
             {loading ? (
               <>
@@ -110,14 +111,14 @@ export default function AttachmentUploader({
 
       {attachments.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-zinc-400 uppercase">Anexos ({attachments.length})</p>
+          <p className={`text-xs font-semibold uppercase ${themeClasses.text.hint}`}>Anexos ({attachments.length})</p>
           {attachments.map((attachment) => (
             <div
               key={attachment.id}
-              className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3"
+              className={`flex items-center justify-between rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <FileIcon className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+                <FileIcon className={`h-4 w-4 ${themeClasses.text.hint} flex-shrink-0`} />
                 <div className="min-w-0 flex-1">
                   <a
                     href={attachment.url}
@@ -127,7 +128,7 @@ export default function AttachmentUploader({
                   >
                     {attachment.name}
                   </a>
-                  <p className="text-xs text-zinc-500">{formatFileSize(attachment.size)}</p>
+                  <p className={`text-xs ${themeClasses.text.muted}`}>{formatFileSize(attachment.size)}</p>
                 </div>
               </div>
 
@@ -137,7 +138,7 @@ export default function AttachmentUploader({
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"
+                  className={`rounded-lg p-2 ${themeClasses.text.hint} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} transition-colors`}
                   title="Download"
                 >
                   <Download className="h-4 w-4" />
@@ -145,7 +146,7 @@ export default function AttachmentUploader({
                 <button
                   onClick={() => handleDeleteAttachment(attachment.id)}
                   disabled={loading}
-                  className="rounded-lg p-2 text-zinc-400 hover:bg-red-500/20 hover:text-red-400 transition-colors disabled:opacity-50"
+                  className={`rounded-lg p-2 ${themeClasses.text.hint} hover:bg-red-500/20 hover:text-red-400 transition-colors disabled:opacity-50`}
                   title="Deletar"
                 >
                   <Trash2 className="h-4 w-4" />

@@ -13,6 +13,7 @@ export function PresenceIndicator({
   user,
   isCurrentUser,
 }: PresenceIndicatorProps) {
+  const { theme, themeClasses } = useTheme();
   const timeOnline = new Date().getTime() - new Date(user.joinedAt).getTime();
   const minutes = Math.floor(timeOnline / 60000);
   const seconds = Math.floor((timeOnline % 60000) / 1000);
@@ -21,7 +22,7 @@ export function PresenceIndicator({
     minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${themeClasses.bg.subtle} border ${themeClasses.border.primary}`}>
       <div className="relative">
         {user.avatarUrl ? (
           <img
@@ -34,22 +35,22 @@ export function PresenceIndicator({
             {(user.name || 'U').charAt(0).toUpperCase()}
           </div>
         )}
-        <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-slate-900"></div>
+        <div className={`absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border ${theme === 'dark' ? 'border-slate-900' : 'border-white'}`}></div>
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+        <p className={`text-sm font-medium ${themeClasses.text.primary} truncate`}>
           {user.name}
           {isCurrentUser && ' (você)'}
         </p>
 
         {user.editingTaskId && (
-          <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
+          <p className={`text-xs truncate ${themeClasses.text.secondary}`}>
             ✏️ Editando task
           </p>
         )}
 
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className={`text-xs ${themeClasses.text.muted}`}>
           Online há {timeString}
         </p>
       </div>

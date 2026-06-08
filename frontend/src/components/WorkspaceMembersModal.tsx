@@ -275,7 +275,7 @@ export default function WorkspaceMembersModal({
                 <Users className="h-5 w-5 text-violet-400" />
               </div>
               <div>
-                <h2 className={`text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent`}>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                   Membros do workspace
                 </h2>
                 <p className={`mt-1 text-sm ${themeClasses.text.tertiary}`}>
@@ -298,21 +298,21 @@ export default function WorkspaceMembersModal({
                 <span className={`text-xs ${themeClasses.text.tertiary}`}>Total</span>
                 <p className={`text-lg font-bold ${themeClasses.text.primary}`}>{members.length}</p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                <span className="text-xs text-zinc-500">Proprietários</span>
+              <div className={`rounded-lg border px-3 py-1.5 ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <span className={`text-xs ${themeClasses.text.muted}`}>Proprietários</span>
                 <p className="text-lg font-bold text-amber-400">{ownerCount}</p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                <span className="text-xs text-zinc-500">Administradores</span>
+              <div className={`rounded-lg border px-3 py-1.5 ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <span className={`text-xs ${themeClasses.text.muted}`}>Administradores</span>
                 <p className="text-lg font-bold text-blue-400">{adminCount}</p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                <span className="text-xs text-zinc-500">Membros</span>
+              <div className={`rounded-lg border px-3 py-1.5 ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <span className={`text-xs ${themeClasses.text.muted}`}>Membros</span>
                 <p className="text-lg font-bold text-emerald-400">{memberCount}</p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
-                <span className="text-xs text-zinc-500">Visualizadores</span>
-                <p className="text-lg font-bold text-zinc-400">{viewerCount}</p>
+              <div className={`rounded-lg border px-3 py-1.5 ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <span className={`text-xs ${themeClasses.text.muted}`}>Visualizadores</span>
+                <p className={`text-lg font-bold ${themeClasses.text.tertiary}`}>{viewerCount}</p>
               </div>
             </div>
           )}
@@ -347,7 +347,7 @@ export default function WorkspaceMembersModal({
                 return (
                   <div
                     key={member.id}
-                    className="group rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-4 transition-all hover:border-white/20 hover:shadow-lg"
+                    className={`group rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 transition-all hover:${themeClasses.border.hover} hover:shadow-lg`}
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div className="flex items-start gap-3">
@@ -367,7 +367,7 @@ export default function WorkspaceMembersModal({
                         
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-white">
+                            <p className={`font-medium ${themeClasses.text.primary}`}>
                               {member.user.name}
                               {isCurrentUser && (
                                 <span className="ml-2 text-xs text-violet-400">(você)</span>
@@ -375,8 +375,8 @@ export default function WorkspaceMembersModal({
                             </p>
                           </div>
                           <div className="mt-1 flex items-center gap-1.5">
-                            <Mail className="h-3 w-3 text-zinc-500" />
-                            <p className="text-sm text-zinc-400">{member.user.email}</p>
+                            <Mail className={`h-3 w-3 ${themeClasses.text.muted}`} />
+                            <p className={`text-sm ${themeClasses.text.tertiary}`}>{member.user.email}</p>
                           </div>
                         </div>
                       </div>
@@ -390,10 +390,10 @@ export default function WorkspaceMembersModal({
                                 handleRoleChange(member.id, e.target.value as Role)
                               }
                               disabled={isChanging}
-                              className="appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-2 pr-8 text-sm text-white outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+                              className={`appearance-none rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2 pr-8 text-sm ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
                             >
                               {roleOptions.map((role) => (
-                                <option key={role} value={role} className="bg-zinc-900">
+                                <option key={role} value={role} className={themeClasses.bg.primary}>
                                   {roleConfig[role as keyof typeof roleConfig]?.label || role}
                                 </option>
                               ))}
@@ -426,9 +426,9 @@ export default function WorkspaceMembersModal({
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center gap-2 pt-2 border-t border-white/5">
+                    <div className={`mt-3 flex items-center gap-2 pt-2 border-t ${themeClasses.border.secondary}`}>
                       <CheckCircle2 className={`h-3 w-3 ${roleInfo.color}`} />
-                      <p className="text-xs text-zinc-500">{roleInfo.description}</p>
+                      <p className={`text-xs ${themeClasses.text.muted}`}>{roleInfo.description}</p>
                     </div>
                   </div>
                 );

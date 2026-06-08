@@ -67,7 +67,7 @@ export function ThemeContextProvider({ children }: { children: React.ReactNode }
     if (themeToApply === 'light') {
       htmlElement.classList.remove('dark');
       htmlElement.classList.add('light');
-      document.body.className = 'bg-white text-slate-900';
+      document.body.className = 'bg-gray-50 text-gray-900';
     } else {
       htmlElement.classList.remove('light');
       htmlElement.classList.add('dark');

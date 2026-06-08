@@ -103,10 +103,10 @@ function LoginContent() {
               </span>
             </div>
 
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
               Bem-vindo de volta
             </h1>
-            <p className="mt-4 text-zinc-400 leading-relaxed">
+            <p className={`mt-4 leading-relaxed ${themeClasses.text.tertiary}`}>
               Acesse sua workspace e continue organizando seus projetos com mais produtividade e clareza.
             </p>
 
@@ -116,7 +116,7 @@ function LoginContent() {
                   <Sparkles className="h-4 w-4 text-violet-400" />
                   <span className="text-sm font-medium text-violet-400">Convite pendente!</span>
                 </div>
-                <p className="text-xs text-zinc-400">
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>
                   Você foi convidado para uma workspace. Após o login, será automaticamente adicionado.
                 </p>
               </div>
@@ -130,7 +130,7 @@ function LoginContent() {
               ].map((item, idx) => {
                 const Icon = item.icon;
                 return (
-                  <div key={idx} className="flex items-center gap-3 text-sm text-zinc-400">
+                  <div key={idx} className={`flex items-center gap-3 text-sm ${themeClasses.text.tertiary}`}>
                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/10">
                       <Icon className="h-3.5 w-3.5 text-violet-400" />
                     </div>
@@ -146,27 +146,27 @@ function LoginContent() {
               <div className="flex justify-center lg:justify-start mb-4 lg:hidden">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500" />
-                  <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+                  <span className="text-xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                     Zent
                   </span>
                 </div>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
                 Entrar
               </h2>
-              <p className="mt-2 text-sm text-zinc-400">
+              <p className={`mt-2 text-sm ${themeClasses.text.tertiary}`}>
                 Acesse sua conta e workspace
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                   <Mail className="h-4 w-4 text-violet-400" />
                   Email
                 </label>
                 <input
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                  className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -176,13 +176,13 @@ function LoginContent() {
               </div>
 
               <div>
-                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300">
+                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                   <Lock className="h-4 w-4 text-violet-400" />
                   Senha
                 </label>
                 <div className="relative">
                   <input
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-white placeholder:text-zinc-500 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 pr-10 ${themeClasses.text.primary} placeholder:${themeClasses.text.tertiary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -191,7 +191,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-colors hover:text-zinc-300"
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.tertiary} transition-colors hover:${themeClasses.text.secondary}`}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -207,8 +207,8 @@ function LoginContent() {
 
               <div className="flex justify-end">
                 <Link 
-                  href="/forgot-password" 
-                  className="text-xs text-zinc-500 transition-colors hover:text-violet-400"
+                  href="/forgot-password"
+                  className={`text-xs ${themeClasses.text.tertiary} transition-colors hover:text-violet-400`}
                 >
                   Esqueceu a senha?
                 </Link>
@@ -236,7 +236,7 @@ function LoginContent() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-zinc-400">
+              <p className={`text-sm ${themeClasses.text.tertiary}`}>
                 Não tem uma conta?{' '}
                 <Link 
                   href="/signup" 
@@ -248,12 +248,12 @@ function LoginContent() {
             </div>
 
             <div className="mt-6 block lg:hidden">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="h-4 w-4 text-violet-400" />
-                  <span className="text-xs font-medium text-zinc-400">Grátis por 14 dias</span>
+                  <span className={`text-xs font-medium ${themeClasses.text.tertiary}`}>Grátis por 14 dias</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500">
+                <div className={`grid grid-cols-2 gap-2 text-xs ${themeClasses.text.muted}`}>
                   <div className="flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                     <span>Workspaces</span>
@@ -282,7 +282,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
       <LoginContent />
     </Suspense>
   );

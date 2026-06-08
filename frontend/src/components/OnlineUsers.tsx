@@ -11,9 +11,11 @@ interface OnlineUsersProps {
 }
 
 export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
+  const { themeClasses } = useTheme();
+
   if (!users || users.length === 0) {
     return (
-      <div className="text-center text-sm text-slate-500 dark:text-slate-400 py-4">
+      <div className={`text-center text-sm ${themeClasses.text.muted} py-4`}>
         Ninguém online no momento
       </div>
     );
@@ -35,7 +37,7 @@ export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
 
   return (
     <div className="space-y-2">
-      <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 px-3">
+      <div className={`text-sm font-semibold ${themeClasses.text.secondary} px-3`}>
         👥 Online ({sortedUsers.length})
       </div>
 
@@ -49,7 +51,7 @@ export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
             />
           ))
         ) : (
-          <div className="text-center text-sm text-slate-500 dark:text-slate-400 py-2">
+          <div className={`text-center text-sm ${themeClasses.text.muted} py-2`}>
             Ninguém online
           </div>
         )}

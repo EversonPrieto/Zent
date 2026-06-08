@@ -34,14 +34,25 @@ export async function api(path: string, options: RequestOptions = {}) {
         : options.body,
   });
 
-  const data = await response.json().catch(() => null);
+  let data;
+  const text = await response.text();
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = {};
+  }
 
   if (!response.ok) {
-    const message = Array.isArray(data?.message)
-      ? data.message.join(', ')
-      : data?.message || 'Erro na requisição';
+    const message = data?.message
+      || (Array.isArray(data?.message) ? data.message.join(', ') : `Erro ${response.status}`);
 
-    console.error(`[API] Error response:`, { status: response.status, path, message, data });
+    if (response.status >= 500) {
+      console.error(`[API] Server Error ${response.status}:`, path, text || '(empty)');
+    } else if (Object.keys(data).length === 0) {
+      console.error(`[API] Error ${response.status}:`, path);
+    } else {
+      console.error(`[API] Error ${response.status}:`, path, data);
+    }
     throw new Error(message);
   }
 

@@ -39,6 +39,12 @@ export const themes = {
       blue: 'from-blue-500/20 to-cyan-500/20',
       emerald: 'from-emerald-500/20 to-teal-500/20',
     },
+    // Gradientes de texto - para títulos em gradiente
+    textGradient: {
+      violet: 'from-violet-400 to-indigo-400',
+      blue: 'from-blue-400 to-cyan-400',
+      emerald: 'from-emerald-400 to-teal-400',
+    },
     // Shadows
     shadow: 'shadow-black/50',
     // Inputs
@@ -48,10 +54,10 @@ export const themes = {
     // Backgrounds principais - mais limpos e profissionais
     bg: {
       primary: 'bg-white',
-      secondary: 'bg-gray-50',
-      tertiary: 'bg-gray-100',
+      secondary: 'bg-gray-100',
+      tertiary: 'bg-gray-200',
       hover: 'hover:bg-gray-100',
-      subtle: 'bg-gray-50',
+      subtle: 'bg-gray-100',
     },
     // Borders - mais suaves
     border: {
@@ -70,18 +76,24 @@ export const themes = {
     },
     // Acentos - mais vibrantes mas profissionais
     accent: {
-      violet: 'bg-violet-50 text-violet-600 border-violet-200',
-      blue: 'bg-blue-50 text-blue-600 border-blue-200',
-      emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      amber: 'bg-amber-50 text-amber-600 border-amber-200',
-      red: 'bg-red-50 text-red-600 border-red-200',
-      pink: 'bg-pink-50 text-pink-600 border-pink-200',
+      violet: 'bg-violet-100/80 text-violet-700 border-violet-300',
+      blue: 'bg-blue-100/80 text-blue-700 border-blue-300',
+      emerald: 'bg-emerald-100/80 text-emerald-700 border-emerald-300',
+      amber: 'bg-amber-100/80 text-amber-700 border-amber-300',
+      red: 'bg-red-100/80 text-red-700 border-red-300',
+      pink: 'bg-pink-100/80 text-pink-700 border-pink-300',
     },
     // Gradientes - mais suaves para modo claro
     gradient: {
-      violet: 'from-violet-50 to-indigo-50',
-      blue: 'from-blue-50 to-cyan-50',
-      emerald: 'from-emerald-50 to-teal-50',
+      violet: 'from-violet-100 to-indigo-100',
+      blue: 'from-blue-100 to-cyan-100',
+      emerald: 'from-emerald-100 to-teal-100',
+    },
+    // Gradientes de texto - para títulos em gradiente
+    textGradient: {
+      violet: 'from-violet-600 to-indigo-600',
+      blue: 'from-blue-600 to-cyan-600',
+      emerald: 'from-emerald-600 to-teal-600',
     },
     // Shadows - mais leves
     shadow: 'shadow-gray-200/50',
