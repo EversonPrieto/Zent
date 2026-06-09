@@ -10,7 +10,7 @@ async function bootstrap() {
 
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
   app.enableCors({
-    origin: [frontendUrl, /https?:\/\/.*\.vercel\.app$/],
+    origin: [frontendUrl, /https?:\/\/.*\.vercel\.app$/, /localhost:/],
     credentials: true,
   });
 
