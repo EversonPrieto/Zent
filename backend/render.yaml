@@ -1,0 +1,39 @@
+databaseConnections:
+  - name: neon-db
+    databaseName: neondb
+    databasePassword: npg_GfVPuO3p5nkz
+    ipAllowList: []
+
+services:
+  - type: web
+    name: zent-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start:prod
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_GfVPuO3p5nkz@ep-misty-star-aiwnke0w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dymm2mhrl
+      - key: CLOUDINARY_API_KEY
+        value: 355359322572139
+      - key: CLOUDINARY_API_SECRET
+        value: KvQ3FQ245j8v38ed--ABc2scidQ
+      - key: BREVO_API_KEY
+        value: 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
+      - key: BREVO_SENDER_EMAIL
+        value: appzent@outlook.com
+      - key: FRONTEND_URL
+        # Substitua pelo URL do seu frontend em produção
+        value: http://localhost:3001
+      - key: STRIPE_SECRET_KEY
+        value: sk_test_51TMWGa2W8x80oHvtVw8Kfuth6bETIJd7u0uNcd0L7KTYSb8OkX35BUnZdA0nmlKvO5GnyQ7Tee2KFwvzjorUO66A00IlkIPF2Q
