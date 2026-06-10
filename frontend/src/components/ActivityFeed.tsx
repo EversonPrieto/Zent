@@ -101,13 +101,16 @@ export default function ActivityFeed({
     load();
 
     try {
-      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000', {
-        transports: ['websocket'],
-        autoConnect: true,
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-      });
+      socket = io(
+        process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000',
+        {
+          transports: ['websocket'],
+          autoConnect: true,
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        }
+      );
 
       socket.on('connect', () => {
         console.log('🟢 Socket conectado:', socket.id);
