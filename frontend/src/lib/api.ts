@@ -1,4 +1,12 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+if (!process.env.NEXT_PUBLIC_API_URL) {
+  // Evita falha total em builds/execuções sem env e ajuda a identificar problema.
+  console.warn(
+    '[Env] NEXT_PUBLIC_API_URL não configurada. Usando fallback http://localhost:3000. Configure no Vercel para produção.'
+  );
+}
+
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   workspaceId?: string;
