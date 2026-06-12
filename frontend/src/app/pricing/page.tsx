@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../hooks/useTheme';
 import { PlanComparison } from '../../components/PlanComparison';
-import { CheckCircle2, Zap, Users, Infinity, Star } from 'lucide-react';
+import { CheckCircle2, Zap, Star } from 'lucide-react';
 
 type Plan = {
   id: 'free' | 'pro';
@@ -22,57 +22,42 @@ type Plan = {
   };
 };
 
+import { PLAN_FEATURES, PLAN_LIMITS, PlanType } from '../../lib/plans';
+
 const plans: Plan[] = [
   {
     id: 'free',
     name: 'Gratuito',
-    description: 'Perfeito para começar',
+    description: 'Para começar e validar sua rotina de projetos.',
     price: 0,
     period: 'sempre',
-    features: [
-      '1 Workspace',
-      'Até 5 membros',
-      'Projetos ilimitados',
-      'Tasks ilimitadas',
-      'Comentários e atividades',
-      'Suporte por email',
-    ],
+    features: PLAN_FEATURES.free.map((f) => f.name + (f.value ? `: ${f.value}` : '')),
     cta: 'Começar Agora',
     limits: {
-      workspaces: '1',
-      members: '5',
-      projects: 'Ilimitados',
-      storage: '1GB',
+      workspaces: String(PLAN_LIMITS.free.workspaces),
+      members: String(PLAN_LIMITS.free.teamMembers),
+      projects: `até ${PLAN_LIMITS.free.projectsPerWorkspace}`,
+      storage: `${PLAN_LIMITS.free.storageGB}GB`,
     },
   },
   {
     id: 'pro',
     name: 'Pro',
-    description: 'Para equipes crescentes',
+    description: 'Para times que precisam escalar e trabalhar com mais autonomia.',
     price: 29,
     period: 'mês',
     highlight: true,
-    features: [
-      'Workspaces ilimitadas',
-      'Membros ilimitados',
-      'Projetos ilimitados',
-      'Tasks ilimitadas',
-      'Comentários e atividades avançadas',
-      'Integração com Slack',
-      'Webhooks customizados',
-      'Suporte prioritário 24/7',
-      'Advanced analytics',
-      'Custom branding',
-    ],
+    features: PLAN_FEATURES.pro.map((f) => f.name + (f.value ? `: ${f.value}` : '')),
     cta: 'Começar Trial Gratuito',
     limits: {
-      workspaces: 'Ilimitadas',
-      members: 'Ilimitados',
-      projects: 'Ilimitados',
-      storage: '100GB',
+      workspaces: `até ${PLAN_LIMITS.pro.workspaces}`,
+      members: `até ${PLAN_LIMITS.pro.teamMembers}`,
+      projects: `até ${PLAN_LIMITS.pro.projectsPerWorkspace}`,
+      storage: `${PLAN_LIMITS.pro.storageGB}GB`,
     },
   },
 ];
+
 
 export default function PricingPage() {
   const router = useRouter();
@@ -125,6 +110,7 @@ export default function PricingPage() {
                 <p className={`${themeClasses.text.tertiary} text-sm`}>{plan.description}</p>
               </div>
 
+
               <div className="mb-8">
                 <div className="flex items-baseline gap-1">
                   <span className={`text-4xl font-bold ${themeClasses.text.primary}`}>
@@ -137,9 +123,10 @@ export default function PricingPage() {
               </div>
 
               {plan.limits && (
-                <div className={`mb-8 rounded-lg ${themeClasses.bg.subtle} p-4 space-y-3`}>
+                <div className={`mb-6 rounded-lg ${themeClasses.bg.subtle} p-4 space-y-3`}>
                   <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Limites</p>
                   <div className="grid grid-cols-2 gap-4 text-sm">
+
                     <div>
                       <p className={themeClasses.text.tertiary}>Workspaces</p>
                       <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.workspaces}</p>
@@ -162,23 +149,54 @@ export default function PricingPage() {
 
               <button
                 onClick={() => handleUpgrade(plan.id)}
-                className={`w-full rounded-lg py-3 font-semibold transition-all mb-8 ${
+                className={`w-full rounded-lg py-3 font-semibold transition-all mb-8 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:ring-offset-0 group ${
                   plan.highlight
-                    ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:scale-105 shadow-lg shadow-violet-500/25'
-                    : `border ${themeClasses.border.primary} ${themeClasses.text.primary} hover:border-violet-500/20 hover:${themeClasses.bg.secondary}`
+                    ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-lg shadow-violet-500/25 hover:scale-105 hover:shadow-violet-500/35'
+                    : `border ${themeClasses.border.primary} ${themeClasses.text.primary} bg-transparent hover:border-violet-500/40 hover:bg-violet-500/10` 
                 }`}
               >
                 {plan.cta}
               </button>
 
               <div className="space-y-3">
-                <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Incluso</p>
-                {plan.features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    <span className={themeClasses.text.secondary}>{feature}</span>
-                  </div>
-                ))}
+                <div className="flex items-center justify-between gap-4">
+                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Incluso</p>
+                  <div className={`h-px flex-1 ${themeClasses.border.primary} opacity-60`} />
+                </div>
+
+                <div className="space-y-2">
+                  {plan.features.map((feature, index) => (
+                    <div
+                      key={index}
+                      className="group flex items-start gap-3 rounded-xl border border-white/0 bg-white/0 transition-colors hover:bg-white/5 hover:border-violet-500/25 px-3 py-2"
+                    >
+                      <div className="mt-0.5">
+                        <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                      </div>
+
+                      <div className="flex-1">
+                        {/* Destaque visual do texto e do valor (ex: "Projetos por workspace: até 3") */}
+                        <p className={`text-[14px] leading-relaxed ${themeClasses.text.secondary}`}>
+                          {feature.includes(':') ? (
+                            (() => {
+                              const [label, value] = feature.split(':').map((s) => s.trim());
+                              return (
+                                <span>
+                                  <span className="text-[14px] opacity-80">{label}:</span>{' '}
+                                  <span className={`text-[14px] font-semibold text-white/95 px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 bg-white/5`}>
+                                    {value}
+                                  </span>
+                                </span>
+                              );
+                            })()
+                          ) : (
+                            feature
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
@@ -219,12 +237,6 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="mt-20 mb-16">
-          <h2 className={`text-3xl font-bold text-center mb-12 ${themeClasses.text.primary}`}>
-            Comparação Detalhada de Planos
-          </h2>
-          <PlanComparison currentPlan="free" />
-        </div>
 
         <div className="mt-16 text-center">
           <p className={`mb-4 ${themeClasses.text.tertiary}`}>Pronto para começar?</p>
