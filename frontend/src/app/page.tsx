@@ -44,11 +44,28 @@ export default function HomePage() {
   ];
 
   const kanbanColumns = [
-    { title: 'A fazer', items: ['Landing page', 'Setup do projeto', 'Design system'], color: 'border-l-2 border-l-zinc-500' },
-    { title: 'Em progresso', items: ['Kanban frontend'], color: 'border-l-2 border-l-blue-500' },
-    { title: 'Em revisão', items: ['Activity timeline'], color: 'border-l-2 border-l-amber-500' },
-    { title: 'Concluído', items: ['Auth JWT', 'Comments UI'], color: 'border-l-2 border-l-emerald-500' },
+    {
+      title: 'A fazer',
+      items: ['Planejar sprint', 'Criar tarefas', 'Atribuir responsáveis'],
+      color: 'border-l-2 border-l-zinc-500',
+    },
+    {
+      title: 'Em progresso',
+      items: ['Implementar fluxo', 'Revisar PRs', 'Atualizar status'],
+      color: 'border-l-2 border-l-blue-500',
+    },
+    {
+      title: 'Em revisão',
+      items: ['Feedback do time', 'Testes finais', 'Ajustes de UI'],
+      color: 'border-l-2 border-l-amber-500',
+    },
+    {
+      title: 'Concluído',
+      items: ['Deploy concluído', 'Encerrar tarefas', 'Registrar atividade'],
+      color: 'border-l-2 border-l-emerald-500',
+    },
   ];
+
 
   return (
     <main className={`min-h-screen ${themeClasses.bg.primary}`}>
