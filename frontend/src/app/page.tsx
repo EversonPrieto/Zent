@@ -16,6 +16,7 @@ export default function HomePage() {
       router.push('/dashboard');
     }
   }, [router]);
+
   const features = [
     {
       icon: Layers,
@@ -66,38 +67,41 @@ export default function HomePage() {
     },
   ];
 
+  const isLight = themeClasses.bg.primary === 'bg-white';
 
   return (
-    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
-      <header className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
+    <main className={`min-h-screen ${themeClasses.bg.primary} ${themeClasses.text.primary}`}>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl ${themeClasses.border.primary} ${themeClasses.bg.primary}`}
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
             <div>
-              <h1 className={`text-2xl font-bold ${themeClasses.text.primary}`}>
-                Zent
-              </h1>
-              <p className="text-xs text-zinc-500">
-                Gestão para times modernos
-              </p>
+              <h1 className={`text-2xl font-bold ${themeClasses.text.primary}`}>Zent</h1>
+              <p className={`text-xs ${themeClasses.text.secondary}`}>Gestão para times modernos</p>
             </div>
           </div>
 
           <nav className="flex items-center gap-3">
             <Link
               href="/pricing"
-              className="group relative rounded-xl px-5 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:text-white"
+              className={`group relative rounded-xl px-5 py-2.5 text-sm font-medium ${themeClasses.text.secondary} transition-all hover:${themeClasses.text.primary}`}
             >
               Planos
-              <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-white transition-all group-hover:w-1/2" />
+              <span
+                className={`absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 transition-all group-hover:w-1/2 ${isLight ? 'bg-violet-500' : 'bg-white'}`}
+              />
             </Link>
 
             <Link
               href="/login"
-              className="group relative rounded-xl px-5 py-2.5 text-sm font-medium text-zinc-300 transition-all hover:text-white"
+              className={`group relative rounded-xl px-5 py-2.5 text-sm font-medium ${themeClasses.text.secondary} transition-all hover:${themeClasses.text.primary}`}
             >
               Entrar
-              <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-white transition-all group-hover:w-1/2" />
+              <span
+                className={`absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 transition-all group-hover:w-1/2 ${isLight ? 'bg-violet-500' : 'bg-white'}`}
+              />
             </Link>
 
             <Link
@@ -106,6 +110,24 @@ export default function HomePage() {
             >
               Criar conta grátis
             </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                const nextTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                localStorage.setItem('zent_theme', nextTheme);
+                window.dispatchEvent(
+                  new CustomEvent('theme-changed', { detail: { theme: nextTheme } })
+                );
+              }}
+              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
+              aria-label="Alternar tema"
+              title="Alternar tema"
+            >
+              <span className="inline-flex items-center gap-2">
+                {typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? '☀️' : '🌙'}
+              </span>
+            </button>
           </nav>
         </div>
       </header>
@@ -118,7 +140,9 @@ export default function HomePage() {
 
         <div className="relative grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm backdrop-blur-sm">
+            <div
+              className={`inline-flex items-center rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-1.5 text-sm backdrop-blur-sm`}
+            >
               <span className="relative flex h-2 w-2 mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -134,10 +158,8 @@ export default function HomePage() {
               em um só lugar.
             </h2>
 
-            <p className="mt-6 max-w-xl text-lg text-zinc-400">
-              O Zent ajuda equipes a planejar projetos, acompanhar tarefas,
-              comentar, mover cards no Kanban e centralizar a operação do time
-              em uma experiência simples e moderna.
+            <p className={`mt-6 max-w-xl text-lg ${themeClasses.text.tertiary}`}>
+              O Zent ajuda equipes a planejar projetos, acompanhar tarefas, comentar, mover cards no Kanban e centralizar a operação do time em uma experiência simples e moderna.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -151,7 +173,7 @@ export default function HomePage() {
 
               <Link
                 href="/login"
-                className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 font-medium text-white transition-all hover:bg-white/10"
+                className={`inline-flex items-center rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-6 py-3.5 font-medium ${themeClasses.text.primary} transition-all hover:${themeClasses.bg.hover}`}
               >
                 Já tenho conta
               </Link>
@@ -159,7 +181,7 @@ export default function HomePage() {
 
             <div className="mt-12 flex flex-wrap gap-6">
               {['Multi-workspace', 'Kanban com drag and drop', 'Comentários e atividade'].map((feature) => (
-                <div key={feature} className="flex items-center gap-2 text-sm text-zinc-400">
+                <div key={feature} className={`flex items-center gap-2 text-sm ${themeClasses.text.tertiary}`}>
                   <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                   <span>{feature}</span>
                 </div>
@@ -169,37 +191,38 @@ export default function HomePage() {
 
           <div className="relative">
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-violet-500/20 to-indigo-500/20 blur-2xl" />
-            <div className="relative rounded-3xl border border-white/10 bg-zinc-900/50 p-6 backdrop-blur-xl">
+            <div
+              className={`relative rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 backdrop-blur-xl`}
+            >
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold">Workspace Zent</h3>
-                  <p className="text-xs text-zinc-500">Última atividade há 2 minutos</p>
+                  <h3 className={`${themeClasses.text.primary} text-lg font-semibold`}>Workspace Zent</h3>
+                  <p className={`${themeClasses.text.secondary} text-xs`}>Última atividade há 2 minutos</p>
                 </div>
-                <span className="rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 px-3 py-1 text-xs font-medium text-violet-300">
+                <span
+                  className={`rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 px-3 py-1 text-xs font-medium ${themeClasses.text.primary} opacity-90`}
+                >
                   Demo interativa
                 </span>
+
               </div>
 
               <div className="grid gap-4 overflow-x-auto pb-2 md:grid-cols-4">
                 {kanbanColumns.map((column) => (
                   <div
                     key={column.title}
-                    className="min-w-[200px] rounded-2xl border border-white/10 bg-zinc-950/50 p-3 backdrop-blur-sm"
+                    className={`min-w-[200px] rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} p-3 backdrop-blur-sm`}
                   >
                     <div className="mb-3 flex items-center justify-between">
-                      <h4 className={`text-sm font-semibold ${column.color.split(' ')[1]}`}>
-                        {column.title}
-                      </h4>
-                      <span className="text-xs text-zinc-500">
-                        {column.items.length}
-                      </span>
+                      <h4 className={`text-sm font-semibold ${column.color.split(' ')[1]}`}>{column.title}</h4>
+                      <span className={`${themeClasses.text.secondary} text-xs`}>{column.items.length}</span>
                     </div>
 
                     <div className="space-y-2">
                       {column.items.map((item) => (
                         <div
                           key={item}
-                          className="group relative rounded-xl border border-white/10 bg-zinc-900/80 p-3 text-sm text-zinc-300 transition-all hover:border-white/20 hover:bg-zinc-800/80"
+                          className={`group relative rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3 text-sm ${themeClasses.text.secondary} transition-all hover:border-violet-500/30`}
                         >
                           {item}
                           <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent to-white/5 opacity-0 transition-opacity group-hover:opacity-100" />
@@ -214,13 +237,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-white/5 bg-gradient-to-b from-zinc-900/50 to-zinc-950">
+      <section className={`border-t ${themeClasses.border.primary} bg-gradient-to-b ${themeClasses.bg.secondary} ${themeClasses.bg.primary}`}>
         <div className="mx-auto max-w-7xl px-6 py-24">
           <div className="mb-16 text-center">
-            <h3 className="text-4xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+            <h3 className="text-4xl font-bold bg-gradient-to-r from-violet-500 to-indigo-500 bg-clip-text text-transparent">
               Tudo que seu time precisa
             </h3>
-            <p className="mt-4 text-lg text-zinc-400">
+            <p className={`mt-4 text-lg ${themeClasses.text.tertiary}`}>
               Uma base moderna para gestão de trabalho em equipe.
             </p>
           </div>
@@ -231,15 +254,15 @@ export default function HomePage() {
               return (
                 <div
                   key={feature.title}
-                  className="group relative rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900 to-zinc-950 p-6 transition-all hover:border-white/20 hover:scale-105"
+                  className={`group relative rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-6 transition-all hover:border-violet-500/30 hover:scale-105`}
                 >
                   <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.color} opacity-0 transition-opacity group-hover:opacity-100`} />
                   <div className="relative">
                     <div className="mb-4 inline-flex rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-3">
                       <Icon className="h-6 w-6 text-violet-400" />
                     </div>
-                    <h4 className="text-xl font-semibold mb-2">{feature.title}</h4>
-                    <p className="text-sm text-zinc-400 leading-relaxed">
+                    <h4 className={`text-xl font-semibold mb-2 ${themeClasses.text.primary}`}>{feature.title}</h4>
+                    <p className={`text-sm ${themeClasses.text.tertiary} leading-relaxed`}>
                       {feature.description}
                     </p>
                   </div>
@@ -254,17 +277,14 @@ export default function HomePage() {
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 blur-3xl" />
         </div>
-        
+
         <div className="relative">
-          <h3 className="text-4xl font-bold leading-tight">
+          <h3 className={`text-4xl font-bold leading-tight ${themeClasses.text.primary}`}>
             Comece a organizar o trabalho
-            <span className="block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-              do seu time hoje
-            </span>
+            <span className="block bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">do seu time hoje</span>
           </h3>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400">
-            Crie sua conta, monte seu workspace e acompanhe projetos com mais
-            clareza e produtividade. 14 dias grátis, sem compromisso.
+          <p className={`mx-auto mt-6 max-w-2xl text-lg ${themeClasses.text.tertiary}`}>
+            Crie sua conta, monte seu workspace e acompanhe projetos com mais clareza e produtividade. 14 dias grátis, sem compromisso.
           </p>
 
           <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -278,13 +298,13 @@ export default function HomePage() {
 
             <Link
               href="/login"
-              className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-8 py-4 font-medium text-white transition-all hover:bg-white/10"
+              className={`inline-flex items-center rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-8 py-4 font-medium ${themeClasses.text.primary} transition-all hover:${themeClasses.bg.hover}`}
             >
               Já tenho conta
             </Link>
           </div>
 
-          <p className="mt-8 text-sm text-zinc-500">
+          <p className={`mt-8 text-sm ${themeClasses.text.secondary}`}>
             ✓ Sem cartão de crédito • ✓ Cancelamento a qualquer momento
           </p>
         </div>
@@ -292,3 +312,4 @@ export default function HomePage() {
     </main>
   );
 }
+

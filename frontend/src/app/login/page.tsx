@@ -88,7 +88,19 @@ function LoginContent() {
 
   return (
     <main className={`min-h-screen ${themeClasses.bg.primary}`}>
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 pt-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className={`group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${themeClasses.bg.subtle} ${themeClasses.border.primary} border hover:${themeClasses.bg.hover}`}
+        >
+          <span className="transition-transform group-hover:-translate-x-0.5">←</span>
+          <span>Voltar</span>
+        </button>
+      </div>
+
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
