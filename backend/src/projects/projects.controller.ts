@@ -1,5 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -42,7 +56,11 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Atualizar projeto' })
   @Roles(Role.OWNER, Role.ADMIN)
   @Patch(':id')
-  update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateProjectDto) {
+  update(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateProjectDto,
+  ) {
     return this.service.update(req.workspaceId, id, dto, req.user.sub);
   }
 }

@@ -7,6 +7,6 @@ import { ActivityModule } from 'src/activity/activity.module';
 @Module({
   imports: [ActivityModule],
   controllers: [CommentsController],
-  providers: [CommentsService, CommentsGateway]
+  providers: [CommentsService, CommentsGateway],
 })
 export class CommentsModule {}

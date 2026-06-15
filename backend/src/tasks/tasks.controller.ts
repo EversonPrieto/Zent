@@ -1,5 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -18,7 +34,7 @@ import { MoveTaskDto } from './dto/move-task.dto';
 @UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
 @Controller('tasks')
 export class TasksController {
-  constructor(private service: TasksService) { }
+  constructor(private service: TasksService) {}
 
   @ApiOperation({ summary: 'Criar task no workspace atual' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
@@ -39,14 +55,18 @@ export class TasksController {
     return this.service.get(req.workspaceId, id);
   }
 
-  @ApiOperation({ summary: 'Atualizar task (status, priority, assignee, position...)' })
+  @ApiOperation({
+    summary: 'Atualizar task (status, priority, assignee, position...)',
+  })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Patch(':id')
   update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateTaskDto) {
     return this.service.update(req.workspaceId, id, dto, req.user.sub);
   }
 
-  @ApiOperation({ summary: 'Mover task no Kanban (status + ordenação via position)' })
+  @ApiOperation({
+    summary: 'Mover task no Kanban (status + ordenação via position)',
+  })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Patch(':id/move')
   move(@Req() req: any, @Param('id') id: string, @Body() dto: MoveTaskDto) {
@@ -63,14 +83,22 @@ export class TasksController {
   @ApiOperation({ summary: 'Adicionar label à task' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Post(':id/labels/:labelId')
-  addLabel(@Req() req: any, @Param('id') taskId: string, @Param('labelId') labelId: string) {
+  addLabel(
+    @Req() req: any,
+    @Param('id') taskId: string,
+    @Param('labelId') labelId: string,
+  ) {
     return this.service.addLabel(req.workspaceId, taskId, labelId);
   }
 
   @ApiOperation({ summary: 'Remover label da task' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Delete(':id/labels/:labelId')
-  removeLabel(@Req() req: any, @Param('id') taskId: string, @Param('labelId') labelId: string) {
+  removeLabel(
+    @Req() req: any,
+    @Param('id') taskId: string,
+    @Param('labelId') labelId: string,
+  ) {
     return this.service.removeLabel(req.workspaceId, taskId, labelId);
   }
 
@@ -78,14 +106,22 @@ export class TasksController {
   @ApiOperation({ summary: 'Adicionar assignee à task' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Post(':id/assignees/:userId')
-  addAssignee(@Req() req: any, @Param('id') taskId: string, @Param('userId') userId: string) {
+  addAssignee(
+    @Req() req: any,
+    @Param('id') taskId: string,
+    @Param('userId') userId: string,
+  ) {
     return this.service.addAssignee(req.workspaceId, taskId, userId);
   }
 
   @ApiOperation({ summary: 'Remover assignee da task' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Delete(':id/assignees/:userId')
-  removeAssignee(@Req() req: any, @Param('id') taskId: string, @Param('userId') userId: string) {
+  removeAssignee(
+    @Req() req: any,
+    @Param('id') taskId: string,
+    @Param('userId') userId: string,
+  ) {
     return this.service.removeAssignee(req.workspaceId, taskId, userId);
   }
 
@@ -96,7 +132,8 @@ export class TasksController {
   addAttachment(
     @Req() req: any,
     @Param('id') taskId: string,
-    @Body() body: { url: string; fileName: string; fileType: string; size?: number },
+    @Body()
+    body: { url: string; fileName: string; fileType: string; size?: number },
   ) {
     return this.service.addAttachment(req.workspaceId, taskId, body);
   }
@@ -104,7 +141,11 @@ export class TasksController {
   @ApiOperation({ summary: 'Remover anexo da task' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Delete(':id/attachments/:attachmentId')
-  removeAttachment(@Req() req: any, @Param('id') taskId: string, @Param('attachmentId') attachmentId: string) {
+  removeAttachment(
+    @Req() req: any,
+    @Param('id') taskId: string,
+    @Param('attachmentId') attachmentId: string,
+  ) {
     return this.service.removeAttachment(req.workspaceId, taskId, attachmentId);
   }
 }

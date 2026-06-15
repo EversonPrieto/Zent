@@ -15,7 +15,7 @@ export class CommentsService {
     private prisma: PrismaService,
     private activity: ActivityService,
     private gateway: CommentsGateway,
-  ) { }
+  ) {}
 
   async create(
     workspaceId: string,

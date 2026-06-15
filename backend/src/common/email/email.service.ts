@@ -1,17 +1,18 @@
-import { Injectable } from '@nestjs/common'
-import { BrevoClient } from '@getbrevo/brevo'
-import { ConfigService } from '@nestjs/config'
+import { Injectable } from '@nestjs/common';
+import { BrevoClient } from '@getbrevo/brevo';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EmailService {
-  private client: BrevoClient
-  private senderEmail: string
+  private client: BrevoClient;
+  private senderEmail: string;
 
   constructor(private config: ConfigService) {
     this.client = new BrevoClient({
       apiKey: this.config.get<string>('BREVO_API_KEY')!,
-    })
-    this.senderEmail = this.config.get<string>('BREVO_SENDER_EMAIL') || 'appzent@outlook.com'
+    });
+    this.senderEmail =
+      this.config.get<string>('BREVO_SENDER_EMAIL') || 'appzent@outlook.com';
   }
 
   async sendInviteEmail({
@@ -20,10 +21,10 @@ export class EmailService {
     invitedByName,
     inviteLink,
   }: {
-    to: string
-    workspaceName: string
-    invitedByName: string
-    inviteLink: string
+    to: string;
+    workspaceName: string;
+    invitedByName: string;
+    inviteLink: string;
   }) {
     const payload = {
       sender: {
@@ -51,16 +52,25 @@ export class EmailService {
         Aceitar convite
       </a>
     `,
-    }
+    };
 
     try {
-      console.log('[EmailService] Sending invite email:', { to, workspaceName, invitedByName, inviteLink })
-      const res = await this.client.transactionalEmails.sendTransacEmail(payload)
-      console.log('[EmailService] ✅ Brevo sendTransacEmail success:', res)
-      return res
+      console.log('[EmailService] Sending invite email:', {
+        to,
+        workspaceName,
+        invitedByName,
+        inviteLink,
+      });
+      const res =
+        await this.client.transactionalEmails.sendTransacEmail(payload);
+      console.log('[EmailService] ✅ Brevo sendTransacEmail success:', res);
+      return res;
     } catch (err) {
-      console.error('[EmailService] ❌ Error sending invite email via Brevo:', err)
-      throw err
+      console.error(
+        '[EmailService] ❌ Error sending invite email via Brevo:',
+        err,
+      );
+      throw err;
     }
   }
 }

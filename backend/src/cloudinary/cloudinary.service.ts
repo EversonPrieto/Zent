@@ -1,7 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
-
 @Injectable()
 export class CloudinaryService {
   constructor() {
@@ -10,8 +9,14 @@ export class CloudinaryService {
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
-      console.error('Missing Cloudinary credentials:', { cloudName, apiKey, apiSecret });
-      throw new BadRequestException('Cloudinary não está configurado corretamente');
+      console.error('Missing Cloudinary credentials:', {
+        cloudName,
+        apiKey,
+        apiSecret,
+      });
+      throw new BadRequestException(
+        'Cloudinary não está configurado corretamente',
+      );
     }
 
     cloudinary.config({
@@ -21,7 +26,10 @@ export class CloudinaryService {
     });
   }
 
-  async uploadImage(file: Express.Multer.File, options: any = {}): Promise<UploadApiResponse> {
+  async uploadImage(
+    file: Express.Multer.File,
+    options: any = {},
+  ): Promise<UploadApiResponse> {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo fornecido');
     }
@@ -35,8 +43,10 @@ export class CloudinaryService {
         ...options,
       };
 
-      console.log('Uploading to Cloudinary with options:', { folder: uploadOptions.folder });
-      
+      console.log('Uploading to Cloudinary with options:', {
+        folder: uploadOptions.folder,
+      });
+
       return await cloudinary.uploader.upload(base64, uploadOptions);
     } catch (error: any) {
       console.error('Cloudinary upload error:', error);

@@ -38,8 +38,10 @@ export class LimitsService {
 
   async checkWorkspaceLimit(userId: string): Promise<void> {
     try {
-      console.log(`[LimitsService] Checking workspace limit for user: ${userId}`);
-      
+      console.log(
+        `[LimitsService] Checking workspace limit for user: ${userId}`,
+      );
+
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (!user) {
         throw new BadRequestException('Usuário não encontrado');
@@ -54,14 +56,16 @@ export class LimitsService {
         where: { userId, workspace: { members: { some: { role: 'OWNER' } } } },
       });
 
-      console.log(`[LimitsService] User workspaces (owned): ${count}, limit: ${limits.workspaces}`);
+      console.log(
+        `[LimitsService] User workspaces (owned): ${count}, limit: ${limits.workspaces}`,
+      );
 
       if (count >= limits.workspaces) {
         throw new BadRequestException(
-          `Você atingiu o limite de ${limits.workspaces} workspace(s) do plano ${plan}. Upgrade para Pro para ter mais!`
+          `Você atingiu o limite de ${limits.workspaces} workspace(s) do plano ${plan}. Upgrade para Pro para ter mais!`,
         );
       }
-      
+
       console.log(`[LimitsService] Workspace limit check passed`);
     } catch (error) {
       console.error(`[LimitsService] Error in checkWorkspaceLimit:`, error);
@@ -93,7 +97,7 @@ export class LimitsService {
 
     if (count >= limits.projectsPerWorkspace) {
       throw new BadRequestException(
-        `Você atingiu o limite de ${limits.projectsPerWorkspace} projeto(s) por workspace. Upgrade para Pro para ter mais!`
+        `Você atingiu o limite de ${limits.projectsPerWorkspace} projeto(s) por workspace. Upgrade para Pro para ter mais!`,
       );
     }
   }
@@ -122,12 +126,15 @@ export class LimitsService {
 
     if (count >= limits.tasksPerProject) {
       throw new BadRequestException(
-        `Você atingiu o limite de ${limits.tasksPerProject} tarefa(s) por projeto. Upgrade para Pro para ter mais!`
+        `Você atingiu o limite de ${limits.tasksPerProject} tarefa(s) por projeto. Upgrade para Pro para ter mais!`,
       );
     }
   }
 
-  async checkTeamMemberLimit(userId: string, workspaceId: string): Promise<void> {
+  async checkTeamMemberLimit(
+    userId: string,
+    workspaceId: string,
+  ): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new BadRequestException('Usuário não encontrado');
@@ -151,7 +158,7 @@ export class LimitsService {
 
     if (count >= limits.teamMembers) {
       throw new BadRequestException(
-        `Você atingiu o limite de ${limits.teamMembers} membro(s) da equipe. Upgrade para Pro para ter mais!`
+        `Você atingiu o limite de ${limits.teamMembers} membro(s) da equipe. Upgrade para Pro para ter mais!`,
       );
     }
   }
@@ -209,7 +216,8 @@ export class LimitsService {
         id: ws.workspaceId,
         name: ws.workspace.name,
         projects: projectCounts[ws.workspaceId] || 0,
-        members: workspaces.filter((m) => m.workspaceId === ws.workspaceId).length,
+        members: workspaces.filter((m) => m.workspaceId === ws.workspaceId)
+          .length,
       })),
       totalProjects: Object.values(projectCounts).reduce((a, b) => a + b, 0),
       totalTasks: Object.values(taskCounts).reduce((a, b) => a + b, 0),

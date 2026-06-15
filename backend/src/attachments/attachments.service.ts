@@ -5,7 +5,13 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AttachmentsService {
   constructor(private prisma: PrismaService) {}
 
-  async addAttachment(taskId: string, url: string, fileName: string, fileType: string, size?: number) {
+  async addAttachment(
+    taskId: string,
+    url: string,
+    fileName: string,
+    fileType: string,
+    size?: number,
+  ) {
     return this.prisma.attachment.create({
       data: {
         taskId,
@@ -25,7 +31,9 @@ export class AttachmentsService {
   }
 
   async deleteAttachment(id: string, taskId: string) {
-    const attachment = await this.prisma.attachment.findUnique({ where: { id } });
+    const attachment = await this.prisma.attachment.findUnique({
+      where: { id },
+    });
     if (!attachment || attachment.taskId !== taskId) {
       throw new ForbiddenException('Acesso negado');
     }

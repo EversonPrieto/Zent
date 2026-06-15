@@ -23,11 +23,15 @@ export class BillingService {
     return this.stripe;
   }
 
-  async createPaymentIntent(email: string, name: string, amount: number = 2900) {
+  async createPaymentIntent(
+    email: string,
+    name: string,
+    amount: number = 2900,
+  ) {
     try {
       const stripe = this.getStripe();
       const paymentIntent = await stripe.paymentIntents.create({
-        amount, 
+        amount,
         currency: 'brl',
         receipt_email: email,
         metadata: {
@@ -41,25 +45,32 @@ export class BillingService {
         paymentIntentId: paymentIntent.id,
       };
     } catch (error) {
-      throw new Error(`Failed to create payment intent: ${(error as any).message}`);
+      throw new Error(`Failed to create payment intent: ${error.message}`);
     }
   }
 
   async confirmPaymentIntent(paymentIntentId: string, userId: string) {
     try {
-      console.log(`[BillingService] Confirming payment intent: ${paymentIntentId} for user: ${userId}`);
-      
+      console.log(
+        `[BillingService] Confirming payment intent: ${paymentIntentId} for user: ${userId}`,
+      );
+
       const stripe = this.getStripe();
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      
-      console.log(`[BillingService] PaymentIntent status: ${paymentIntent.status}`);
-      
+      const paymentIntent =
+        await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      console.log(
+        `[BillingService] PaymentIntent status: ${paymentIntent.status}`,
+      );
+
       if (paymentIntent.status === 'succeeded') {
         // Calculate subscription end date (30 days from now)
         const subscriptionEndsAt = new Date();
         subscriptionEndsAt.setDate(subscriptionEndsAt.getDate() + 30);
 
-        console.log(`[BillingService] Subscription ends at: ${subscriptionEndsAt.toISOString()}`);
+        console.log(
+          `[BillingService] Subscription ends at: ${subscriptionEndsAt.toISOString()}`,
+        );
 
         // Update user with Pro plan and subscription info
         const updateData: any = {
@@ -70,7 +81,9 @@ export class BillingService {
 
         // Only set stripeCustomerId if it exists
         if (paymentIntent.customer) {
-          console.log(`[BillingService] Setting stripeCustomerId: ${paymentIntent.customer}`);
+          console.log(
+            `[BillingService] Setting stripeCustomerId: ${paymentIntent.customer}`,
+          );
           updateData.stripeCustomerId = paymentIntent.customer;
         }
 
@@ -86,8 +99,10 @@ export class BillingService {
         const { password, ...result } = updatedUser;
         return result;
       }
-      
-      throw new Error(`Payment intent status is ${paymentIntent.status}, expected succeeded`);
+
+      throw new Error(
+        `Payment intent status is ${paymentIntent.status}, expected succeeded`,
+      );
     } catch (error) {
       console.error('[BillingService] confirmPaymentIntent error:', error);
       throw error;
@@ -110,7 +125,7 @@ export class BillingService {
       const { password, ...result } = updatedUser;
       return result;
     } catch (error) {
-      throw new Error(`Failed to cancel subscription: ${(error as any).message}`);
+      throw new Error(`Failed to cancel subscription: ${error.message}`);
     }
   }
 }

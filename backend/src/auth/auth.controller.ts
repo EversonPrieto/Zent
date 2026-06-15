@@ -1,4 +1,14 @@
-import { Body, Controller, Post, Get, Patch, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Patch,
+  UseGuards,
+  Req,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -67,7 +77,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('email-preferences')
   @ApiBearerAuth()
-  updateEmailPreferences(@Req() req: any, @Body() dto: UpdateEmailPreferencesDto) {
+  updateEmailPreferences(
+    @Req() req: any,
+    @Body() dto: UpdateEmailPreferencesDto,
+  ) {
     return this.authService.updateEmailPreferences(req.user.sub, dto);
   }
 }

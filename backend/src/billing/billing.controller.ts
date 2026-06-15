@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards, Request, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -12,7 +20,11 @@ export class BillingController {
     @Body() body: { email: string; name: string; amount?: number },
   ) {
     const { email, name, amount } = body;
-    const result = await this.billingService.createPaymentIntent(email, name, amount);
+    const result = await this.billingService.createPaymentIntent(
+      email,
+      name,
+      amount,
+    );
     return result;
   }
 
@@ -25,19 +37,24 @@ export class BillingController {
     try {
       const { paymentIntentId } = body;
       const userId = req.user.sub || req.user.id;
-      
+
       if (!paymentIntentId) {
         throw new BadRequestException('paymentIntentId is required');
       }
-      
-      const result = await this.billingService.confirmPaymentIntent(paymentIntentId, userId);
+
+      const result = await this.billingService.confirmPaymentIntent(
+        paymentIntentId,
+        userId,
+      );
       return result;
     } catch (error) {
       console.error('[BillingController] confirmPaymentIntent error:', error);
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(`Payment confirmation failed: ${(error as any).message}`);
+      throw new InternalServerErrorException(
+        `Payment confirmation failed: ${error.message}`,
+      );
     }
   }
 

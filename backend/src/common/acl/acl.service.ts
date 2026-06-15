@@ -109,15 +109,24 @@ export class AclService {
 
     return {
       role,
-      canCreateProject: role ? this.permissions['project:create'].includes(role) : false,
-      canUpdateProject: role ? this.permissions['project:update'].includes(role) : false,
-      canDeleteWorkspace: role ? this.permissions['workspace:delete'].includes(role) : false,
-      canInviteMembers: role ? this.permissions['workspace:invite'].includes(role) : false,
-      canRemoveMembers: role ? this.permissions['workspace:remove-member'].includes(role) : false,
+      canCreateProject: role
+        ? this.permissions['project:create'].includes(role)
+        : false,
+      canUpdateProject: role
+        ? this.permissions['project:update'].includes(role)
+        : false,
+      canDeleteWorkspace: role
+        ? this.permissions['workspace:delete'].includes(role)
+        : false,
+      canInviteMembers: role
+        ? this.permissions['workspace:invite'].includes(role)
+        : false,
+      canRemoveMembers: role
+        ? this.permissions['workspace:remove-member'].includes(role)
+        : false,
       canEditTasks: role ? this.permissions['task:edit'].includes(role) : false,
     };
   }
-
 
   private getActionLabel(action: string): string {
     const labels: Record<string, string> = {
