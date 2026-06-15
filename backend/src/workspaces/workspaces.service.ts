@@ -1,4 +1,9 @@
-import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { Role } from '@prisma/client';
@@ -8,379 +13,392 @@ import { LimitsService } from 'src/limits/limits.service';
 
 @Injectable()
 export class WorkspacesService {
-    constructor(
-        private prisma: PrismaService,
-        private cloudinary: CloudinaryService,
-        private acl: AclService,
-        private limits: LimitsService,
-    ) { }
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService,
+    private acl: AclService,
+    private limits: LimitsService,
+  ) {}
 
-    async create(userId: string, dto: CreateWorkspaceDto) {
-        try {
-            console.log(`[WorkspacesService] Creating workspace for user: ${userId}`, dto);
-            
-            // Check workspace limit
-            await this.limits.checkWorkspaceLimit(userId);
-            
-            console.log(`[WorkspacesService] Workspace limit check passed`);
+  async create(userId: string, dto: CreateWorkspaceDto) {
+    try {
+      console.log(
+        `[WorkspacesService] Creating workspace for user: ${userId}`,
+        dto,
+      );
 
-            return this.prisma.$transaction(async (tx) => {
-                const workspace = await tx.workspace.create({
-                    data: { name: dto.name },
-                });
+      // Check workspace limit
+      await this.limits.checkWorkspaceLimit(userId);
 
-                await tx.workspaceMember.create({
-                    data: {
-                        userId,
-                        workspaceId: workspace.id,
-                        role: Role.OWNER,
-                    },
-                });
+      console.log(`[WorkspacesService] Workspace limit check passed`);
 
-                console.log(`[WorkspacesService] Workspace created:`, workspace);
-                return workspace;
-            });
-        } catch (error) {
-            console.error(`[WorkspacesService] Error creating workspace:`, error);
-            throw error;
-        }
+      return this.prisma.$transaction(async (tx) => {
+        const workspace = await tx.workspace.create({
+          data: { name: dto.name },
+        });
+
+        await tx.workspaceMember.create({
+          data: {
+            userId,
+            workspaceId: workspace.id,
+            role: Role.OWNER,
+          },
+        });
+
+        console.log(`[WorkspacesService] Workspace created:`, workspace);
+        return workspace;
+      });
+    } catch (error) {
+      console.error(`[WorkspacesService] Error creating workspace:`, error);
+      throw error;
+    }
+  }
+
+  async listForUser(userId: string) {
+    const memberships = await this.prisma.workspaceMember.findMany({
+      where: { userId },
+      include: { workspace: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return memberships.map((m) => ({
+      id: m.workspace.id,
+      name: m.workspace.name,
+      logoUrl: m.workspace.logoUrl,
+      role: m.role,
+    }));
+  }
+
+  async current(userId: string, workspaceId: string) {
+    const membership = await this.prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId } },
+      include: { workspace: true },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Sem acesso a este workspace.');
     }
 
-    async listForUser(userId: string) {
-        const memberships = await this.prisma.workspaceMember.findMany({
+    return {
+      id: membership.workspace.id,
+      name: membership.workspace.name,
+      logoUrl: membership.workspace.logoUrl,
+      role: membership.role,
+    };
+  }
+
+  async update(workspaceId: string, userId: string, name: string) {
+    const membership = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Você não pertence a este workspace.');
+    }
+
+    if (!['OWNER', 'ADMIN'].includes(membership.role)) {
+      throw new ForbiddenException(
+        'Você não tem permissão para editar este workspace.',
+      );
+    }
+
+    return this.prisma.workspace
+      .update({
+        where: { id: workspaceId },
+        data: { name },
+        select: {
+          id: true,
+          name: true,
+          logoUrl: true,
+          members: {
             where: { userId },
-            include: { workspace: true },
-            orderBy: { createdAt: 'desc' },
-        });
+            select: { role: true },
+            take: 1,
+          },
+        },
+      })
+      .then((workspace) => ({
+        id: workspace.id,
+        name: workspace.name,
+        logoUrl: workspace.logoUrl,
+        role: workspace.members[0]?.role ?? 'MEMBER',
+      }));
+  }
 
-        return memberships.map((m) => ({
-            id: m.workspace.id,
-            name: m.workspace.name,
-            logoUrl: m.workspace.logoUrl,
-            role: m.role,
-        }));
+  async delete(workspaceId: string, userId: string) {
+    await this.acl.requirePermission('workspace:delete', workspaceId, userId);
+
+    await this.prisma.workspace.delete({
+      where: { id: workspaceId },
+    });
+
+    return { message: 'Workspace deletado com sucesso.' };
+  }
+
+  async inviteMember(
+    workspaceId: string,
+    inviterUserId: string,
+    email: string,
+    role: 'ADMIN' | 'MEMBER' | 'VIEWER',
+  ) {
+    await this.acl.requirePermission(
+      'workspace:invite',
+      workspaceId,
+      inviterUserId,
+    );
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado com esse email.');
     }
 
-    async current(userId: string, workspaceId: string) {
-        const membership = await this.prisma.workspaceMember.findUnique({
-            where: { workspaceId_userId: { workspaceId, userId } },
-            include: { workspace: true },
-        });
+    const existingMembership = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId: user.id,
+      },
+    });
 
-        if (!membership) {
-            throw new ForbiddenException('Sem acesso a este workspace.');
-        }
-
-        return {
-            id: membership.workspace.id,
-            name: membership.workspace.name,
-            logoUrl: membership.workspace.logoUrl,
-            role: membership.role,
-        };
+    if (existingMembership) {
+      throw new ConflictException('Esse usuário já faz parte do workspace.');
     }
 
-    async update(workspaceId: string, userId: string, name: string) {
-        const membership = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId,
-            },
-            select: {
-                role: true,
-            },
-        });
+    const membership = await this.prisma.workspaceMember.create({
+      data: {
+        workspaceId,
+        userId: user.id,
+        role,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
 
-        if (!membership) {
-            throw new ForbiddenException('Você não pertence a este workspace.');
-        }
+    return {
+      id: membership.id,
+      role: membership.role,
+      user: membership.user,
+    };
+  }
 
-        if (!['OWNER', 'ADMIN'].includes(membership.role)) {
-            throw new ForbiddenException('Você não tem permissão para editar este workspace.');
-        }
+  async listMembers(workspaceId: string, userId: string) {
+    const membership = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId,
+      },
+      select: { id: true },
+    });
 
-        return this.prisma.workspace.update({
-            where: { id: workspaceId },
-            data: { name },
-            select: {
-                id: true,
-                name: true,
-                logoUrl: true,
-                members: {
-                    where: { userId },
-                    select: { role: true },
-                    take: 1,
-                },
-            },
-        }).then((workspace) => ({
-            id: workspace.id,
-            name: workspace.name,
-            logoUrl: workspace.logoUrl,
-            role: workspace.members[0]?.role ?? 'MEMBER',
-        }));
+    if (!membership) {
+      throw new ForbiddenException('Você não pertence a este workspace.');
     }
 
-    async delete(workspaceId: string, userId: string) {
-        await this.acl.requirePermission('workspace:delete', workspaceId, userId);
+    return this.prisma.workspaceMember.findMany({
+      where: { workspaceId },
+      orderBy: {
+        createdAt: 'asc',
+      },
+      select: {
+        id: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+  }
 
-        await this.prisma.workspace.delete({
-            where: { id: workspaceId },
-        });
+  async updateMemberRole(
+    workspaceId: string,
+    requesterUserId: string,
+    memberId: string,
+    role: 'ADMIN' | 'MEMBER' | 'VIEWER',
+  ) {
+    const requesterRole = await this.acl.requirePermission(
+      'workspace:update-member',
+      workspaceId,
+      requesterUserId,
+    );
 
-        return { message: 'Workspace deletado com sucesso.' };
+    const target = await this.prisma.workspaceMember.findFirst({
+      where: {
+        id: memberId,
+        workspaceId,
+      },
+      select: {
+        id: true,
+        role: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!target) {
+      throw new NotFoundException('Membro não encontrado.');
     }
 
-    async inviteMember(
-        workspaceId: string,
-        inviterUserId: string,
-        email: string,
-        role: 'ADMIN' | 'MEMBER' | 'VIEWER',
-    ) {
-        await this.acl.requirePermission('workspace:invite', workspaceId, inviterUserId);
-
-        const user = await this.prisma.user.findUnique({
-            where: { email },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                avatarUrl: true,
-            },
-        });
-
-        if (!user) {
-            throw new NotFoundException('Usuário não encontrado com esse email.');
-        }
-
-        const existingMembership = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId: user.id,
-            },
-        });
-
-        if (existingMembership) {
-            throw new ConflictException('Esse usuário já faz parte do workspace.');
-        }
-
-        const membership = await this.prisma.workspaceMember.create({
-            data: {
-                workspaceId,
-                userId: user.id,
-                role,
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        avatarUrl: true,
-                    },
-                },
-            },
-        });
-
-        return {
-            id: membership.id,
-            role: membership.role,
-            user: membership.user,
-        };
+    if (target.userId === requesterUserId) {
+      throw new ForbiddenException('Você não pode alterar sua própria role.');
     }
 
-    async listMembers(workspaceId: string, userId: string) {
-        const membership = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId,
-            },
-            select: { id: true },
-        });
-
-        if (!membership) {
-            throw new ForbiddenException('Você não pertence a este workspace.');
-        }
-
-        return this.prisma.workspaceMember.findMany({
-            where: { workspaceId },
-            orderBy: {
-                createdAt: 'asc',
-            },
-            select: {
-                id: true,
-                role: true,
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        avatarUrl: true,
-                    },
-                },
-            },
-        });
+    if (requesterRole === 'ADMIN') {
+      if (target.role === 'OWNER' || target.role === 'ADMIN') {
+        throw new ForbiddenException('Você não pode alterar este membro.');
+      }
     }
 
-    async updateMemberRole(
-        workspaceId: string,
-        requesterUserId: string,
-        memberId: string,
-        role: 'ADMIN' | 'MEMBER' | 'VIEWER',
-    ) {
-        const requesterRole = await this.acl.requirePermission(
-            'workspace:update-member',
-            workspaceId,
-            requesterUserId,
-        );
+    const updated = await this.prisma.workspaceMember.update({
+      where: { id: memberId },
+      data: { role },
+      select: {
+        id: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
 
-        const target = await this.prisma.workspaceMember.findFirst({
-            where: {
-                id: memberId,
-                workspaceId,
-            },
-            select: {
-                id: true,
-                role: true,
-                userId: true,
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        avatarUrl: true,
-                    },
-                },
-            },
-        });
+    return updated;
+  }
 
-        if (!target) {
-            throw new NotFoundException('Membro não encontrado.');
-        }
+  async removeMember(
+    workspaceId: string,
+    requesterUserId: string,
+    memberId: string,
+  ) {
+    const requesterRole = await this.acl.requirePermission(
+      'workspace:remove-member',
+      workspaceId,
+      requesterUserId,
+    );
 
-        if (target.userId === requesterUserId) {
-            throw new ForbiddenException('Você não pode alterar sua própria role.');
-        }
+    const target = await this.prisma.workspaceMember.findFirst({
+      where: {
+        id: memberId,
+        workspaceId,
+      },
+      select: {
+        id: true,
+        role: true,
+        userId: true,
+      },
+    });
 
-        if (requesterRole === 'ADMIN') {
-            if (target.role === 'OWNER' || target.role === 'ADMIN') {
-                throw new ForbiddenException('Você não pode alterar este membro.');
-            }
-        }
-
-        const updated = await this.prisma.workspaceMember.update({
-            where: { id: memberId },
-            data: { role },
-            select: {
-                id: true,
-                role: true,
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        avatarUrl: true,
-                    },
-                },
-            },
-        });
-
-        return updated;
+    if (!target) {
+      throw new NotFoundException('Membro não encontrado.');
     }
 
-    async removeMember(
-        workspaceId: string,
-        requesterUserId: string,
-        memberId: string,
-    ) {
-        const requesterRole = await this.acl.requirePermission(
-            'workspace:remove-member',
-            workspaceId,
-            requesterUserId,
-        );
-
-        const target = await this.prisma.workspaceMember.findFirst({
-            where: {
-                id: memberId,
-                workspaceId,
-            },
-            select: {
-                id: true,
-                role: true,
-                userId: true,
-            },
-        });
-
-        if (!target) {
-            throw new NotFoundException('Membro não encontrado.');
-        }
-
-        if (target.userId === requesterUserId) {
-            throw new ForbiddenException('Você não pode remover a si mesmo.');
-        }
-
-        if (requesterRole === 'ADMIN') {
-            if (target.role === 'OWNER' || target.role === 'ADMIN') {
-                throw new ForbiddenException('Você não pode remover este membro.');
-            }
-        }
-
-        await this.prisma.workspaceMember.delete({
-            where: { id: memberId },
-        });
-
-        return { message: 'Membro removido com sucesso.' };
-    }
-    
-    async updateLogo(
-        workspaceId: string,
-        userId: string,
-        file: Express.Multer.File,
-    ) {
-        const membership = await this.prisma.workspaceMember.findFirst({
-            where: {
-                workspaceId,
-                userId,
-            },
-            select: {
-                role: true,
-            },
-        });
-
-        if (!membership) {
-            throw new ForbiddenException('Você não pertence a este workspace.');
-        }
-
-        if (!['OWNER', 'ADMIN'].includes(membership.role)) {
-            throw new ForbiddenException('Você não tem permissão para editar este workspace.');
-        }
-
-        const uploaded = await this.cloudinary.uploadImage(file);
-
-        const workspace = await this.prisma.workspace.update({
-            where: { id: workspaceId },
-            data: {
-                logoUrl: uploaded.secure_url,
-            },
-            select: {
-                id: true,
-                name: true,
-                logoUrl: true,
-                members: {
-                    where: { userId },
-                    select: { role: true },
-                    take: 1,
-                },
-            },
-        });
-
-        return {
-            id: workspace.id,
-            name: workspace.name,
-            logoUrl: workspace.logoUrl,
-            role: workspace.members[0]?.role ?? 'MEMBER',
-        };
+    if (target.userId === requesterUserId) {
+      throw new ForbiddenException('Você não pode remover a si mesmo.');
     }
 
-    async getUserPermissions(workspaceId: string, userId: string) {
-        return this.acl.getUserPermissions(workspaceId, userId);
+    if (requesterRole === 'ADMIN') {
+      if (target.role === 'OWNER' || target.role === 'ADMIN') {
+        throw new ForbiddenException('Você não pode remover este membro.');
+      }
     }
+
+    await this.prisma.workspaceMember.delete({
+      where: { id: memberId },
+    });
+
+    return { message: 'Membro removido com sucesso.' };
+  }
+
+  async updateLogo(
+    workspaceId: string,
+    userId: string,
+    file: Express.Multer.File,
+  ) {
+    const membership = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Você não pertence a este workspace.');
+    }
+
+    if (!['OWNER', 'ADMIN'].includes(membership.role)) {
+      throw new ForbiddenException(
+        'Você não tem permissão para editar este workspace.',
+      );
+    }
+
+    const uploaded = await this.cloudinary.uploadImage(file);
+
+    const workspace = await this.prisma.workspace.update({
+      where: { id: workspaceId },
+      data: {
+        logoUrl: uploaded.secure_url,
+      },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        members: {
+          where: { userId },
+          select: { role: true },
+          take: 1,
+        },
+      },
+    });
+
+    return {
+      id: workspace.id,
+      name: workspace.name,
+      logoUrl: workspace.logoUrl,
+      role: workspace.members[0]?.role ?? 'MEMBER',
+    };
+  }
+
+  async getUserPermissions(workspaceId: string, userId: string) {
+    return this.acl.getUserPermissions(workspaceId, userId);
+  }
 }

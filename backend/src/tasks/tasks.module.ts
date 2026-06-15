@@ -10,5 +10,7 @@ import { LimitsModule } from 'src/limits/limits.module';
   imports: [ActivityModule, AclModule, LimitsModule],
   controllers: [TasksController],
   providers: [TasksService, TasksGateway],
+  exports: [TasksGateway],
 })
 export class TasksModule {}
+

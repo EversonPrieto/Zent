@@ -25,7 +25,7 @@ import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('workspaces')
 export class WorkspacesController {
-  constructor(private service: WorkspacesService) { }
+  constructor(private service: WorkspacesService) {}
 
   @Post()
   create(@Req() req: any, @Body() dto: CreateWorkspaceDto) {
@@ -43,10 +43,7 @@ export class WorkspacesController {
   }
 
   @Get('current')
-  current(
-    @Req() req: any,
-    @Headers('x-workspace-id') workspaceId: string,
-  ) {
+  current(@Req() req: any, @Headers('x-workspace-id') workspaceId: string) {
     return this.service.current(req.user.sub, workspaceId);
   }
 
@@ -74,10 +71,7 @@ export class WorkspacesController {
   }
 
   @Get('members')
-  listMembers(
-    @Req() req: any,
-    @Headers('x-workspace-id') workspaceId: string,
-  ) {
+  listMembers(@Req() req: any, @Headers('x-workspace-id') workspaceId: string) {
     return this.service.listMembers(workspaceId, req.user.sub);
   }
   @Patch('members/:memberId')
@@ -101,18 +95,11 @@ export class WorkspacesController {
     @Headers('x-workspace-id') workspaceId: string,
     @Param('memberId') memberId: string,
   ) {
-    return this.service.removeMember(
-      workspaceId,
-      req.user.sub,
-      memberId,
-    );
+    return this.service.removeMember(workspaceId, req.user.sub, memberId);
   }
 
   @Get('permissions/:workspaceId')
-  getPermissions(
-    @Req() req: any,
-    @Param('workspaceId') workspaceId: string,
-  ) {
+  getPermissions(@Req() req: any, @Param('workspaceId') workspaceId: string) {
     return this.service.getUserPermissions(workspaceId, req.user.sub);
   }
 
@@ -127,10 +114,7 @@ export class WorkspacesController {
   }
 
   @Delete(':workspaceId')
-  deleteWorkspace(
-    @Req() req: any,
-    @Param('workspaceId') workspaceId: string,
-  ) {
+  deleteWorkspace(@Req() req: any, @Param('workspaceId') workspaceId: string) {
     return this.service.delete(workspaceId, req.user.sub);
   }
 }

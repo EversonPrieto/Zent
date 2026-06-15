@@ -2,10 +2,9 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProjectDto {
-
   @ApiProperty({
     example: 'Zent Core',
-    description: 'Nome do projeto'
+    description: 'Nome do projeto',
   })
   @IsString()
   @IsNotEmpty()
@@ -13,7 +12,7 @@ export class CreateProjectDto {
 
   @ApiPropertyOptional({
     example: 'Projeto principal do sistema',
-    description: 'Descrição opcional do projeto'
+    description: 'Descrição opcional do projeto',
   })
   @IsString()
   @IsOptional()

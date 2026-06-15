@@ -39,19 +39,30 @@ export class PresenceGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage('join-project')
   handleJoinProject(
-    @MessageBody() data: { projectId: string; userId: string; name: string; avatarUrl: string },
+    @MessageBody()
+    data: {
+      projectId: string;
+      userId: string;
+      name: string;
+      avatarUrl: string;
+    },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(`🟢 usuário ${data.name} (${data.userId}) entrou no projeto ${data.projectId}`);
+    console.log(
+      `🟢 usuário ${data.name} (${data.userId}) entrou no projeto ${data.projectId}`,
+    );
     console.log(`   Dados recebidos:`, JSON.stringify(data));
-    
+
     if (!data.projectId || !data.userId) {
       console.error('❌ Erro: projectId ou userId vazio!', data);
       return;
     }
-    
+
     client.join(`project-presence-${data.projectId}`);
-    this.socketMap.set(client.id, { projectId: data.projectId, userId: data.userId });
+    this.socketMap.set(client.id, {
+      projectId: data.projectId,
+      userId: data.userId,
+    });
 
     if (!this.onlineUsers.has(data.projectId)) {
       this.onlineUsers.set(data.projectId, new Map());
@@ -65,7 +76,10 @@ export class PresenceGateway implements OnGatewayDisconnect {
         avatarUrl: data.avatarUrl,
         joinedAt: new Date(),
       });
-      console.log(`   Total de usuários no projeto ${data.projectId}:`, projectUsers.size);
+      console.log(
+        `   Total de usuários no projeto ${data.projectId}:`,
+        projectUsers.size,
+      );
     }
 
     this.broadcastPresence(data.projectId);
@@ -132,11 +146,15 @@ export class PresenceGateway implements OnGatewayDisconnect {
 
   private broadcastPresence(projectId: string) {
     const users = Array.from(
-      (this.onlineUsers.get(projectId) || new Map()).values()
+      (this.onlineUsers.get(projectId) || new Map()).values(),
     );
-    console.log(`👀 transmitindo ${users.length} usuários online para sala project-presence-${projectId}`);
+    console.log(
+      `👀 transmitindo ${users.length} usuários online para sala project-presence-${projectId}`,
+    );
     if (users.length > 0) {
-      console.log(`   Usuários: ${users.map(u => `${u.name}(${u.id})`).join(', ')}`);
+      console.log(
+        `   Usuários: ${users.map((u) => `${u.name}(${u.id})`).join(', ')}`,
+      );
     }
     this.server
       .to(`project-presence-${projectId}`)

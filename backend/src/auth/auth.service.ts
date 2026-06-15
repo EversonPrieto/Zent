@@ -64,7 +64,12 @@ export class AuthService {
 
     return {
       accessToken,
-      user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      },
     };
   }
 
@@ -95,7 +100,9 @@ export class AuthService {
     });
 
     if (!user) {
-      return { message: 'Se o email existe, você receberá um link de recuperação.' };
+      return {
+        message: 'Se o email existe, você receberá um link de recuperação.',
+      };
     }
 
     const resetToken = randomBytes(32).toString('hex');
@@ -113,7 +120,9 @@ export class AuthService {
       });
     } catch (error) {
       console.error('Error saving reset token:', error);
-      throw new InternalServerErrorException('Erro ao processar requisição de recuperação de senha');
+      throw new InternalServerErrorException(
+        'Erro ao processar requisição de recuperação de senha',
+      );
     }
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
@@ -188,12 +197,13 @@ export class AuthService {
       console.error('Email sending error:', error);
     }
 
-    return { message: 'Se o email existe, você receberá um link de recuperação.' };
+    return {
+      message: 'Se o email existe, você receberá um link de recuperação.',
+    };
   }
 
   async resetPassword(dto: ResetPasswordDto) {
     try {
-
       const users = await this.prisma.user.findMany({
         select: {
           id: true,
@@ -202,7 +212,11 @@ export class AuthService {
         },
       });
 
-      let matchedUser: { id: string; resetPasswordToken: string | null; resetPasswordExpires: Date | null } | null = null;
+      let matchedUser: {
+        id: string;
+        resetPasswordToken: string | null;
+        resetPasswordExpires: Date | null;
+      } | null = null;
       for (const user of users) {
         if (user.resetPasswordToken && user.resetPasswordExpires) {
           if (new Date() > user.resetPasswordExpires) {
@@ -216,7 +230,10 @@ export class AuthService {
             continue;
           }
 
-          const isTokenValid = await bcrypt.compare(dto.token, user.resetPasswordToken);
+          const isTokenValid = await bcrypt.compare(
+            dto.token,
+            user.resetPasswordToken,
+          );
           if (isTokenValid) {
             matchedUser = user;
             break;
@@ -225,7 +242,9 @@ export class AuthService {
       }
 
       if (!matchedUser) {
-        throw new BadRequestException('Link de recuperação inválido ou expirado.');
+        throw new BadRequestException(
+          'Link de recuperação inválido ou expirado.',
+        );
       }
 
       const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
@@ -260,8 +279,12 @@ export class AuthService {
     }
 
     try {
-      console.log('Iniciando upload do avatar:', { userId, fileName: file.filename, mimetype: file.mimetype });
-      
+      console.log('Iniciando upload do avatar:', {
+        userId,
+        fileName: file.filename,
+        mimetype: file.mimetype,
+      });
+
       // Upload para Cloudinary
       const uploadResult = await this.cloudinary.uploadImage(file, {
         folder: 'zent/avatars',
@@ -293,7 +316,9 @@ export class AuthService {
 
     // Validar que a senha atual e a nova são diferentes
     if (currentPassword === newPassword) {
-      throw new BadRequestException('A nova senha deve ser diferente da senha atual');
+      throw new BadRequestException(
+        'A nova senha deve ser diferente da senha atual',
+      );
     }
 
     try {
@@ -307,7 +332,10 @@ export class AuthService {
       }
 
       // Validar senha atual
-      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
       if (!isPasswordValid) {
         throw new BadRequestException('Senha atual incorreta');
       }
@@ -354,7 +382,9 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Update email preferences error:', error);
-      throw new InternalServerErrorException('Erro ao atualizar preferências de email');
+      throw new InternalServerErrorException(
+        'Erro ao atualizar preferências de email',
+      );
     }
   }
 }

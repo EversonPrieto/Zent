@@ -147,7 +147,9 @@ export default function TaskModal({
 
   const [dueDate, setDueDate] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -157,7 +159,20 @@ export default function TaskModal({
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
 
-  const { labels, loading: labelsLoading } = useLabels(workspaceId);
+  const {
+    labels,
+    loading: labelsLoading,
+    createLabel,
+    updateLabel,
+  } = useLabels(workspaceId);
+
+  const DEFAULT_LABEL_COLOR = '#8B5CF6';
+  const [newLabelName, setNewLabelName] = useState('');
+  const [newLabelColor, setNewLabelColor] = useState(DEFAULT_LABEL_COLOR);
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
+  const [editingLabelName, setEditingLabelName] = useState('');
+  const [editingLabelColor, setEditingLabelColor] = useState(DEFAULT_LABEL_COLOR);
+
   const [availableAssignees, setAvailableAssignees] = useState<any[]>([]);
 
   useEffect(() => {
@@ -386,9 +401,11 @@ export default function TaskModal({
         }
       }
 
-      const finalTask = await api(`/tasks/${updated.id}`, {
-        workspaceId,
-      });
+      // Recarrega a task com os labels atualizados e devolve pro board em realtime
+      const finalTask = await api(`/tasks/${updated.id}`, { workspaceId });
+
+      // Garante que as labels de tasks já abertas/visíveis sejam atualizadas
+      onSaved(finalTask);
 
       try {
         const activityResponse = await api(`/activities?taskId=${currentTask.id}`, {
@@ -683,32 +700,204 @@ export default function TaskModal({
                       <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
                     </div>
                   ) : (
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {labels.map((label: any) => (
-                        <label key={label.id} className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 cursor-pointer hover:${themeClasses.bg.hover} transition-colors`}>
-                          <input
-                            type="checkbox"
-                            checked={selectedLabels.includes(label.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedLabels([...selectedLabels, label.id]);
-                              } else {
-                                setSelectedLabels(selectedLabels.filter(id => id !== label.id));
-                              }
+                    <div className="space-y-3 max-h-40 overflow-y-auto">
+                      {/* Criar label (mesmo UX do CreateTaskModal) */}
+                      {canEdit && !isReadOnly && (
+                        <div className="mb-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // abre inline creator: a UI já usa os campos newLabelName/newLabelColor
+                              // e mostra o bloco abaixo através de um toggle simples
+                              setEditingLabelId('__new__');
+                              setEditingLabelName('');
+                              setEditingLabelColor(DEFAULT_LABEL_COLOR);
                             }}
-                            disabled={!canEdit}
-                            className="cursor-pointer disabled:cursor-not-allowed"
-                          />
-                          <div
-                            className="w-3 h-3 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: label.color }}
-                          />
-                          <span className={`text-sm ${themeClasses.text.primary}`}>{label.name}</span>
-                        </label>
-                      ))}
+                            disabled={loading}
+                            className={`inline-flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.secondary} hover:${themeClasses.bg.hover} px-2 py-1 text-xs disabled:opacity-60`}
+                          >
+                            <span className="text-lg leading-none">+</span>
+                            Nova
+                          </button>
+
+                          {editingLabelId === '__new__' && (
+                            <div className={`mt-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  value={newLabelName}
+                                  onChange={(e) => setNewLabelName(e.target.value)}
+                                  disabled={!canEdit}
+                                  placeholder="Nome"
+                                  className={`w-full rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:opacity-50`}
+                                />
+                                <input
+                                  type="color"
+                                  value={newLabelColor}
+                                  onChange={(e) => setNewLabelColor(e.target.value)}
+                                  disabled={!canEdit}
+                                  className="h-8 w-full cursor-pointer rounded-lg p-0"
+                                />
+                              </div>
+
+                              <div className="mt-2 flex gap-2">
+                                <button
+                                  onClick={async () => {
+                                    const name = newLabelName.trim();
+                                    if (!name) {
+                                      setError('Informe um nome para a label.');
+                                      return;
+                                    }
+                                    try {
+                                      setLoading(true);
+                                      setError('');
+                                      const created = await createLabel(name, newLabelColor);
+                                      setSelectedLabels((prev) => (prev.includes(created.id) ? prev : [...prev, created.id]));
+                                      setNewLabelName('');
+                                      setNewLabelColor(DEFAULT_LABEL_COLOR);
+                                      setEditingLabelId(null);
+                                    } catch (e) {
+                                      const msg = e instanceof Error ? e.message : 'Erro ao criar label';
+                                      setError(msg);
+                                    } finally {
+                                      setLoading(false);
+                                    }
+                                  }}
+                                  disabled={loading || !newLabelName.trim() || !canEdit}
+                                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <Send className="h-4 w-4" />
+                                  Criar
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingLabelId(null);
+                                    setError('');
+                                  }}
+                                  disabled={loading || !canEdit}
+                                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} disabled:cursor-not-allowed disabled:opacity-50`}
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+
+                      {/* Lista de labels */}
+                      {labels.map((label: any) => {
+                        const isEditing = editingLabelId === label.id;
+                        return (
+                          <div key={label.id} className="rounded-xl border border-transparent">
+                            {!isEditing ? (
+                              <label
+                                className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 cursor-pointer hover:${themeClasses.bg.hover} transition-colors`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedLabels.includes(label.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedLabels([...selectedLabels, label.id]);
+                                    } else {
+                                      setSelectedLabels(selectedLabels.filter((id) => id !== label.id));
+                                    }
+                                  }}
+                                  disabled={!canEdit}
+                                  className="cursor-pointer disabled:cursor-not-allowed"
+                                />
+                                <div
+                                  className="w-3 h-3 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: label.color }}
+                                />
+                                <span className={`text-sm ${themeClasses.text.primary} flex-1 truncate`}>{label.name}</span>
+
+                                {canEdit && !isReadOnly && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setEditingLabelId(label.id);
+                                      setEditingLabelName(label.name);
+                                      setEditingLabelColor(label.color);
+                                      setError('');
+                                    }}
+                                    className={`rounded-lg px-2 py-1 text-xs ${themeClasses.text.tertiary} hover:${themeClasses.text.primary} hover:${themeClasses.bg.hover}`}
+                                  >
+                                    Editar
+                                  </button>
+                                )}
+                              </label>
+                            ) : (
+                              <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <input
+                                    value={editingLabelName}
+                                    onChange={(e) => setEditingLabelName(e.target.value)}
+                                    disabled={!canEdit}
+                                    className={`w-full rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:opacity-50`}
+                                  />
+                                  <input
+                                    type="color"
+                                    value={editingLabelColor}
+                                    onChange={(e) => setEditingLabelColor(e.target.value)}
+                                    disabled={!canEdit}
+                                    className="h-7 w-full cursor-pointer rounded-lg p-0"
+                                  />
+                                </div>
+                                <div className="mt-2 flex gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      const name = editingLabelName.trim();
+                                      if (!name) {
+                                        setError('Informe um nome para a label.');
+                                        return;
+                                      }
+                                      try {
+                                        setLoading(true);
+                                        setError('');
+                                        const updated = await updateLabel(label.id, name, editingLabelColor);
+                                        setSelectedLabels((prev) => (prev.includes(updated.id) ? prev : prev));
+                                        setEditingLabelId(null);
+                                      } catch (e) {
+                                        const msg = e instanceof Error ? e.message : 'Erro ao atualizar label';
+                                        setError(msg);
+                                      } finally {
+                                        setLoading(false);
+                                      }
+                                    }}
+                                    disabled={loading || !canEdit}
+                                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                  >
+                                    <Save className="h-4 w-4" />
+                                    Salvar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingLabelId(null);
+                                      setError('');
+                                    }}
+                                    disabled={loading || !canEdit}
+                                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} disabled:cursor-not-allowed disabled:opacity-50`}
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
+
 
                 {error && (
                   <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">

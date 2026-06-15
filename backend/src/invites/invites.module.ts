@@ -7,6 +7,6 @@ import { LimitsModule } from '../limits/limits.module';
 @Module({
   imports: [EmailModule, LimitsModule],
   providers: [InvitesService],
-  controllers: [InvitesController]
+  controllers: [InvitesController],
 })
 export class InvitesModule {}

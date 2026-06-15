@@ -79,7 +79,12 @@ export class ProjectsService {
     return project;
   }
 
-  async update(workspaceId: string, id: string, dto: UpdateProjectDto, userId: string) {
+  async update(
+    workspaceId: string,
+    id: string,
+    dto: UpdateProjectDto,
+    userId: string,
+  ) {
     await this.acl.requirePermission('project:update', workspaceId, userId);
 
     const project = await this.prisma.project.findFirst({
@@ -101,13 +106,21 @@ export class ProjectsService {
       where: { id },
       data: {
         name: dto.name ?? project.name,
-        description: dto.description !== undefined ? dto.description : project.description,
+        description:
+          dto.description !== undefined ? dto.description : project.description,
         completed: dto.completed ?? project.completed,
-        completedAt: isCompleting ? new Date() : dto.completed === false ? null : project.completedAt,
+        completedAt: isCompleting
+          ? new Date()
+          : dto.completed === false
+            ? null
+            : project.completedAt,
       },
     });
 
-    console.log('[ProjectsService] Updated project description:', updated.description);
+    console.log(
+      '[ProjectsService] Updated project description:',
+      updated.description,
+    );
 
     if (isCompleting) {
       await this.activity.create({

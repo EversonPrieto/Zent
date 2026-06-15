@@ -1,9 +1,9 @@
-import { IsEmail, IsUUID } from 'class-validator'
+import { IsEmail, IsUUID } from 'class-validator';
 
 export class CreateInviteDto {
   @IsEmail()
-  email: string
+  email: string;
 
   @IsUUID()
-  workspaceId: string
+  workspaceId: string;
 }

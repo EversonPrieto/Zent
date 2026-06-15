@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Headers, UseGuards, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Headers,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
 import { LabelsService } from './labels.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
