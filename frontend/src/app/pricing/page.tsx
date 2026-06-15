@@ -137,7 +137,8 @@ export default function PricingPage() {
               {plan.limits && (
                 <div className={`mb-6 rounded-lg ${themeClasses.bg.subtle} p-4 space-y-3`}>
                   <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Limites</p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+
 
                     <div>
                       <p className={themeClasses.text.tertiary}>Workspaces</p>
@@ -194,8 +195,14 @@ export default function PricingPage() {
                               const [label, value] = feature.split(':').map((s) => s.trim());
                               return (
                                 <span>
-                                  <span className="text-[14px] opacity-80">{label}:</span>{' '}
-                                  <span className={`text-[14px] font-semibold text-white/95 px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 bg-white/5`}>
+                                  <span className="text-[14px] opacity-100 text-black">{label}:</span>{' '}
+                                  <span
+                                    className={`text-[14px] font-semibold text-black px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 bg-violet-200/45 backdrop-blur-sm`}
+                                    style={{
+                                      boxShadow:
+                                        '0 0 0 1px rgba(124, 58, 237, 0.85), 0 0 0 4px rgba(124, 58, 237, 0.12), 0 12px 26px rgba(124, 58, 237, 0.18)',
+                                    }}
+                                  >
                                     {value}
                                   </span>
                                 </span>
