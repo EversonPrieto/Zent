@@ -142,4 +142,24 @@ export class ProjectsService {
 
     return updated;
   }
+
+  async delete(workspaceId: string, id: string, userId: string) {
+    await this.acl.requirePermission('project:delete', workspaceId, userId);
+
+    const project = await this.prisma.project.findFirst({
+      where: { id, workspaceId },
+      select: { id: true, name: true },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Projeto não encontrado.');
+    }
+
+    // Importante: não crie ActivityLog referenciando projectId após deletar o projeto.
+    // O schema usa FK e quebra a constraint quando o projeto já foi removido.
+    await this.prisma.project.delete({ where: { id } });
+
+    // (Sem ActivityLog para deletar projeto por enquanto)
+    return { message: 'Projeto deletado com sucesso.' };
+  }
 }

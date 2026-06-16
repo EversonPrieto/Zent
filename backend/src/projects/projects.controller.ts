@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -62,5 +63,15 @@ export class ProjectsController {
     @Body() dto: UpdateProjectDto,
   ) {
     return this.service.update(req.workspaceId, id, dto, req.user.sub);
+  }
+
+  @ApiOperation({ summary: 'Deletar projeto' })
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Delete(':id')
+  deleteProject(
+    @Req() req: any,
+    @Param('id') id: string,
+  ) {
+    return this.service.delete(req.workspaceId, id, req.user.sub);
   }
 }
