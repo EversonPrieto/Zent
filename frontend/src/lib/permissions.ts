@@ -4,6 +4,7 @@ export type Permissions = {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' | null;
   canCreateProject: boolean;
   canUpdateProject: boolean;
+  canDeleteProject: boolean;
   canDeleteWorkspace: boolean;
   canInviteMembers: boolean;
   canRemoveMembers: boolean;
@@ -21,6 +22,7 @@ export async function getWorkspacePermissions(workspaceId: string): Promise<Perm
       role: null,
       canCreateProject: false,
       canUpdateProject: false,
+      canDeleteProject: false,
       canDeleteWorkspace: false,
       canInviteMembers: false,
       canRemoveMembers: false,

@@ -100,6 +100,7 @@ export class AclService {
     role: Role | null;
     canCreateProject: boolean;
     canUpdateProject: boolean;
+    canDeleteProject: boolean;
     canDeleteWorkspace: boolean;
     canInviteMembers: boolean;
     canRemoveMembers: boolean;
@@ -114,6 +115,9 @@ export class AclService {
         : false,
       canUpdateProject: role
         ? this.permissions['project:update'].includes(role)
+        : false,
+      canDeleteProject: role
+        ? this.permissions['project:delete'].includes(role)
         : false,
       canDeleteWorkspace: role
         ? this.permissions['workspace:delete'].includes(role)

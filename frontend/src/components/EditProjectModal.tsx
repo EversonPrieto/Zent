@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
+import { showConfirm } from './ConfirmDialog';
 import { useTheme } from '../hooks/useTheme';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 import { showToast } from './Toast';
@@ -15,7 +16,8 @@ import {
   CheckCircle2,
   RotateCcw,
   Archive,
-  Save
+  Save,
+  Trash2,
 } from 'lucide-react';
 
 type Project = {
@@ -114,6 +116,7 @@ export default function EditProjectModal({
 
   const isFormValid = name.trim();
   const canEdit = permissions?.canUpdateProject;
+  const canDelete = permissions?.canDeleteProject;
 
   if (!checkingPerms && !canEdit) {
     return (
@@ -271,31 +274,82 @@ export default function EditProjectModal({
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={onClose}
-                className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
-              >
-                Cancelar
-              </button>
+            <div className="flex justify-between gap-3 pt-2">
+              {canDelete && (
+                <button
+                  onClick={async () => {
+                    const confirmed = await showConfirm({
+                      title: 'Deletar projeto',
+                      message:
+                        '⚠️ Esta ação é irreversível. O projeto será removido junto com todas as tasks relacionadas.',
+                      action: 'delete',
+                      confirmLabel: 'Deletar',
+                      isDangerous: true,
+                    });
 
-              <button
-                onClick={handleUpdate}
-                disabled={loading || !isFormValid}
-                className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Salvar alterações
-                  </>
-                )}
-              </button>
+                    if (!confirmed) return;
+
+                    try {
+                      setLoading(true);
+                      setError('');
+
+                      await api(`/projects/${project.id}`, {
+                        method: 'DELETE',
+                        workspaceId,
+                      });
+
+                      showToast(`Projeto "${project.name}" deletado.`, 'success', 3000);
+                      // Recarrega lista/board através do evento existente
+                      window.dispatchEvent(new Event('workspace-changed'));
+                      onUpdated(project);
+                      onClose();
+                      return;
+                    } catch (err) {
+                      const message = err instanceof Error ? err.message : 'Erro ao deletar projeto';
+                      setError(message);
+                      showToast(message, 'error', 4000);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+                    themeClasses.bg.primary?.includes('zinc')
+                      ? 'border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300'
+                      : 'border-red-300 bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {loading ? 'Deletando...' : 'Deletar projeto'}
+                </button>
+              )}
+
+              <div className="flex gap-3 ml-auto">
+                <button
+                  onClick={onClose}
+                  className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  onClick={handleUpdate}
+                  disabled={loading || !isFormValid}
+                  className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      Salvar alterações
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
