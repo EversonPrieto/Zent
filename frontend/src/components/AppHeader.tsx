@@ -192,7 +192,9 @@ export default function AppHeader() {
 
     const handleAddNotification = (event: Event) => {
       const customEvent = event as CustomEvent;
-      addNotification(customEvent.detail.message, customEvent.detail.type);
+      const detail = customEvent.detail as { message?: string; type?: 'task' | 'comment' | 'mention' };
+      if (!detail?.message) return;
+      addNotification(detail.message, detail.type ?? 'task');
     };
 
     window.addEventListener('add-notification', handleAddNotification);
@@ -293,8 +295,8 @@ export default function AppHeader() {
   return (
     <>
       <header className={`sticky top-0 z-50 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} backdrop-blur-xl`}>
-        <div className={`mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6`}>
-          <div className="flex items-center gap-4">
+        <div className={`mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 md:px-5 xl:px-6`}>
+          <div className="flex items-center gap-4 lg:gap-5">
             <button
               onClick={() => router.push('/dashboard/projects')}
               className="group flex items-center gap-2"
@@ -309,7 +311,7 @@ export default function AppHeader() {
               </span>
             </button>
 
-            <div className={`hidden h-6 w-px md:block ${themeClasses.border.primary}`} />
+            <div className={`hidden h-6 w-px md:mx-1 md:block ${themeClasses.border.primary}`} />
 
             <div className="relative hidden md:block" ref={workspaceMenuRef}>
               {workspace ? (
@@ -481,57 +483,62 @@ export default function AppHeader() {
             </div>
           </div>
 
-          <div className="hidden md:flex md:items-center md:gap-4">
-            <div className="flex items-center gap-1 mr-2">
+          <div className="hidden md:flex md:items-center md:gap-3 lg:gap-4 xl:gap-5">
+            <nav className={`ml-2 lg:ml-4 mr-1 lg:mr-2 flex items-center gap-1.5 lg:gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-0.5 lg:p-1`}>
               <button
                 onClick={() => router.push('/dashboard/overview')}
-                title="Dashboard"
-                className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                title="Visão geral"
+                className={`inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium transition-all ${
                   pathname === '/dashboard/overview'
-                    ? `${themeClasses.bg.hover} ${themeClasses.text.primary}`
-                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`
+                    ? `bg-violet-500/20 text-violet-300 border-violet-400/40`
+                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
                 }`}
               >
                 <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden xl:inline whitespace-nowrap">Visão geral</span>
               </button>
               <button
                 onClick={() => router.push('/dashboard/projects')}
                 title="Projetos"
-                className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                className={`inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium transition-all ${
                   pathname === '/dashboard/projects'
-                    ? `${themeClasses.bg.hover} ${themeClasses.text.primary}`
-                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`
+                    ? `bg-violet-500/20 text-violet-300 border-violet-400/40`
+                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
                 }`}
               >
                 <FolderKanban className="h-4 w-4" />
+                <span className="hidden xl:inline whitespace-nowrap">Projetos</span>
               </button>
               <button
                 onClick={() => router.push('/dashboard/activity')}
                 title="Atividade"
-                className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                className={`inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium transition-all ${
                   pathname === '/dashboard/activity'
-                    ? `${themeClasses.bg.hover} ${themeClasses.text.primary}`
-                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`
+                    ? `bg-violet-500/20 text-violet-300 border-violet-400/40`
+                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
                 }`}
               >
                 <Activity className="h-4 w-4" />
+                <span className="hidden xl:inline whitespace-nowrap">Atividade</span>
               </button>
-            </div>
+            </nav>
 
             <button
               onClick={() => router.push('/search')}
-              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover} border ${themeClasses.border.primary}`}
+              className={`inline-flex items-center gap-1.5 rounded-lg border ${themeClasses.border.primary} px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
               title="Busca Global (Ctrl+K)"
             >
               <Search className="h-4 w-4" />
+              <span className="hidden lg:inline">Buscar</span>
             </button>
 
             <button
               onClick={() => router.push('/pricing')}
-              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover} ${themeClasses.text.primary}`}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
               title="Planos"
             >
               <Crown className="h-4 w-4" />
+              <span className="hidden lg:inline">Planos</span>
             </button>
 
             {/* Notifications Button */}
@@ -610,13 +617,13 @@ export default function AppHeader() {
               )}
             </button>
 
-            <div className="relative" ref={userMenuRef}>
+            <div className="relative ml-1 lg:ml-2" ref={userMenuRef}>
               <button
                 onClick={() => {
                   setUserMenuOpen((prev) => !prev);
                   setWorkspaceMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 rounded-xl transition-all px-2 py-1 ${themeClasses.bg.hover}`}
+                className={`flex min-w-[240px] lg:min-w-[290px] items-center justify-between gap-3 rounded-xl border ${themeClasses.border.primary} transition-all px-3.5 lg:px-4.5 py-1.5 ${themeClasses.bg.hover}`}
               >
                 <div className="relative">
                   {user?.avatarUrl ? (
@@ -630,10 +637,10 @@ export default function AppHeader() {
                       {userInitial}
                     </div>
                   )}
-                  <div className={`absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 ${themeClasses.bg.primary} shadow-lg`} />
+                  <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-lg dark:border-zinc-900" />
                 </div>
 
-                <div className="hidden text-right lg:block">
+                <div className="hidden text-right md:block">
                   <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
                     {user?.name}
                   </p>
