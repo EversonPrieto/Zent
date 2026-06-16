@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
@@ -9,7 +9,6 @@ import {
   Activity,
   Clock,
   Calendar,
-  User,
   FolderKanban,
   CheckCircle2,
   AlertCircle,
@@ -20,12 +19,26 @@ import {
   Users,
   Building2,
   Loader2,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
 
-type Activity = {
+type ActivityType =
+  | 'TASK_CREATED'
+  | 'TASK_UPDATED'
+  | 'TASK_DELETED'
+  | 'TASK_STATUS_CHANGED'
+  | 'COMMENT_CREATED'
+  | 'PROJECT_CREATED'
+  | 'PROJECT_UPDATED'
+  | 'PROJECT_DELETED'
+  | 'MEMBER_ADDED'
+  | 'MEMBER_REMOVED'
+  | string;
+
+type ActivityItem = {
   id: string;
-  type: string;
+  type: ActivityType;
   description: string;
   createdAt: string;
   user?: {
@@ -52,17 +65,27 @@ type Workspace = {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 };
 
+type UserSubscriptionData = {
+  plan?: 'free' | 'pro';
+  subscriptionEndsAt?: string | null;
+};
+
+type ActivityFilter = 'all' | 'tasks' | 'projects' | 'members';
+
 function getActivityIcon(type: string) {
   const iconMap: Record<string, { icon: typeof Activity; color: string; bg: string }> = {
-    'TASK_CREATED': { icon: PlusCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    'TASK_UPDATED': { icon: Edit2, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    'TASK_DELETED': { icon: Trash2, color: 'text-red-400', bg: 'bg-red-500/10' },
-    'TASK_STATUS_CHANGED': { icon: CheckCircle2, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-    'COMMENT_CREATED': { icon: MessageSquare, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    'PROJECT_CREATED': { icon: FolderKanban, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-    'MEMBER_ADDED': { icon: Users, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+    TASK_CREATED: { icon: PlusCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    TASK_UPDATED: { icon: Edit2, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    TASK_DELETED: { icon: Trash2, color: 'text-red-400', bg: 'bg-red-500/10' },
+    TASK_STATUS_CHANGED: { icon: CheckCircle2, color: 'text-violet-400', bg: 'bg-violet-500/10' },
+    COMMENT_CREATED: { icon: MessageSquare, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    PROJECT_CREATED: { icon: FolderKanban, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
+    PROJECT_UPDATED: { icon: FolderKanban, color: 'text-sky-400', bg: 'bg-sky-500/10' },
+    PROJECT_DELETED: { icon: FolderKanban, color: 'text-rose-400', bg: 'bg-rose-500/10' },
+    MEMBER_ADDED: { icon: Users, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+    MEMBER_REMOVED: { icon: Users, color: 'text-orange-400', bg: 'bg-orange-500/10' },
   };
-  
+
   return iconMap[type] || { icon: Activity, color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
 }
 
@@ -82,16 +105,39 @@ function getRelativeDate(date: string) {
   return activityDate.toLocaleDateString('pt-BR');
 }
 
+function normalizeActivities(raw: unknown): ActivityItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => item as ActivityItem)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+function isTaskActivity(activity: ActivityItem) {
+  return activity.type.startsWith('TASK_') || (activity.type === 'COMMENT_CREATED' && !!activity.task);
+}
+
+function isProjectActivity(activity: ActivityItem) {
+  return activity.type.startsWith('PROJECT_') || (!!activity.project && !activity.task);
+}
+
+function isMemberActivity(activity: ActivityItem) {
+  return activity.type === 'MEMBER_ADDED' || activity.type === 'MEMBER_REMOVED';
+}
+
 export default function ActivityPage() {
   const router = useRouter();
   const { themeClasses } = useTheme();
 
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'all' | 'tasks' | 'projects' | 'members'>('all');
+  const [filter, setFilter] = useState<ActivityFilter>('all');
   const [hasProAccess, setHasProAccess] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const pageSize = 10;
 
   useEffect(() => {
     async function loadPage() {
@@ -109,15 +155,16 @@ export default function ActivityPage() {
         return;
       }
 
-      // Load user subscription status
       const userData = localStorage.getItem('zent_user');
       if (userData) {
         try {
-          const parsed = JSON.parse(userData);
-          setHasProAccess(isPro({
-            plan: parsed.plan || 'free',
-            subscriptionEndsAt: parsed.subscriptionEndsAt || null,
-          }));
+          const parsed = JSON.parse(userData) as UserSubscriptionData;
+          setHasProAccess(
+            isPro({
+              plan: parsed.plan || 'free',
+              subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+            }),
+          );
         } catch (err) {
           console.error('Error parsing user data:', err);
         }
@@ -125,7 +172,7 @@ export default function ActivityPage() {
 
       if (workspaceRaw) {
         try {
-          setWorkspace(JSON.parse(workspaceRaw));
+          setWorkspace(JSON.parse(workspaceRaw) as Workspace);
         } catch {
           setWorkspace(null);
         }
@@ -133,18 +180,12 @@ export default function ActivityPage() {
 
       try {
         setLoading(true);
-
-        const response = await api('/activities', {
-          workspaceId,
-        });
-
-        const activityList = response.items || response;
-        setActivities(Array.isArray(activityList) ? activityList : []);
+        const response = await api('/activities', { workspaceId });
+        const rawList = (response as { items?: unknown }).items ?? response;
+        setActivities(normalizeActivities(rawList));
         setError('');
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Erro ao carregar atividades',
-        );
+        setError(err instanceof Error ? err.message : 'Erro ao carregar atividades');
       } finally {
         setLoading(false);
       }
@@ -157,30 +198,51 @@ export default function ActivityPage() {
     }
 
     window.addEventListener('workspace-changed', handleWorkspaceChanged);
-
     return () => {
       window.removeEventListener('workspace-changed', handleWorkspaceChanged);
     };
   }, [router]);
 
-  const filteredActivities = activities.filter(activity => {
-    if (filter === 'all') return true;
-    if (filter === 'tasks') return activity.task !== undefined;
-    if (filter === 'projects') return activity.project !== undefined;
-    if (filter === 'members') return activity.type === 'MEMBER_ADDED' || activity.type === 'MEMBER_REMOVED';
-    return true;
-  });
+  const filteredActivities = useMemo(() => {
+    return activities.filter((activity) => {
+      if (filter === 'all') return true;
+      if (filter === 'tasks') return isTaskActivity(activity);
+      if (filter === 'projects') return isProjectActivity(activity);
+      if (filter === 'members') return isMemberActivity(activity);
+      return true;
+    });
+  }, [activities, filter]);
 
-  const groupedActivities = filteredActivities.reduce((groups, activity) => {
-    const date = new Date(activity.createdAt).toLocaleDateString('pt-BR');
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(activity);
-    return groups;
-  }, {} as Record<string, Activity[]>);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
 
-  const filterOptions = [
+  const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
+
+  const paginatedActivities = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredActivities.slice(start, start + pageSize);
+  }, [filteredActivities, currentPage]);
+
+  const groupedActivities = useMemo(() => {
+    return paginatedActivities.reduce((groups, activity) => {
+      const date = new Date(activity.createdAt).toLocaleDateString('pt-BR');
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(activity);
+      return groups;
+    }, {} as Record<string, ActivityItem[]>);
+  }, [paginatedActivities]);
+
+  const todayCount = useMemo(() => {
+    const today = new Date().toDateString();
+    return activities.filter((a) => new Date(a.createdAt).toDateString() === today).length;
+  }, [activities]);
+
+  const taskCount = useMemo(() => activities.filter(isTaskActivity).length, [activities]);
+  const projectCount = useMemo(() => activities.filter(isProjectActivity).length, [activities]);
+  const memberCount = useMemo(() => activities.filter(isMemberActivity).length, [activities]);
+
+  const filterOptions: { value: ActivityFilter; label: string; icon: typeof Activity }[] = [
     { value: 'all', label: 'Todas', icon: Activity },
     { value: 'tasks', label: 'Tasks', icon: CheckCircle2 },
     { value: 'projects', label: 'Projetos', icon: FolderKanban },
@@ -189,8 +251,8 @@ export default function ActivityPage() {
 
   return (
     <main className={themeClasses.bg.primary}>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-40 -top-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
@@ -198,14 +260,14 @@ export default function ActivityPage() {
         <div className="mb-8 md:mb-12">
           <div className="mb-4 flex items-center gap-2">
             <div className={`inline-flex items-center rounded-full border px-3 py-1 text-sm backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
-              <Activity className="h-3.5 w-3.5 mr-1.5 text-violet-400" />
+              <Activity className="mr-1.5 h-3.5 w-3.5 text-violet-400" />
               <span className={`text-xs ${themeClasses.text.tertiary}`}>Histórico</span>
             </div>
           </div>
 
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="mb-2 flex items-center gap-2">
                 {workspace?.logoUrl ? (
                   <img
                     src={workspace.logoUrl}
@@ -220,7 +282,7 @@ export default function ActivityPage() {
               <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
                 {workspace?.name ?? 'Atividade'}
                 {hasProAccess && (
-                  <span className="ml-3 px-3 py-1 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-sm font-semibold text-violet-400">
+                  <span className="ml-3 rounded-full border border-violet-500/30 bg-gradient-to-r from-violet-500/20 to-indigo-500/20 px-3 py-1 text-sm font-semibold text-violet-400">
                     Pro
                   </span>
                 )}
@@ -230,16 +292,22 @@ export default function ActivityPage() {
               </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className={`rounded-2xl border px-4 py-2 backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
                 <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{activities.length}</p>
-                <p className={`text-xs ${themeClasses.text.tertiary}`}>Total de atividades</p>
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>Total</p>
               </div>
               <div className={`rounded-2xl border px-4 py-2 backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
-                <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>
-                  {activities.filter(a => new Date(a.createdAt).toDateString() === new Date().toDateString()).length}
-                </p>
+                <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{todayCount}</p>
                 <p className={`text-xs ${themeClasses.text.tertiary}`}>Hoje</p>
+              </div>
+              <div className={`rounded-2xl border px-4 py-2 backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
+                <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{taskCount}</p>
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>Tasks</p>
+              </div>
+              <div className={`rounded-2xl border px-4 py-2 backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
+                <p className={`text-2xl font-bold ${themeClasses.text.primary}`}>{projectCount + memberCount}</p>
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>Projetos/Membros</p>
               </div>
             </div>
           </div>
@@ -252,11 +320,11 @@ export default function ActivityPage() {
             return (
               <button
                 key={option.value}
-                onClick={() => setFilter(option.value as typeof filter)}
+                onClick={() => setFilter(option.value)}
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-lg shadow-violet-500/25'
-                    : `border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.tertiary} hover:${themeClasses.bg.secondary} hover:${themeClasses.text.primary}`
+                    : `border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.tertiary}`
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -275,13 +343,13 @@ export default function ActivityPage() {
 
         {error && !loading && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center backdrop-blur-sm">
-            <div className="inline-flex items-center justify-center rounded-full bg-red-500/20 p-3 mb-4">
+            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-red-500/20 p-3">
               <AlertCircle className="h-6 w-6 text-red-400" />
             </div>
-            <p className="text-red-400 font-medium">{error}</p>
+            <p className="font-medium text-red-400">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-4 rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-400 hover:bg-red-500/30 transition-colors"
+              className="mt-4 rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/30"
             >
               Tentar novamente
             </button>
@@ -289,15 +357,15 @@ export default function ActivityPage() {
         )}
 
         {!loading && !error && filteredActivities.length === 0 && (
-          <div className={`rounded-3xl border p-12 text-center backdrop-blur-sm ${themeClasses.border.primary} bg-gradient-to-br ${themeClasses.bg.secondary}`}>
-            <div className="inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4 mb-6">
+          <div className={`rounded-3xl border bg-gradient-to-br p-12 text-center backdrop-blur-sm ${themeClasses.border.primary} ${themeClasses.bg.secondary}`}>
+            <div className="mb-6 inline-flex items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-4">
               <Activity className="h-12 w-12 text-violet-400" />
             </div>
-            <h3 className={`text-2xl font-semibold mb-2 ${themeClasses.text.primary}`}>Nenhuma atividade encontrada</h3>
-            <p className={`mb-8 max-w-md mx-auto ${themeClasses.text.tertiary}`}>
-              {filter === 'all' 
+            <h3 className={`mb-2 text-2xl font-semibold ${themeClasses.text.primary}`}>Nenhuma atividade encontrada</h3>
+            <p className={`mx-auto mb-2 max-w-md ${themeClasses.text.tertiary}`}>
+              {filter === 'all'
                 ? 'Ainda não há atividades registradas nesta workspace.'
-                : `Nenhuma atividade do tipo "${filter}" encontrada.`}
+                : `Não encontramos atividades para o filtro selecionado.`}
             </p>
           </div>
         )}
@@ -306,13 +374,13 @@ export default function ActivityPage() {
           <div className="space-y-8">
             {Object.entries(groupedActivities).map(([date, dateActivities]) => (
               <div key={date}>
-                <div className={`sticky top-0 z-10 mb-4 -mt-2 bg-gradient-to-b pt-2 pb-1 ${themeClasses.bg.primary}`}>
+                <div className={`sticky top-0 z-10 -mt-2 mb-4 bg-gradient-to-b pt-2 pb-1 ${themeClasses.bg.primary}`}>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-violet-400" />
                     <h3 className={`text-sm font-semibold ${themeClasses.text.tertiary}`}>
                       {date === new Date().toLocaleDateString('pt-BR') ? 'Hoje' : date}
                     </h3>
-                    <div className={`flex-1 h-px ${themeClasses.border.primary}`} />
+                    <div className={`h-px flex-1 ${themeClasses.border.primary}`} />
                     <span className={`text-xs ${themeClasses.text.tertiary}`}>
                       {dateActivities.length} {dateActivities.length === 1 ? 'atividade' : 'atividades'}
                     </span>
@@ -322,11 +390,11 @@ export default function ActivityPage() {
                 <div className="space-y-3">
                   {dateActivities.map((activity) => {
                     const { icon: Icon, color, bg } = getActivityIcon(activity.type);
-                    
+
                     return (
                       <div
                         key={activity.id}
-                        className={`group relative rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-5 transition-all hover:scale-[1.02] hover:border-violet-500/30 hover:shadow-xl`}
+                        className={`group relative rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-5 transition-all hover:scale-[1.01] hover:border-violet-500/30 hover:shadow-xl`}
                       >
                         <div className="flex items-start gap-4">
                           <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
@@ -341,7 +409,7 @@ export default function ActivityPage() {
                             )}
                           </div>
 
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className={`text-sm ${themeClasses.text.secondary}`}>
                               <span className={`font-medium ${themeClasses.text.primary}`}>
                                 {activity.user?.name ?? 'Sistema'}
@@ -369,19 +437,6 @@ export default function ActivityPage() {
                                 </div>
                               )}
                             </div>
-
-                            <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <p className={`text-[10px] ${themeClasses.text.muted}`}>
-                                {new Date(activity.createdAt).toLocaleString('pt-BR', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  second: '2-digit'
-                                })}
-                              </p>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -391,31 +446,36 @@ export default function ActivityPage() {
               </div>
             ))}
 
-            <div className="mt-8 text-center">
+            <div className="mt-8 flex flex-col items-center justify-between gap-4 rounded-2xl border px-4 py-3 sm:flex-row">
               <p className={`text-sm ${themeClasses.text.tertiary}`}>
-                Mostrando {filteredActivities.length} {filteredActivities.length === 1 ? 'atividade' : 'atividades'}
+                Mostrando {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredActivities.length)} de {filteredActivities.length}
               </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </button>
+                <span className={`text-sm ${themeClasses.text.secondary}`}>
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm disabled:opacity-50"
+                >
+                  Próxima
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.3);
-        }
-      `}</style>
     </main>
   );
 }
