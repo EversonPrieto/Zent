@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../lib/api';
 import { useTheme } from '../../../hooks/useTheme';
@@ -12,35 +12,46 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
 } from 'recharts';
 import {
   CheckCircle2,
-  Circle,
   AlertCircle,
-  TrendingUp,
-  Calendar,
-  Users,
   FolderKanban,
   Loader2,
   Clock,
+  Activity,
 } from 'lucide-react';
+
+type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
+type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+
+type UserRef = {
+  id?: string;
+  name?: string;
+  email?: string;
+};
 
 type Task = {
   id: string;
   title: string;
-  status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status: TaskStatus;
+  priority: TaskPriority;
   dueDate?: string | null;
   createdAt: string;
-  assignees?: any[];
-  responsible?: any;
+  projectId?: string;
+  assignees?: UserRef[];
+  responsible?: UserRef;
+};
+
+type ActivityItem = {
+  id?: string;
+  description?: string;
+  message?: string;
+  createdAt?: string;
 };
 
 type Project = {
@@ -56,7 +67,11 @@ type DashboardStats = {
   overdueTasks: number;
   tasksByStatus: { status: string; count: number }[];
   tasksByPriority: { priority: string; count: number }[];
-  recentActivity: any[];
+};
+
+type UserSubscriptionData = {
+  plan?: 'free' | 'pro';
+  subscriptionEndsAt?: string | null;
 };
 
 export default function DashboardOverviewPage() {
@@ -68,72 +83,10 @@ export default function DashboardOverviewPage() {
   const [error, setError] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [hasProAccess, setHasProAccess] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem('zent_token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    const wsId = localStorage.getItem('zent_workspace_id');
-    if (!wsId) {
-      router.push('/dashboard');
-      return;
-    }
-
-    // Load user subscription status
-    const userData = localStorage.getItem('zent_user');
-    if (userData) {
-      try {
-        const parsed = JSON.parse(userData);
-        setHasProAccess(isPro({
-          plan: parsed.plan || 'free',
-          subscriptionEndsAt: parsed.subscriptionEndsAt || null,
-        }));
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-      }
-    }
-
-    setWorkspaceId(wsId);
-    loadDashboardData(wsId);
-  }, [router]);
-
-  async function loadDashboardData(wsId: string) {
-    try {
-      setLoading(true);
-      setError('');
-
-      const projectsData = await api('/projects', { workspaceId: wsId });
-      setProjects(projectsData || []);
-
-      const tasksData = await api(`/tasks?projectId=&page=1&pageSize=1000`, {
-        workspaceId: wsId,
-      });
-
-      const allTasks = tasksData.items || tasksData || [];
-      setTasks(allTasks);
-
-      try {
-        const activityData = await api('/activities', { workspaceId: wsId });
-        const activities = activityData.items || activityData || [];
-        setActivityFeed(activities.slice(0, 10));
-      } catch {
-      }
-
-      calculateStats(allTasks);
-    } catch (err) {
-      console.error('Erro ao carregar dashboard:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function calculateStats(allTasks: Task[]) {
+  const calculateStats = useCallback((allTasks: Task[]) => {
     const now = new Date();
     const totalTasks = allTasks.length;
     const completedTasks = allTasks.filter((t) => t.status === 'DONE').length;
@@ -187,9 +140,70 @@ export default function DashboardOverviewPage() {
       overdueTasks,
       tasksByStatus,
       tasksByPriority,
-      recentActivity: [],
     });
-  }
+  }, []);
+
+  const loadDashboardData = useCallback(async (wsId: string) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const projectsData = await api('/projects', { workspaceId: wsId });
+      setProjects((projectsData || []) as Project[]);
+
+      const tasksData = await api('/tasks?projectId=&page=1&pageSize=1000', {
+        workspaceId: wsId,
+      });
+
+      const allTasks = (tasksData.items || tasksData || []) as Task[];
+      setTasks(allTasks);
+
+      try {
+        const activityData = await api('/activities', { workspaceId: wsId });
+        const activities = (activityData.items || activityData || []) as ActivityItem[];
+        setActivityFeed(activities.slice(0, 10));
+      } catch {
+        setActivityFeed([]);
+      }
+
+      calculateStats(allTasks);
+    } catch (err) {
+      console.error('Erro ao carregar dashboard:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  }, [calculateStats]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('zent_token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    const wsId = localStorage.getItem('zent_workspace_id');
+    if (!wsId) {
+      router.push('/dashboard');
+      return;
+    }
+
+    const userData = localStorage.getItem('zent_user');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData) as UserSubscriptionData;
+        setHasProAccess(isPro({
+          plan: parsed.plan || 'free',
+          subscriptionEndsAt: parsed.subscriptionEndsAt || null,
+        }));
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+      }
+    }
+
+    setWorkspaceId(wsId);
+    loadDashboardData(wsId);
+  }, [router, loadDashboardData]);
 
   const statusColors = {
     'A fazer': '#7c3aed',
@@ -199,10 +213,10 @@ export default function DashboardOverviewPage() {
   };
 
   const priorityColors = {
-    'Baixa': '#6b7280',
-    'Média': '#f59e0b',
-    'Alta': '#ef4444',
-    'Urgente': '#8b0000',
+    Baixa: '#6b7280',
+    Média: '#f59e0b',
+    Alta: '#ef4444',
+    Urgente: '#8b0000',
   };
 
   const completionRate = stats
@@ -220,19 +234,21 @@ export default function DashboardOverviewPage() {
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <h1 className={`text-3xl sm:text-4xl font-bold ${themeClasses.text.primary}`}>
+            <h1 className={`text-3xl font-bold sm:text-4xl ${themeClasses.text.primary}`}>
               Dashboard
             </h1>
             {hasProAccess && (
-              <div className="px-3 py-1 rounded-full bg-gradient-to-r from-violet-500/20 to-indigo-500/20 border border-violet-500/30 text-sm font-semibold text-violet-400">
+              <div className="rounded-full border border-violet-500/30 bg-gradient-to-r from-violet-500/20 to-indigo-500/20 px-3 py-1 text-sm font-semibold text-violet-400">
                 Pro
               </div>
             )}
           </div>
-          <p className={`mt-2 ${themeClasses.text.tertiary}`}>Visão geral dos seus projetos e tarefas</p>
+          <p className={`mt-2 ${themeClasses.text.tertiary}`}>
+            Visão geral dos seus projetos e tarefas
+          </p>
         </div>
 
         {loading && (
@@ -243,18 +259,18 @@ export default function DashboardOverviewPage() {
 
         {error && !loading && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center">
-            <p className="text-red-400 font-medium">{error}</p>
+            <p className="font-medium text-red-400">{error}</p>
           </div>
         )}
 
         {!loading && !error && stats && (
           <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Total de Tasks</p>
-                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.totalTasks}</p>
+                    <p className={`mt-2 text-3xl font-bold ${themeClasses.text.primary}`}>{stats.totalTasks}</p>
                   </div>
                   <div className="rounded-lg bg-violet-500/20 p-3">
                     <FolderKanban className="h-6 w-6 text-violet-400" />
@@ -266,7 +282,7 @@ export default function DashboardOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Em Progresso</p>
-                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.inProgressTasks}</p>
+                    <p className={`mt-2 text-3xl font-bold ${themeClasses.text.primary}`}>{stats.inProgressTasks}</p>
                   </div>
                   <div className="rounded-lg bg-blue-500/20 p-3">
                     <Clock className="h-6 w-6 text-blue-400" />
@@ -278,7 +294,7 @@ export default function DashboardOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Concluídas</p>
-                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.completedTasks}</p>
+                    <p className={`mt-2 text-3xl font-bold ${themeClasses.text.primary}`}>{stats.completedTasks}</p>
                   </div>
                   <div className="rounded-lg bg-emerald-500/20 p-3">
                     <CheckCircle2 className="h-6 w-6 text-emerald-400" />
@@ -290,7 +306,7 @@ export default function DashboardOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className={`text-sm font-medium ${themeClasses.text.tertiary}`}>Atrasadas</p>
-                    <p className={`text-3xl font-bold ${themeClasses.text.primary} mt-2`}>{stats.overdueTasks}</p>
+                    <p className={`mt-2 text-3xl font-bold ${themeClasses.text.primary}`}>{stats.overdueTasks}</p>
                   </div>
                   <div className="rounded-lg bg-red-500/20 p-3">
                     <AlertCircle className="h-6 w-6 text-red-400" />
@@ -300,22 +316,22 @@ export default function DashboardOverviewPage() {
             </div>
 
             <div className={`mb-8 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Taxa de Conclusão</h3>
                 <span className="text-2xl font-bold text-violet-400">{completionRate}%</span>
               </div>
-              <div className={`w-full rounded-full h-3 overflow-hidden ${themeClasses.bg.tertiary}`}>
+              <div className={`h-3 w-full overflow-hidden rounded-full ${themeClasses.bg.tertiary}`}>
                 <div
-                  className="bg-gradient-to-r from-violet-500 to-indigo-500 h-full transition-all duration-500"
+                  className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
                   style={{ width: `${completionRate}%` }}
                 />
               </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-2 mb-8">
-              {stats.tasksByStatus && stats.tasksByStatus.length > 0 && (
+            <div className="mb-8 grid gap-8 lg:grid-cols-2">
+              {stats.tasksByStatus.length > 0 && (
                 <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Tasks por Status</h3>
+                  <h3 className={`mb-4 text-lg font-semibold ${themeClasses.text.primary}`}>Tasks por Status</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={stats.tasksByStatus}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -332,7 +348,7 @@ export default function DashboardOverviewPage() {
                       <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                         {stats.tasksByStatus.map((entry, index) => (
                           <Cell
-                            key={`cell-${index}`}
+                            key={`status-cell-${index}`}
                             fill={statusColors[entry.status as keyof typeof statusColors] || '#8b5cf6'}
                           />
                         ))}
@@ -342,9 +358,9 @@ export default function DashboardOverviewPage() {
                 </div>
               )}
 
-              {stats.tasksByPriority && stats.tasksByPriority.length > 0 && (
+              {stats.tasksByPriority.length > 0 && (
                 <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Tasks por Prioridade</h3>
+                  <h3 className={`mb-4 text-lg font-semibold ${themeClasses.text.primary}`}>Tasks por Prioridade</h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -352,14 +368,14 @@ export default function DashboardOverviewPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={(entry: any) => `${entry.priority}: ${entry.count}`}
+                        label={false}
                         outerRadius={100}
                         fill="#8b5cf6"
                         dataKey="count"
                       >
                         {stats.tasksByPriority.map((entry, index) => (
                           <Cell
-                            key={`cell-${index}`}
+                            key={`priority-cell-${index}`}
                             fill={priorityColors[entry.priority as keyof typeof priorityColors] || '#8b5cf6'}
                           />
                         ))}
@@ -378,34 +394,32 @@ export default function DashboardOverviewPage() {
               )}
             </div>
 
-            {projects.length > 0 && (
+            {projects.length > 0 ? (
               <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
-                <h3 className={`text-lg font-semibold mb-4 ${themeClasses.text.primary}`}>Projetos Ativos</h3>
+                <h3 className={`mb-4 text-lg font-semibold ${themeClasses.text.primary}`}>Projetos Ativos</h3>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                   {projects.map((project) => {
-                    const projectTasks = tasks.filter(
-                      (t) => t.id === project.id || t.createdAt?.includes(project.id)
-                    );
+                    const projectTasks = tasks.filter((t) => t.projectId === project.id);
                     const completed = projectTasks.filter((t) => t.status === 'DONE').length;
                     const rate = projectTasks.length > 0 ? Math.round((completed / projectTasks.length) * 100) : 0;
 
                     return (
                       <div
                         key={project.id}
-                        className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 hover:border-violet-500/50 transition-colors`}
+                        className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 transition-colors hover:border-violet-500/50`}
                       >
-                        <h4 className={`font-semibold ${themeClasses.text.primary} truncate`}>{project.name}</h4>
+                        <h4 className={`truncate font-semibold ${themeClasses.text.primary}`}>{project.name}</h4>
                         {project.description && (
-                          <p className={`text-xs ${themeClasses.text.tertiary} mt-1 line-clamp-2`}>{project.description}</p>
+                          <p className={`mt-1 line-clamp-2 text-xs ${themeClasses.text.tertiary}`}>{project.description}</p>
                         )}
                         <div className="mt-3">
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="mb-1 flex items-center justify-between">
                             <span className={`text-xs ${themeClasses.text.tertiary}`}>{completed} concluídas</span>
                             <span className="text-xs font-semibold text-violet-400">{rate}%</span>
                           </div>
-                          <div className={`w-full rounded-full h-2 ${themeClasses.bg.tertiary}`}>
+                          <div className={`h-2 w-full rounded-full ${themeClasses.bg.tertiary}`}>
                             <div
-                              className="bg-gradient-to-r from-violet-500 to-indigo-500 h-full rounded-full transition-all"
+                              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all"
                               style={{ width: `${rate}%` }}
                             />
                           </div>
@@ -415,7 +429,44 @@ export default function DashboardOverviewPage() {
                   })}
                 </div>
               </div>
+            ) : (
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-8 text-center`}>
+                <FolderKanban className="mx-auto mb-3 h-10 w-10 text-violet-400" />
+                <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Nenhum projeto encontrado</h3>
+                <p className={`mt-2 text-sm ${themeClasses.text.tertiary}`}>
+                  Crie seu primeiro projeto para acompanhar progresso e métricas nesta visão geral.
+                </p>
+              </div>
             )}
+
+            <div className={`mt-8 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 backdrop-blur-sm`}>
+              <div className="mb-4 flex items-center gap-2">
+                <Activity className="h-5 w-5 text-violet-400" />
+                <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Atividade Recente</h3>
+              </div>
+
+              {activityFeed.length === 0 ? (
+                <p className={`text-sm ${themeClasses.text.tertiary}`}>
+                  Ainda não há atividades recentes para este workspace.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {activityFeed.map((activity, idx) => (
+                    <li
+                      key={activity.id || idx}
+                      className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3`}
+                    >
+                      <p className={`text-sm ${themeClasses.text.primary}`}>
+                        {activity.description || activity.message || 'Atividade registrada'}
+                      </p>
+                      <p className={`mt-1 text-xs ${themeClasses.text.tertiary}`}>
+                        {activity.createdAt ? new Date(activity.createdAt).toLocaleString('pt-BR') : 'Agora'}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </>
         )}
       </div>
