@@ -46,6 +46,22 @@ function getActivityIcon(type: string) {
   return iconMap[type] || { icon: Activity, color: 'text-zinc-400', bg: 'bg-zinc-500/10' };
 }
 
+function translateActivityDescription(description: string) {
+  // Mantém o texto todo em PT, mas coloca em CAIXA ALTA apenas os trechos de status.
+  // Ex.: "in_review" -> "EM REVISÃO", "in_progress" -> "EM PROGRESSO" etc.
+  return description
+    .replaceAll('in_review', 'EM REVISÃO')
+    .replaceAll('IN_REVIEW', 'EM REVISÃO')
+    .replaceAll('in_progress', 'EM PROGRESSO')
+    .replaceAll('IN_PROGRESS', 'EM PROGRESSO')
+    .replaceAll('todo', 'A FAZER')
+    .replaceAll('TODO', 'A FAZER')
+    .replaceAll('done', 'CONCLUÍDO')
+    .replaceAll('DONE', 'CONCLUÍDO')
+    .replaceAll('aborted', 'CANCELADO')
+    .replaceAll('ABORTED', 'CANCELADO');
+}
+
 function getRelativeDate(date: string) {
   const now = new Date();
   const activityDate = new Date(date);
@@ -241,7 +257,7 @@ export default function ActivityFeed({
                       <span className={`font-medium ${themeClasses.text.primary}`}>
                         {act.user?.name ?? 'Alguém'}
                       </span>{' '}
-                      {act.description}
+                      {translateActivityDescription(act.description)}
                     </p>
 
                     <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
