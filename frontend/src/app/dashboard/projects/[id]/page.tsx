@@ -148,7 +148,7 @@ function KanbanColumn({
           items={tasks.map((task) => task.id)}
           strategy={verticalListSortingStrategy}
         >
-            <div className="space-y-3 flex-1 overflow-y-auto lg:overflow-y-visible custom-scrollbar">
+            <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
             {tasks.map((task) => (
               <LinearTaskCard
                 key={task.id}
@@ -228,7 +228,7 @@ export default function ProjectBoardPage() {
     onTaskMoved: (movedTask) => {
       console.log('🔥 Task movida recebida, atualizando estado:', movedTask.id);
       setTasks((prev) =>
-        prev.map((t) => (t.id === movedTask.id ? movedTask : t))
+        prev.map((t) => (t.id === movedTask.id ? { ...t, ...movedTask } : t))
       );
     },
     onTaskCreated: (newTask) => {
@@ -240,7 +240,7 @@ export default function ProjectBoardPage() {
     onTaskUpdated: (updatedTask) => {
       console.log('📝 Task atualizada recebida:', updatedTask.id);
       setTasks((prev) =>
-        prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+        prev.map((t) => (t.id === updatedTask.id ? { ...t, ...updatedTask } : t))
       );
     },
     onTaskDeleted: (deletedTaskId) => {
