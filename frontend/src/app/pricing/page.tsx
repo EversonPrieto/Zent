@@ -195,12 +195,12 @@ export default function PricingPage() {
                               const [label, value] = feature.split(':').map((s) => s.trim());
                               return (
                                 <span>
-                                  <span className="text-[14px] opacity-100 text-black">{label}:</span>{' '}
+                                  <span className={`text-[14px] opacity-90 ${themeClasses.text.tertiary}`}>{label}:</span>{' '}
                                   <span
-                                    className={`text-[14px] font-semibold text-black px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 bg-violet-200/45 backdrop-blur-sm`}
+                                    className={`text-[14px] font-semibold px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 ${themeClasses.bg.subtle} backdrop-blur-sm`}
                                     style={{
                                       boxShadow:
-                                        '0 0 0 1px rgba(124, 58, 237, 0.85), 0 0 0 4px rgba(124, 58, 237, 0.12), 0 12px 26px rgba(124, 58, 237, 0.18)',
+                                        '0 0 0 1px rgba(124, 58, 237, 0.35), 0 0 0 4px rgba(124, 58, 237, 0.10), 0 12px 26px rgba(124, 58, 237, 0.10)',
                                     }}
                                   >
                                     {value}
