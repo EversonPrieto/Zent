@@ -148,7 +148,7 @@ function KanbanColumn({
           items={tasks.map((task) => task.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+            <div className="space-y-3 flex-1 overflow-y-auto lg:overflow-y-visible custom-scrollbar">
             {tasks.map((task) => (
               <LinearTaskCard
                 key={task.id}
@@ -557,7 +557,7 @@ export default function ProjectBoardPage() {
 
       <div className="relative w-full px-4 py-6 md:px-6 md:py-8">
         {/* Header Section */}
-        <div className="mb-6 md:mb-8 max-w-[1600px] mx-auto">
+        <div className="mb-6 md:mb-8 w-full">
           <button
             onClick={() => router.push('/dashboard/projects')}
             className={`group mb-4 inline-flex items-center gap-2 text-sm ${themeClasses.text.tertiary} transition-colors hover:${themeClasses.text.primary}`}
@@ -668,13 +668,13 @@ export default function ProjectBoardPage() {
           <>
             <div className="flex gap-4 w-full">
               {/* Main Kanban Board - Flex and takes all available space */}
-              <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="flex-1 min-w-0">
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCorners}
                   onDragEnd={handleDragEnd}
                 >
-                  <div className="overflow-x-auto pb-4 h-[calc(100vh-240px)]">
+                  <div className="overflow-x-auto pb-4 h-[calc(100vh-200px)]">
                     <div className="flex gap-5 min-w-fit h-full">
                       {columns.map((col) => (
                         <KanbanColumn
