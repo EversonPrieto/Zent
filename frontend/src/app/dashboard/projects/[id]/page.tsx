@@ -49,6 +49,7 @@ import {
   Archive
 } from 'lucide-react';
 import EditProjectModal from '../../../../components/EditProjectModal';
+import { useLabels } from '../../../../hooks/useLabels';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
 
@@ -212,6 +213,7 @@ export default function ProjectBoardPage() {
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [filters, setFilters] = useState<TaskFilters>({});
   const [availableAssignees, setAvailableAssignees] = useState<Array<{ id: string; name: string; avatarUrl: string | null }>>([]);
+  const { labels: availableLabels } = useLabels(workspaceId);
   const [projectMembers, setProjectMembers] = useState<Array<{ id: string; name: string; email: string; avatarUrl: string | null }>>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -424,6 +426,12 @@ export default function ProjectBoardPage() {
     if (filters.dueDateFrom) {
       filteredTasks = filteredTasks.filter((t) =>
         t.dueDate && new Date(t.dueDate) >= new Date(filters.dueDateFrom!)
+      );
+    }
+
+    if (filters.labelIds && filters.labelIds.length > 0) {
+      filteredTasks = filteredTasks.filter((t) =>
+        t.taskLabels?.some((tl) => filters.labelIds!.includes(tl.label.id))
       );
     }
 
@@ -785,6 +793,7 @@ export default function ProjectBoardPage() {
             setShowFiltersModal(false);
           }}
           availableAssignees={availableAssignees}
+          availableLabels={availableLabels}
         />
 
         {showEditModal && workspaceId !== '' && (

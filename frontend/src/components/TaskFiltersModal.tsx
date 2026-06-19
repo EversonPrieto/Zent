@@ -8,6 +8,7 @@ export type TaskFilters = {
   status?: string[];
   priority?: string[];
   assigneeIds?: string[];
+  labelIds?: string[];
   dueDateFrom?: string;
   dueDateTo?: string;
   searchTerm?: string;
@@ -18,6 +19,7 @@ type Props = {
   onClose: () => void;
   onApplyFilters: (filters: TaskFilters) => void;
   availableAssignees: Array<{ id: string; name: string; avatarUrl: string | null }>;
+  availableLabels?: Array<{ id: string; name: string; color: string }>;
 };
 
 export default function TaskFiltersModal({
@@ -25,12 +27,14 @@ export default function TaskFiltersModal({
   onClose,
   onApplyFilters,
   availableAssignees,
+  availableLabels,
 }: Props) {
   const { themeClasses } = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedPriority, setSelectedPriority] = useState<string[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [dueDateFrom, setDueDateFrom] = useState('');
   const [dueDateTo, setDueDateTo] = useState('');
 
@@ -63,7 +67,15 @@ export default function TaskFiltersModal({
 
   const toggleAssignee = (assigneeId: string) => {
     setSelectedAssignees((prev) =>
-      prev.includes(assigneeId) ? prev.filter((a) => a !== assigneeId) : [...prev, assigneeId]
+      prev.includes(assigneeId)
+        ? prev.filter((a) => a !== assigneeId)
+        : [...prev, assigneeId]
+    );
+  };
+
+  const toggleLabel = (labelId: string) => {
+    setSelectedLabels((prev) =>
+      prev.includes(labelId) ? prev.filter((l) => l !== labelId) : [...prev, labelId]
     );
   };
 
@@ -73,6 +85,7 @@ export default function TaskFiltersModal({
       status: selectedStatus.length > 0 ? selectedStatus : undefined,
       priority: selectedPriority.length > 0 ? selectedPriority : undefined,
       assigneeIds: selectedAssignees.length > 0 ? selectedAssignees : undefined,
+      labelIds: selectedLabels.length > 0 ? selectedLabels : undefined,
       dueDateFrom: dueDateFrom || undefined,
       dueDateTo: dueDateTo || undefined,
     };
@@ -84,6 +97,7 @@ export default function TaskFiltersModal({
     setSelectedStatus([]);
     setSelectedPriority([]);
     setSelectedAssignees([]);
+    setSelectedLabels([]);
     setDueDateFrom('');
     setDueDateTo('');
     onApplyFilters({});
@@ -206,6 +220,39 @@ export default function TaskFiltersModal({
                   <span className="truncate">{assignee.name}</span>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Labels Filter */}
+          <div>
+            <label className={`mb-3 block text-sm font-medium ${themeClasses.text.secondary}`}>
+              Labels
+            </label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {(availableLabels ?? []).length === 0 ? (
+                <p className={`col-span-full text-xs ${themeClasses.text.tertiary}`}>
+                  Nenhuma label disponível
+                </p>
+              ) : (
+                (availableLabels ?? []).map((label: { id: string; name: string; color: string }) => (
+                  <button
+                    key={label.id}
+                    onClick={() => toggleLabel(label.id)}
+                    className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                      selectedLabels.includes(label.id)
+                        ? 'border-violet-500 bg-violet-500/10 text-violet-400'
+                        : `${themeClasses.border.primary} ${themeClasses.bg.secondary} ${themeClasses.text.secondary} hover:${themeClasses.bg.hover}`
+                    }`}
+                    title={label.name}
+                  >
+                    <span className="truncate">{label.name}</span>
+                    <span
+                      className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                      style={{ backgroundColor: label.color }}
+                    />
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
