@@ -125,6 +125,21 @@ function isMemberActivity(activity: ActivityItem) {
   return activity.type === 'MEMBER_ADDED' || activity.type === 'MEMBER_REMOVED';
 }
 
+function translateActivityDescription(description: string) {
+  // Traduções para manter atividades legíveis no PT (especialmente status como in_review)
+  return description
+    .replaceAll('in_review', 'EM REVISÃO')
+    .replaceAll('IN_REVIEW', 'EM REVISÃO')
+    .replaceAll('in_progress', 'EM PROGRESSO')
+    .replaceAll('IN_PROGRESS', 'EM PROGRESSO')
+    .replaceAll('todo', 'A FAZER')
+    .replaceAll('TODO', 'A FAZER')
+    .replaceAll('done', 'CONCLUÍDO')
+    .replaceAll('DONE', 'CONCLUÍDO')
+    .replaceAll('aborted', 'CANCELADO')
+    .replaceAll('ABORTED', 'CANCELADO');
+}
+
 export default function ActivityPage() {
   const router = useRouter();
   const { themeClasses } = useTheme();
@@ -414,7 +429,7 @@ export default function ActivityPage() {
                               <span className={`font-medium ${themeClasses.text.primary}`}>
                                 {activity.user?.name ?? 'Sistema'}
                               </span>{' '}
-                              {activity.description}
+                              {translateActivityDescription(activity.description)}
                             </p>
 
                             <div className={`mt-2 flex flex-wrap items-center gap-3 text-xs ${themeClasses.text.muted}`}>
