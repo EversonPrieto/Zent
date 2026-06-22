@@ -543,7 +543,12 @@ export class TasksService {
   async addAttachment(
     workspaceId: string,
     taskId: string,
-    data: { url: string; fileName: string; fileType: string; size?: number },
+    data: {
+      url: string;
+      fileName?: string;
+      fileType?: string;
+      size?: number;
+    },
   ) {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, project: { workspaceId } },
@@ -564,8 +569,8 @@ export class TasksService {
       data: {
         taskId,
         url: data.url,
-        fileName: data.fileName,
-        fileType: data.fileType,
+        fileName: data.fileName ?? 'Anexo',
+        fileType: data.fileType ?? 'application/octet-stream',
         size: data.size,
       },
     });

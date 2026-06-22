@@ -9,7 +9,6 @@ export class LabelsService {
     private tasksGateway: TasksGateway,
   ) {}
 
-
   async getLabels(workspaceId: string) {
     return this.prisma.label.findMany({
       where: { workspaceId },
@@ -88,7 +87,6 @@ export class LabelsService {
 
     return updated;
   }
-
 
   async deleteLabel(id: string, workspaceId: string) {
     const label = await this.prisma.label.findUnique({ where: { id } });
