@@ -7,6 +7,7 @@ import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
 import { useCommentSync } from '../hooks/useCommentSync';
 import { usePresence } from '../hooks/usePresence';
 import { useLabels } from '../hooks/useLabels';
+import AttachmentUploader from './AttachmentUploader';
 import { showToast } from './Toast';
 import { showConfirm } from './ConfirmDialog';
 import { format } from 'date-fns';
@@ -50,7 +51,7 @@ type Task = {
   dueDate?: string | null;
   taskLabels?: Array<{ label: { id: string; name: string; color: string } }>;
   taskAssignees?: Array<{ user: { id: string; name: string; avatarUrl: string | null } }>;
-  attachments?: Array<{ id: string; fileName: string }>;
+  attachments?: Array<{ id: string; name?: string; fileName?: string; fileType?: string; url?: string; size?: number; createdAt?: string }>;
 };
 
 type Comment = {
@@ -925,6 +926,28 @@ export default function TaskModal({
               </div>
 
               <div className={`border-t ${themeClasses.border.primary} pt-6`}>
+                {/* Anexos */}
+                {canEdit && !isReadOnly && (
+                  <div className="mb-6">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Paperclip className="h-5 w-5 text-violet-400" />
+                      <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Anexos</h3>
+                    </div>
+
+                    <AttachmentUploader
+                      taskId={currentTask.id}
+                      workspaceId={workspaceId}
+                      attachments={currentTask.attachments || []}
+                      onAttachmentAdded={() => {
+                        // Mantém UX do board em realtime.
+                      }}
+                      onAttachmentRemoved={() => {
+                        // Mantém UX do board em realtime.
+                      }}
+                    />
+                  </div>
+                )}
+
                 <div className="mb-4 flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-violet-400" />
                   <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Comentários</h3>

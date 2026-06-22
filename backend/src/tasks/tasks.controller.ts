@@ -133,7 +133,7 @@ export class TasksController {
     @Req() req: any,
     @Param('id') taskId: string,
     @Body()
-    body: { url: string; fileName: string; fileType: string; size?: number },
+    body: { url: string; fileName?: string; fileType?: string; size?: number },
   ) {
     return this.service.addAttachment(req.workspaceId, taskId, body);
   }

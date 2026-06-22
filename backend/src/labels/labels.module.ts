@@ -11,4 +11,3 @@ import { TasksModule } from '../tasks/tasks.module';
   exports: [LabelsService],
 })
 export class LabelsModule {}
-

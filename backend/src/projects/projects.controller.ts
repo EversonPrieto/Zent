@@ -68,10 +68,7 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Deletar projeto' })
   @Roles(Role.OWNER, Role.ADMIN)
   @Delete(':id')
-  deleteProject(
-    @Req() req: any,
-    @Param('id') id: string,
-  ) {
+  deleteProject(@Req() req: any, @Param('id') id: string) {
     return this.service.delete(req.workspaceId, id, req.user.sub);
   }
 }
