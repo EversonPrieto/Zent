@@ -80,7 +80,13 @@ export class TasksService {
         status,
         priority: dto.priority ?? TaskPriority.MEDIUM,
         assigneeId: dto.assigneeId,
-        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        dueDate: dto.dueDate
+          ? new Date(
+              dto.dueDate.endsWith('Z')
+                ? dto.dueDate
+                : `${dto.dueDate}T00:00:00.000Z`,
+            )
+          : null,
         position,
         // Add label associations
         taskLabels:
@@ -270,7 +276,11 @@ export class TasksService {
           dto.dueDate === undefined
             ? undefined
             : dto.dueDate
-              ? new Date(dto.dueDate)
+              ? new Date(
+                  dto.dueDate.endsWith('Z')
+                    ? dto.dueDate
+                    : `${dto.dueDate}T00:00:00.000Z`,
+                )
               : null,
       },
     });

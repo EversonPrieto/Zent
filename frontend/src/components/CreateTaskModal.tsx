@@ -158,7 +158,7 @@ export default function CreateTaskModal({
           priority,
           status,
           projectId,
-          dueDate: dueDate || null,
+          dueDate: dueDate ? `${dueDate}T00:00:00.000Z` : null,
           assigneeIds: selectedAssignees,
           labelIds: selectedLabels,
         }),
