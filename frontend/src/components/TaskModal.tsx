@@ -212,7 +212,7 @@ export default function TaskModal({
     setDescription(task.description ?? '');
     setStatus(task.status);
     setPriority(task.priority);
-    setDueDate(task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : '');
+    setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '');
     setSelectedLabels(task.taskLabels?.map((tl: any) => tl.label.id) || []);
     setSelectedAssignees(task.taskAssignees?.map((ta: any) => ta.user.id) || []);
     setError('');
