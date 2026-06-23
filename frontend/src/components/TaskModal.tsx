@@ -966,9 +966,17 @@ export default function TaskModal({
                       <div key={comment.id} className={`group rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 transition-all hover:${themeClasses.border.hover}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
-                              <User className="h-4 w-4 text-violet-400" />
-                            </div>
+                            {comment.user?.avatarUrl ? (
+                              <img
+                                src={comment.user.avatarUrl}
+                                alt={comment.user?.name || 'Avatar do usuário'}
+                                className="h-8 w-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
+                                <User className="h-4 w-4 text-violet-400" />
+                              </div>
+                            )}
                             <div>
                               <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
                                 {comment.user?.name ?? 'Usuário'}
