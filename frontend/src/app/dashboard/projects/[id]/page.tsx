@@ -67,7 +67,15 @@ type Task = {
   dueDate?: string | null;
   taskLabels?: Array<{ label: { id: string; name: string; color: string } }>;
   taskAssignees?: Array<{ user: { id: string; name: string; avatarUrl: string | null } }>;
-  attachments?: Array<{ id: string; fileName: string }>;
+  attachments?: Array<{
+    id: string;
+    fileName?: string;
+    fileType?: string;
+    url?: string;
+    name?: string;
+    size?: number;
+    createdAt?: string;
+  }>;
 };
 
 type TasksResponse = {
