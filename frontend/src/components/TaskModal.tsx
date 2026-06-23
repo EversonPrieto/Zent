@@ -346,7 +346,7 @@ export default function TaskModal({
           description,
           status,
           priority,
-          dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          dueDate: dueDate ? `${dueDate}T00:00:00.000Z` : null,
         }),
       });
 
