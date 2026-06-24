@@ -32,7 +32,6 @@ import {
 } from 'lucide-react';
 
 import CreateWorkspaceModal from './CreateWorkspaceModal';
-import EditWorkspaceModal from './EditWorkspaceModal';
 import InviteMemberModal from './InviteMemberModal';
 import WorkspaceMembersModal from './WorkspaceMembersModal';
 
@@ -71,7 +70,6 @@ export default function AppHeader() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
-  const [showEditWorkspaceModal, setShowEditWorkspaceModal] = useState(false);
   const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
 
@@ -454,16 +452,6 @@ export default function AppHeader() {
                           Convidar membro
                         </button>
 
-                        <button
-                          onClick={() => {
-                            setWorkspaceMenuOpen(false);
-                            setShowEditWorkspaceModal(true);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                          Editar workspace
-                        </button>
                       </>
                     )}
 
@@ -858,27 +846,17 @@ export default function AppHeader() {
 
               {canManageWorkspace && workspace && (
                 <>
-                  <button
-                    onClick={() => {
-                      setShowInviteMemberModal(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-                  >
-                    <Mail className="h-4 w-4" />
-                    Convidar membro
-                  </button>
+                    <button
+                      onClick={() => {
+                        setShowInviteMemberModal(true);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                    >
+                      <Mail className="h-4 w-4" />
+                      Convidar membro
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      setShowEditWorkspaceModal(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                    Editar workspace
-                  </button>
                 </>
               )}
 
@@ -937,13 +915,6 @@ export default function AppHeader() {
         />
       )}
 
-      {showEditWorkspaceModal && workspace && (
-        <EditWorkspaceModal
-          workspace={workspace}
-          onClose={() => setShowEditWorkspaceModal(false)}
-          onSaved={handleWorkspaceUpdated}
-        />
-      )}
 
       {showInviteMemberModal && workspace && (
         <InviteMemberModal

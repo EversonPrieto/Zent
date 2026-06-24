@@ -35,13 +35,17 @@ export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
     ...uniqueUsers.filter((u) => u.id !== currentUserId),
   ];
 
+  const shouldScroll = sortedUsers.length > 4;
+
   return (
     <div className="space-y-2">
       <div className={`text-sm font-semibold ${themeClasses.text.secondary} px-3`}>
         👥 Online ({sortedUsers.length})
       </div>
 
-      <div className="space-y-2 px-2">
+      <div
+        className={`space-y-2 px-2 ${shouldScroll ? 'max-h-[170px] overflow-y-auto pr-1' : ''}`}
+      >
         {sortedUsers.length > 0 ? (
           sortedUsers.map((user) => (
             <PresenceIndicator

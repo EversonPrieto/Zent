@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useEffect, useState } from 'react';
 import WorkspaceMembersModal from '../../../../components/WorkspaceMembersModal';
+import InviteMemberModal from '../../../../components/InviteMemberModal';
 import { useRouter } from 'next/navigation';
 import { api } from '../../../../lib/api';
 import { useTheme } from '../../../../hooks/useTheme';
@@ -21,6 +22,7 @@ import {
   Edit2,
   X,
   ArrowLeft,
+  MailPlus,
 } from 'lucide-react';
 
 import { showConfirm } from '../../../../components/ConfirmDialog';
@@ -48,6 +50,7 @@ export default function WorkspaceSettingsPage() {
   const [checkingPerms, setCheckingPerms] = useState(true);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [membersModalOpen, setMembersModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   useEffect(() => {
     const workspaceRaw = localStorage.getItem('zent_workspace');
@@ -420,15 +423,34 @@ export default function WorkspaceSettingsPage() {
             <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Membros</h2>
           </div>
           <p className={`text-sm ${themeClasses.text.secondary}`}>Gerencie os membros e permissões do workspace.</p>
-          <button
-            onClick={() => setMembersModalOpen(true)}
-            disabled={!permissions?.canRemoveMembers && !permissions?.canInviteMembers}
-            className={`mt-4 inline-flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
-          >
-            <Shield className="h-4 w-4" />
-            Gerenciar membros
-          </button>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => setInviteModalOpen(true)}
+              disabled={!permissions?.canInviteMembers}
+              className={`inline-flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <MailPlus className="h-4 w-4" />
+              Convidar membro
+            </button>
+
+            <button
+              onClick={() => setMembersModalOpen(true)}
+              disabled={!permissions?.canRemoveMembers && !permissions?.canInviteMembers}
+              className={`inline-flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <Shield className="h-4 w-4" />
+              Gerenciar membros
+            </button>
+          </div>
         </div>
+
+        {inviteModalOpen && workspace && (
+          <InviteMemberModal
+            workspaceId={workspace.id}
+            onClose={() => setInviteModalOpen(false)}
+          />
+        )}
 
         {membersModalOpen && workspace && (
           <WorkspaceMembersModal
