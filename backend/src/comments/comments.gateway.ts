@@ -34,13 +34,31 @@ export class CommentsGateway {
     client.leave(`task-${taskId}`);
   }
 
-  emitCommentCreated(taskId: string, comment: any) {
+  emitCommentCreated(
+    taskId: string,
+    comment: any,
+    actorUserId: string,
+    actorUserName: string,
+  ) {
     console.log('💬 novo comentário:', comment);
-    this.server.to(`task-${taskId}`).emit('comment:created', comment);
+    this.server.to(`task-${taskId}`).emit('comment:created', {
+      comment,
+      actorUserId,
+      actorUserName,
+    });
   }
 
-  emitCommentDeleted(taskId: string, commentId: string) {
+  emitCommentDeleted(
+    taskId: string,
+    commentId: string,
+    actorUserId: string,
+    actorUserName: string,
+  ) {
     console.log('🗑️ comentário deletado:', commentId);
-    this.server.to(`task-${taskId}`).emit('comment:deleted', commentId);
+    this.server.to(`task-${taskId}`).emit('comment:deleted', {
+      commentId,
+      actorUserId,
+      actorUserName,
+    });
   }
 }

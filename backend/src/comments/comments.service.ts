@@ -65,7 +65,12 @@ export class CommentsService {
       userId,
     });
 
-    this.gateway.emitCommentCreated(taskId, comment);
+    this.gateway.emitCommentCreated(
+      taskId,
+      comment,
+      userId,
+      comment.user?.name ?? 'Usuário',
+    );
 
     return comment;
   }
@@ -141,7 +146,12 @@ export class CommentsService {
       userId,
     });
 
-    this.gateway.emitCommentDeleted(comment.taskId, commentId);
+    this.gateway.emitCommentDeleted(
+      comment.taskId,
+      commentId,
+      userId,
+      comment.userId === userId ? 'Você' : 'Usuário',
+    );
 
     return { message: 'Comentário removido' };
   }

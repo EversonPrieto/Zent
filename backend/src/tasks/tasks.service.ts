@@ -130,7 +130,19 @@ export class TasksService {
       userId,
     });
 
-    this.tasksGateway.emitTaskCreated(task.projectId, task);
+    const actor = userId
+      ? await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, name: true },
+        })
+      : null;
+
+    this.tasksGateway.emitTaskCreated(
+      task.projectId,
+      task,
+      actor?.id ?? userId ?? 'unknown',
+      actor?.name ?? 'Usuário',
+    );
 
     return task;
   }
@@ -294,7 +306,17 @@ export class TasksService {
       userId,
     });
 
-    this.tasksGateway.emitTaskUpdated(existingTask.projectId, updatedTask);
+    this.tasksGateway.emitTaskUpdated(
+      existingTask.projectId,
+      updatedTask,
+      userId ?? 'unknown',
+      userId
+        ? (await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+          }))?.name ?? 'Usuário'
+        : 'Usuário',
+    );
 
     return updatedTask;
   }
@@ -387,7 +409,17 @@ export class TasksService {
       userId,
     });
 
-    this.tasksGateway.emitTaskMoved(task.projectId, updatedTask);
+    this.tasksGateway.emitTaskMoved(
+      task.projectId,
+      updatedTask,
+      userId ?? 'unknown',
+      userId
+        ? (await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+          }))?.name ?? 'Usuário'
+        : 'Usuário',
+    );
 
     return updatedTask;
   }
@@ -429,7 +461,17 @@ export class TasksService {
       where: { id },
     });
 
-    this.tasksGateway.emitTaskDeleted(task.projectId, task.id);
+    this.tasksGateway.emitTaskDeleted(
+      task.projectId,
+      task.id,
+      userId ?? 'unknown',
+      userId
+        ? (await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+          }))?.name ?? 'Usuário'
+        : 'Usuário',
+    );
 
     return { message: 'Task removida com sucesso.' };
   }

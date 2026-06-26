@@ -74,15 +74,20 @@ export class LabelsService {
     });
 
     for (const tl of taskLabels) {
-      this.tasksGateway.emitTaskUpdated(tl.task.projectId, {
-        id: tl.task.id,
-        projectId: tl.task.projectId,
-        status: tl.task.status,
-        title: tl.task.title,
-        priority: tl.task.priority,
-        position: tl.task.position,
-        taskLabels: tl.task.taskLabels.map((x) => ({ label: x.label })),
-      });
+      this.tasksGateway.emitTaskUpdated(
+        tl.task.projectId,
+        {
+          id: tl.task.id,
+          projectId: tl.task.projectId,
+          status: tl.task.status,
+          title: tl.task.title,
+          priority: tl.task.priority,
+          position: tl.task.position,
+          taskLabels: tl.task.taskLabels.map((x) => ({ label: x.label })),
+        },
+        'unknown',
+        'Usuário',
+      );
     }
 
     return updated;

@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../hooks/useTheme';
 import { PlanComparison } from '../../components/PlanComparison';
-import { CheckCircle2, Zap, Star } from 'lucide-react';
+import { CheckCircle2, Zap, Star, AlertCircle } from 'lucide-react';
 
 type Plan = {
   id: 'free' | 'pro';
@@ -170,6 +170,20 @@ export default function PricingPage() {
               >
                 {plan.cta}
               </button>
+
+              {plan.id === 'pro' && plan.cta === 'Começar Trial Gratuito' && (
+                <div
+                  className={`mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3`}
+                >
+                  <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-300">Aviso do Trial (14 dias)</p>
+                    <p className={`text-sm ${themeClasses.text.secondary}`}>
+                      No trial gratuito de 14 dias, não haverá acesso à API e suporte 24/7.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">

@@ -104,6 +104,18 @@ export function PlanComparison({ currentPlan }: PlanComparisonProps) {
             </p>
           </div>
 
+          {currentPlan === 'pro' && (
+            <div className={`mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3`}>
+              <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-red-300">Aviso do Trial (14 dias)</p>
+                <p className={`text-sm ${themeClasses.text.secondary}`}>
+                  No trial gratuito de 14 dias, não haverá acesso à API e suporte 24/7.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3 mb-6">
             {PLAN_FEATURES.pro.map((feature: any, idx: number) => (
               <div

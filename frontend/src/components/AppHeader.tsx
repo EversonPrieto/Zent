@@ -192,7 +192,21 @@ export default function AppHeader() {
       const customEvent = event as CustomEvent;
       const detail = customEvent.detail as { message?: string; type?: 'task' | 'comment' | 'mention' };
       if (!detail?.message) return;
-      addNotification(detail.message, detail.type ?? 'task');
+      const newNotification = {
+        id: Date.now().toString(),
+        message: detail.message,
+        type: detail.type ?? 'task',
+      };
+
+      setNotifications((prev) => {
+        const updated = [newNotification, ...prev];
+        localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20))); // Manter últimas 20
+        return updated;
+      });
+
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
+      }, 60000);
     };
 
     window.addEventListener('add-notification', handleAddNotification);
@@ -227,7 +241,7 @@ export default function AppHeader() {
       message,
       type,
     };
-    
+
     setNotifications((prev) => {
       const updated = [newNotification, ...prev];
       localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20))); // Manter últimas 20
@@ -236,7 +250,7 @@ export default function AppHeader() {
 
     setTimeout(() => {
       setNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
-    }, 10000);
+    }, 60000);
   }
 
   function handleSwitchWorkspace(ws: Workspace) {
