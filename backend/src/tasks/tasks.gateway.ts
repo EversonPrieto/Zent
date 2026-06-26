@@ -25,23 +25,51 @@ export class TasksGateway {
     client.join(`project-${projectId}`);
   }
 
-  emitTaskMoved(projectId: string, task: any) {
+  emitTaskMoved(
+    projectId: string,
+    task: any,
+    actorUserId: string,
+    actorUserName: string,
+  ) {
     console.log('🔥 Task movida:', task.id, '→', task.status);
-    this.server.to(`project-${projectId}`).emit('task:moved', task);
+    this.server
+      .to(`project-${projectId}`)
+      .emit('task:moved', { task, actorUserId, actorUserName });
   }
 
-  emitTaskCreated(projectId: string, task: any) {
+  emitTaskCreated(
+    projectId: string,
+    task: any,
+    actorUserId: string,
+    actorUserName: string,
+  ) {
     console.log('✨ Task criada:', task.id);
-    this.server.to(`project-${projectId}`).emit('task:created', task);
+    this.server
+      .to(`project-${projectId}`)
+      .emit('task:created', { task, actorUserId, actorUserName });
   }
 
-  emitTaskDeleted(projectId: string, taskId: string) {
+  emitTaskDeleted(
+    projectId: string,
+    taskId: string,
+    actorUserId: string,
+    actorUserName: string,
+  ) {
     console.log('🗑️ Task deletada:', taskId);
-    this.server.to(`project-${projectId}`).emit('task:deleted', taskId);
+    this.server
+      .to(`project-${projectId}`)
+      .emit('task:deleted', { taskId, actorUserId, actorUserName });
   }
 
-  emitTaskUpdated(projectId: string, task: any) {
+  emitTaskUpdated(
+    projectId: string,
+    task: any,
+    actorUserId: string,
+    actorUserName: string,
+  ) {
     console.log('📝 Task atualizada:', task.id);
-    this.server.to(`project-${projectId}`).emit('task:updated', task);
+    this.server
+      .to(`project-${projectId}`)
+      .emit('task:updated', { task, actorUserId, actorUserName });
   }
 }
