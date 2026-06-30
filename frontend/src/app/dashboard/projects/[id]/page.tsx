@@ -227,6 +227,27 @@ export default function ProjectBoardPage() {
 
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatarUrl: string | null } | null>(null);
 
+  // Urgency sorting state
+  const [urgencySortEnabled, setUrgencySortEnabled] = useState(false);
+
+  // Priority weight configuration: URGENT > HIGH > MEDIUM > LOW > undefined/null
+  const priorityWeight: Record<string, number> = {
+    URGENT: 4,
+    HIGH: 3,
+    MEDIUM: 2,
+    LOW: 1,
+    none: 0,
+  };
+
+  // Sort tasks by priority within a column
+  function sortTasksByPriority(tasksToSort: Task[], ascending = false): Task[] {
+    return [...tasksToSort].sort((a, b) => {
+      const weightA = priorityWeight[a.priority] ?? priorityWeight.none;
+      const weightB = priorityWeight[b.priority] ?? priorityWeight.none;
+      return ascending ? weightA - weightB : weightB - weightA;
+    });
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -450,23 +471,38 @@ export default function ProjectBoardPage() {
     }
 
     return {
-      TODO: filteredTasks
-        .filter((t) => t.status === 'TODO')
-        .sort((a, b) => a.position - b.position),
-      IN_PROGRESS: filteredTasks
-        .filter((t) => t.status === 'IN_PROGRESS')
-        .sort((a, b) => a.position - b.position),
-      IN_REVIEW: filteredTasks
-        .filter((t) => t.status === 'IN_REVIEW')
-        .sort((a, b) => a.position - b.position),
-      DONE: filteredTasks
-        .filter((t) => t.status === 'DONE')
-        .sort((a, b) => a.position - b.position),
-      ABORTED: filteredTasks
-        .filter((t) => t.status === 'ABORTED')
-        .sort((a, b) => a.position - b.position),
+      TODO: (() => {
+        const columnTasks = filteredTasks.filter((t) => t.status === 'TODO');
+        return urgencySortEnabled
+          ? sortTasksByPriority(columnTasks)
+          : columnTasks.sort((a, b) => a.position - b.position);
+      })(),
+      IN_PROGRESS: (() => {
+        const columnTasks = filteredTasks.filter((t) => t.status === 'IN_PROGRESS');
+        return urgencySortEnabled
+          ? sortTasksByPriority(columnTasks)
+          : columnTasks.sort((a, b) => a.position - b.position);
+      })(),
+      IN_REVIEW: (() => {
+        const columnTasks = filteredTasks.filter((t) => t.status === 'IN_REVIEW');
+        return urgencySortEnabled
+          ? sortTasksByPriority(columnTasks)
+          : columnTasks.sort((a, b) => a.position - b.position);
+      })(),
+      DONE: (() => {
+        const columnTasks = filteredTasks.filter((t) => t.status === 'DONE');
+        return urgencySortEnabled
+          ? sortTasksByPriority(columnTasks)
+          : columnTasks.sort((a, b) => a.position - b.position);
+      })(),
+      ABORTED: (() => {
+        const columnTasks = filteredTasks.filter((t) => t.status === 'ABORTED');
+        return urgencySortEnabled
+          ? sortTasksByPriority(columnTasks)
+          : columnTasks.sort((a, b) => a.position - b.position);
+      })(),
     };
-  }, [tasks, filters]);
+  }, [tasks, filters, urgencySortEnabled]);
 
   function getDestinationStatus(overId: string): TaskStatus | null {
     if (columns.some((col) => col.key === overId)) return overId as TaskStatus;
@@ -613,7 +649,7 @@ export default function ProjectBoardPage() {
             </div>
 
             {/* Center: Filter Button */}
-            <div className="flex justify-center md:justify-end md:flex-shrink-0 md:ml-4">
+            <div className="flex justify-center md:justify-end md:flex-shrink-0 md:ml-4 gap-2">
               <button
                 onClick={() => setShowFiltersModal(true)}
                 className={`inline-flex items-center gap-2 rounded-lg border border-violet-500/50 ${themeClasses.bg.subtle} px-4 py-2 text-sm font-medium text-violet-400 transition-all hover:border-violet-500 hover:${themeClasses.bg.hover}`}
@@ -625,6 +661,20 @@ export default function ProjectBoardPage() {
                     {Object.values(filters).filter((v) => v).length}
                   </span>
                 )}
+              </button>
+
+              {/* Urgency Sort Button */}
+              <button
+                onClick={() => setUrgencySortEnabled(!urgencySortEnabled)}
+                className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all cursor-pointer ${
+                  urgencySortEnabled
+                    ? 'bg-red-600 border-red-500 text-white hover:bg-red-700'
+                    : 'bg-red-500 border-red-600 text-white hover:bg-red-600'
+                }`}
+                title={urgencySortEnabled ? 'Desativar ordenação por urgência' : 'Ativar ordenação por urgência'}
+              >
+                <Flag className="h-4 w-4" />
+                {urgencySortEnabled ? 'URGÊNCIA ATIVA' : 'Ativar URGÊNCIA'}
               </button>
             </div>
 
