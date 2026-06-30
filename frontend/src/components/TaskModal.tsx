@@ -926,8 +926,8 @@ export default function TaskModal({
               </div>
 
               <div className={`border-t ${themeClasses.border.primary} pt-6`}>
-                {/* Anexos */}
-                {canEdit && !isReadOnly && (
+                {/* Anexos - sempre mostrar para visualização/download, upload apenas para quem pode editar */}
+                {(currentTask.attachments && currentTask.attachments.length > 0) || (canEdit && !isReadOnly) ? (
                   <div className="mb-6">
                     <div className="mb-3 flex items-center gap-2">
                       <Paperclip className="h-5 w-5 text-violet-400" />
@@ -946,7 +946,7 @@ export default function TaskModal({
                       }}
                     />
                   </div>
-                )}
+                ) : null}
 
                 <div className="mb-4 flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-violet-400" />
