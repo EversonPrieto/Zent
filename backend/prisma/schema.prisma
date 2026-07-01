@@ -237,3 +237,40 @@ model Attachment {
 
   @@index([taskId])
 }
+
+enum EmailDigestStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model EmailTaskMovedDigest {
+  id          String   @id @default(uuid())
+  userId      String
+  workspaceId String
+
+  // agregado anti-spam (digest)
+  count        Int       @default(1)
+  lastTaskId   String?
+  lastActionAt DateTime  @default(now())
+
+  // conteúdo do último movimento (para montar o digest corretamente)
+  lastTaskTitle String?
+  actorName     String?
+  fromStatus    String
+  toStatus      String
+
+  // erro/estado de envio
+  status      EmailDigestStatus @default(PENDING)
+  lastError   String?
+
+  // controla envio por janela (fila)
+  nextSendAt  DateTime @default(now())
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId, userId, status])
+  @@index([nextSendAt])
+  @@unique([workspaceId, userId])
+}
