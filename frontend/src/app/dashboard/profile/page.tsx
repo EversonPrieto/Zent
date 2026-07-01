@@ -76,9 +76,35 @@ export default function ProfilePage() {
           }
         }
 
+        // Fallback: localStorage (caso /auth/me não traga o campo)
         const savedEmailPrefs = localStorage.getItem('zent_email_notifications');
         if (savedEmailPrefs) {
           setEmailNotificationsEnabled(JSON.parse(savedEmailPrefs));
+        }
+
+        // Fonte de verdade: buscar preferências no backend via /auth/me
+        const token = localStorage.getItem('zent_token');
+        if (token) {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const me = await response.json();
+            if (typeof me.emailNotificationsEnabled === 'boolean') {
+              setEmailNotificationsEnabled(me.emailNotificationsEnabled);
+              localStorage.setItem(
+                'zent_email_notifications',
+                JSON.stringify(me.emailNotificationsEnabled)
+              );
+            }
+          }
         }
 
         // Load subscription data from user

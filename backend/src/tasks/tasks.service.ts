@@ -14,6 +14,7 @@ import { ActivityService } from 'src/activity/activity.service';
 import { AclService } from 'src/common/acl/acl.service';
 import { TasksGateway } from './tasks.gateway';
 import { LimitsService } from 'src/limits/limits.service';
+import { EmailTaskMovedDigestService } from 'src/notifications/email-task-moved/email-task-moved-digest.service';
 
 @Injectable()
 export class TasksService {
@@ -23,6 +24,7 @@ export class TasksService {
     private acl: AclService,
     private tasksGateway: TasksGateway,
     private limits: LimitsService,
+    private emailTaskMovedDigestService: EmailTaskMovedDigestService,
   ) {}
 
   private async ensureProjectInWorkspace(
@@ -420,6 +422,44 @@ export class TasksService {
           }))?.name ?? 'Usuário'
         : 'Usuário',
     );
+
+    // Enfileirar digest por email (anti-spam é feito no worker)
+    try {
+      const members = await this.prisma.workspaceMember.findMany({
+        where: { workspaceId },
+        select: {
+          userId: true,
+          user: {
+            select: {
+              id: true,
+              emailNotificationsEnabled: true,
+            },
+          },
+        },
+      });
+
+      const fromStatus = task.status ? String(task.status) : '—';
+      const toStatus = dto.status ? String(dto.status) : '—';
+
+      const recipientUserIds = members
+        .filter((m) => m.user?.emailNotificationsEnabled)
+        .map((m) => m.userId);
+
+      for (const recipientUserId of recipientUserIds) {
+        await this.emailTaskMovedDigestService.enqueue({
+          userId: recipientUserId,
+          workspaceId,
+          taskId: task.id,
+          taskTitle: task.title ?? null,
+          actorUserId: userId ?? null,
+          fromStatus,
+          toStatus,
+        });
+      }
+    } catch (err) {
+      // Fail-safe: não deixar a mudança da task quebrar por erro na notificação
+      console.error('[TasksService.move] enqueue email digest failed:', err);
+    }
 
     return updatedTask;
   }
