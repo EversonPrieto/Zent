@@ -20,7 +20,10 @@ import {
   Users,
   ChevronDown,
   Archive,
+  Paperclip,
 } from 'lucide-react';
+
+import AttachmentUploader from './AttachmentUploader';
 
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -134,6 +137,10 @@ export default function CreateTaskModal({
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showAssigneesDropdown, setShowAssigneesDropdown] = useState(false);
 
+  // attachments: precisamos do taskId criado antes de permitir upload
+  const [createdTaskId, setCreatedTaskId] = useState<string | null>(null);
+  const [showAttachments, setShowAttachments] = useState(false);
+
   const currentStatusConfig = statusConfig[status];
   const StatusIcon = currentStatusConfig.icon;
   const currentPriorityConfig = priorityConfig[priority];
@@ -165,12 +172,21 @@ export default function CreateTaskModal({
       });
 
       onCreated(created);
-      onClose();
+      setCreatedTaskId(created.id);
+      setShowAttachments(true); // abre a seção de anexos automaticamente após criar
+      // eslint-disable-next-line no-console
+      console.log('[CreateTaskModal] task created for attachments', created.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar task');
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleCloseAfterAttachments() {
+    setCreatedTaskId(null);
+    setShowAttachments(false);
+    onClose();
   }
 
   return (
@@ -454,8 +470,6 @@ export default function CreateTaskModal({
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
                 </div>
-              ) : labels.length === 0 ? (
-                <div className={`text-sm ${themeClasses.text.muted} px-2 py-2`}>Nenhuma label disponível</div>
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between mb-1">
@@ -528,35 +542,39 @@ export default function CreateTaskModal({
                     </div>
                   )}
 
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {labels.map((label: any) => {
-                      const isSelected = selectedLabels.includes(label.id);
-                      return (
-                        <div
-                          key={label.id}
-                          className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 transition-colors`}
-                        >
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setSelectedLabels((prev) => [...prev, label.id]);
-                                } else {
-                                  setSelectedLabels((prev) => prev.filter((id) => id !== label.id));
-                                }
-                              }}
-                              disabled={projectCompleted}
-                              className="cursor-pointer disabled:cursor-not-allowed"
-                            />
-                            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: label.color }} />
-                            <span className={`text-sm ${themeClasses.text.primary} flex-1 truncate`}>{label.name}</span>
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {labels.length === 0 ? (
+                    <div className={`text-sm ${themeClasses.text.muted} px-2 py-2`}>Nenhuma label disponível</div>
+                  ) : (
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                      {labels.map((label: any) => {
+                        const isSelected = selectedLabels.includes(label.id);
+                        return (
+                          <div
+                            key={label.id}
+                            className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 transition-colors`}
+                          >
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedLabels((prev) => [...prev, label.id]);
+                                  } else {
+                                    setSelectedLabels((prev) => prev.filter((id) => id !== label.id));
+                                  }
+                                }}
+                                disabled={projectCompleted}
+                                className="cursor-pointer disabled:cursor-not-allowed"
+                              />
+                              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: label.color }} />
+                              <span className={`text-sm ${themeClasses.text.primary} flex-1 truncate`}>{label.name}</span>
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -570,6 +588,47 @@ export default function CreateTaskModal({
                 </p>
               </div>
             </div>
+
+            {/* Attachments (images + PDF) */}
+            {createdTaskId && (
+              <div className="mt-4">
+                <div className="mb-2 text-xs text-violet-400/80">
+                  Task criada (para anexos): <span className="font-mono">{createdTaskId}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAttachments((v) => !v)}
+                  className={`mb-3 inline-flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} px-3 py-2 text-sm transition-all hover:bg-opacity-5`}
+                >
+                  <Paperclip className="h-4 w-4 text-violet-400" />
+                  {showAttachments ? 'Ocultar anexos' : 'Adicionar anexos'}
+                </button>
+
+                {showAttachments && (
+                  <>
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
+                      <Paperclip className="h-4 w-4 text-violet-400" />
+                      Anexos (imagem ou PDF)
+                    </label>
+
+                    <AttachmentUploader
+                      taskId={createdTaskId}
+                      workspaceId={workspaceId}
+                      attachments={[]}
+                      onAttachmentAdded={() => {
+                        // eslint-disable-next-line no-console
+                        console.log('[CreateTaskModal] attachment added');
+                      }}
+                      onAttachmentRemoved={() => {
+                        // eslint-disable-next-line no-console
+                        console.log('[CreateTaskModal] attachment removed');
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -581,23 +640,33 @@ export default function CreateTaskModal({
             Cancelar
           </button>
 
-          <button
-            onClick={handleCreate}
-            disabled={loading || !title.trim() || projectCompleted}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Criando...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4" />
-                Criar task
-              </>
-            )}
-          </button>
+          {!createdTaskId ? (
+            <button
+              onClick={handleCreate}
+              disabled={loading || !title.trim() || projectCompleted}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Criar task
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={handleCloseAfterAttachments}
+              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40"
+            >
+              <Paperclip className="h-4 w-4" />
+              Concluir
+            </button>
+          )}
         </div>
       </div>
     </div>
