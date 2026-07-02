@@ -225,8 +225,23 @@ export default function TaskModal({
         console.error('Erro ao carregar members:', err);
       }
     }
+
+    async function refreshTaskDetails() {
+      const taskId = task?.id;
+      if (!taskId) return;
+
+      try {
+        const fresh = await api(`/tasks/${taskId}`, { workspaceId });
+        onSaved(fresh);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Erro ao recarregar detalhes da task (para anexos):', err);
+      }
+    }
+
     loadMembers();
-  }, [task, workspaceId]);
+    refreshTaskDetails();
+  }, [task?.id, workspaceId]);
 
   useEffect(() => {
     if (!task) {
@@ -325,7 +340,18 @@ export default function TaskModal({
   const currentTask = task;
 
   const canEdit = permissions?.canEditTasks && !checkingPerms && !projectCompleted;
+
   const isReadOnly = projectCompleted;
+
+  async function refreshTaskAttachments() {
+    try {
+      const refreshed = await api(`/tasks/${currentTask.id}`, { workspaceId });
+      onSaved(refreshed);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao recarregar anexos da task:', err);
+    }
+  }
   const currentStatusConfig = statusConfig[status];
   const currentPriorityConfig = priorityConfig[priority];
   const StatusIcon = currentStatusConfig.icon;
@@ -926,8 +952,8 @@ export default function TaskModal({
               </div>
 
               <div className={`border-t ${themeClasses.border.primary} pt-6`}>
-                {/* Anexos - sempre mostrar para visualização/download, upload apenas para quem pode editar */}
-                {(currentTask.attachments && currentTask.attachments.length > 0) || (canEdit && !isReadOnly) ? (
+                {/* Anexos - upload sempre disponível no modo edit; visualização somente se houver anexos */}
+                {(canEdit && !isReadOnly) || (currentTask.attachments && currentTask.attachments.length > 0) ? (
                   <div className="mb-6">
                     <div className="mb-3 flex items-center gap-2">
                       <Paperclip className="h-5 w-5 text-violet-400" />
@@ -939,10 +965,10 @@ export default function TaskModal({
                       workspaceId={workspaceId}
                       attachments={currentTask.attachments || []}
                       onAttachmentAdded={() => {
-                        // Mantém UX do board em realtime.
+                        refreshTaskAttachments();
                       }}
                       onAttachmentRemoved={() => {
-                        // Mantém UX do board em realtime.
+                        refreshTaskAttachments();
                       }}
                     />
                   </div>

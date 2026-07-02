@@ -25,6 +25,15 @@ import {
 
 import AttachmentUploader from './AttachmentUploader';
 
+type Attachment = {
+  id: string;
+  url?: string;
+  fileName?: string;
+  name?: string;
+  fileType?: string;
+  size?: number;
+};
+
 type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE' | 'ABORTED';
 type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
@@ -139,7 +148,7 @@ export default function CreateTaskModal({
 
   // attachments: precisamos do taskId criado antes de permitir upload
   const [createdTaskId, setCreatedTaskId] = useState<string | null>(null);
-  const [showAttachments, setShowAttachments] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const currentStatusConfig = statusConfig[status];
   const StatusIcon = currentStatusConfig.icon;
@@ -173,7 +182,6 @@ export default function CreateTaskModal({
 
       onCreated(created);
       setCreatedTaskId(created.id);
-      setShowAttachments(true); // abre a seção de anexos automaticamente após criar
       // eslint-disable-next-line no-console
       console.log('[CreateTaskModal] task created for attachments', created.id);
     } catch (err) {
@@ -185,7 +193,7 @@ export default function CreateTaskModal({
 
   function handleCloseAfterAttachments() {
     setCreatedTaskId(null);
-    setShowAttachments(false);
+    setAttachments([]);
     onClose();
   }
 
@@ -596,37 +604,29 @@ export default function CreateTaskModal({
                   Task criada (para anexos): <span className="font-mono">{createdTaskId}</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowAttachments((v) => !v)}
-                  className={`mb-3 inline-flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} px-3 py-2 text-sm transition-all hover:bg-opacity-5`}
-                >
+                <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
                   <Paperclip className="h-4 w-4 text-violet-400" />
-                  {showAttachments ? 'Ocultar anexos' : 'Adicionar anexos'}
-                </button>
+                  Anexos (imagem ou PDF)
+                </label>
 
-                {showAttachments && (
-                  <>
-                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                      <Paperclip className="h-4 w-4 text-violet-400" />
-                      Anexos (imagem ou PDF)
-                    </label>
-
-                    <AttachmentUploader
-                      taskId={createdTaskId}
-                      workspaceId={workspaceId}
-                      attachments={[]}
-                      onAttachmentAdded={() => {
-                        // eslint-disable-next-line no-console
-                        console.log('[CreateTaskModal] attachment added');
-                      }}
-                      onAttachmentRemoved={() => {
-                        // eslint-disable-next-line no-console
-                        console.log('[CreateTaskModal] attachment removed');
-                      }}
-                    />
-                  </>
-                )}
+                <AttachmentUploader
+                  taskId={createdTaskId}
+                  workspaceId={workspaceId}
+                  attachments={attachments}
+                  onAttachmentAdded={(attachment) => {
+                    // eslint-disable-next-line no-console
+                    console.log('[CreateTaskModal] attachment added');
+                    setAttachments((prev) => {
+                      if (prev.some((a) => a.id === attachment.id)) return prev;
+                      return [...prev, attachment];
+                    });
+                  }}
+                  onAttachmentRemoved={(attachmentId) => {
+                    // eslint-disable-next-line no-console
+                    console.log('[CreateTaskModal] attachment removed', attachmentId);
+                    setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
+                  }}
+                />
               </div>
             )}
           </div>

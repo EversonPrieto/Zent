@@ -154,7 +154,7 @@ export default function AttachmentUploader({
       createdAt: new Date().toISOString(),
     };
 
-    // Envia para o backend
+    // Envia para o backend e obtém o ID real do attachment criado
     await api(`/tasks/${taskId}/attachments`, {
       method: 'POST',
       workspaceId,
@@ -166,7 +166,18 @@ export default function AttachmentUploader({
       }),
     });
 
-    onAttachmentAdded(attachment);
+    // Busca novamente a task para pegar o `attachment.id` gerado pelo banco
+    const updatedTask = await api(`/tasks/${taskId}`, { workspaceId }) as any;
+    const createdAttachment =
+      updatedTask?.attachments?.find((a: any) => a.url === attachment.url) ??
+      updatedTask?.task?.attachments?.find((a: any) => a.url === attachment.url);
+
+    const resolvedAttachment = {
+      ...attachment,
+      id: createdAttachment?.id ?? attachment.id,
+    };
+
+    onAttachmentAdded(resolvedAttachment);
   }, [taskId, workspaceId, onAttachmentAdded]);
 
   /**
