@@ -835,8 +835,16 @@ export default function ProjectBoardPage() {
             projectId={projectId}
             initialStatus={createTaskStatus}
             onClose={() => setShowCreateTaskModal(false)}
-            onCreated={() => {
+            onCreated={(created: any) => {
               // Mantém o modal aberto para o usuário conseguir anexar imagens/PDF.
+              const createdTask = created?.task ?? created;
+
+              if (!createdTask?.id) return;
+
+              setTasks((prev) => {
+                if (prev.some((t) => t.id === createdTask.id)) return prev;
+                return [...prev, createdTask].sort((a, b) => a.position - b.position);
+              });
             }}
             projectMembers={projectMembers}
             projectCompleted={projectCompleted}

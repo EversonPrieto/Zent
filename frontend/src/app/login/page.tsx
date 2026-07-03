@@ -4,6 +4,7 @@ import { FormEvent, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../lib/api';
+import { refreshSocketAuth } from '../../lib/socket';
 import { useTheme } from '../../hooks/useTheme';
 import {
   Mail,
@@ -59,6 +60,7 @@ function LoginContent() {
       }
 
       localStorage.setItem('zent_token', data.accessToken);
+      refreshSocketAuth();
       localStorage.setItem('zent_user', JSON.stringify(data.user));
 
       if (inviteToken) {

@@ -19,7 +19,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 })
 export class CommentsGateway {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   constructor(
     private readonly prisma: PrismaService,
