@@ -836,7 +836,7 @@ export default function ProjectBoardPage() {
             initialStatus={createTaskStatus}
             onClose={() => setShowCreateTaskModal(false)}
             onCreated={() => {
-              setShowCreateTaskModal(false);
+              // Mantém o modal aberto para o usuário conseguir anexar imagens/PDF.
             }}
             projectMembers={projectMembers}
             projectCompleted={projectCompleted}
