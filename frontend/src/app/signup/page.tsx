@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../hooks/useTheme';
+import { refreshSocketAuth } from '../../lib/socket';
 import {
   User,
   Mail,
@@ -137,6 +138,7 @@ export default function SignupPage() {
             }
 
             localStorage.setItem('zent_token', loginData.accessToken);
+            refreshSocketAuth();
             localStorage.setItem('zent_user', JSON.stringify(loginData.user));
 
             const workspaces = await fetch(`${API_URL}/workspaces`, {

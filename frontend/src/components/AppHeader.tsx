@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
+import { disconnectSocket } from '../lib/socket';
 import { useTheme } from '../hooks/useTheme';
 import { useThemeToggle } from '../hooks/useThemeToggle';
 import {
@@ -227,6 +228,7 @@ export default function AppHeader() {
 
     // Manter configurações de usuário, limpar apenas dados de sessão
     localStorage.removeItem('zent_token');
+    disconnectSocket();
     localStorage.removeItem('zent_user');
     localStorage.removeItem('zent_workspace_id');
     localStorage.removeItem('zent_workspace');
