@@ -1,4 +1,6 @@
+import 'multer';
 import {
+  BadRequestException,
   Injectable,
   ForbiddenException,
   NotFoundException,
@@ -20,38 +22,69 @@ export class WorkspacesService {
     private limits: LimitsService,
   ) {}
 
-  async create(userId: string, dto: CreateWorkspaceDto) {
-    try {
-      console.log(
-        `[WorkspacesService] Creating workspace for user: ${userId}`,
-        dto,
-      );
-
-      // Check workspace limit
-      await this.limits.checkWorkspaceLimit(userId);
-
-      console.log(`[WorkspacesService] Workspace limit check passed`);
-
-      return this.prisma.$transaction(async (tx) => {
-        const workspace = await tx.workspace.create({
-          data: { name: dto.name },
-        });
-
-        await tx.workspaceMember.create({
-          data: {
-            userId,
-            workspaceId: workspace.id,
-            role: Role.OWNER,
-          },
-        });
-
-        console.log(`[WorkspacesService] Workspace created:`, workspace);
-        return workspace;
-      });
-    } catch (error) {
-      console.error(`[WorkspacesService] Error creating workspace:`, error);
-      throw error;
+  private async getMembershipOrThrow(workspaceId: string, userId: string) {
+    if (!workspaceId?.trim()) {
+      throw new BadRequestException('Workspace ID é obrigatório.');
     }
+
+    const membership = await this.prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
+      },
+      select: {
+        id: true,
+        role: true,
+        userId: true,
+        workspace: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+          },
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Você não pertence a este workspace.');
+    }
+
+    return membership;
+  }
+
+  private assertOwnerOrAdmin(role: Role, message: string) {
+    if (role !== Role.OWNER && role !== Role.ADMIN) {
+      throw new ForbiddenException(message);
+    }
+  }
+
+  async create(userId: string, dto: CreateWorkspaceDto) {
+    const name = dto.name?.trim();
+
+    if (!name) {
+      throw new BadRequestException('Nome do workspace é obrigatório.');
+    }
+
+    await this.limits.checkWorkspaceLimit(userId);
+
+    return this.prisma.$transaction(async (tx) => {
+      const workspace = await tx.workspace.create({
+        data: { name },
+      });
+
+      await tx.workspaceMember.create({
+        data: {
+          userId,
+          workspaceId: workspace.id,
+          role: Role.OWNER,
+        },
+      });
+
+      return workspace;
+    });
   }
 
   async listForUser(userId: string) {
@@ -70,14 +103,7 @@ export class WorkspacesService {
   }
 
   async current(userId: string, workspaceId: string) {
-    const membership = await this.prisma.workspaceMember.findUnique({
-      where: { workspaceId_userId: { workspaceId, userId } },
-      include: { workspace: true },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('Sem acesso a este workspace.');
-    }
+    const membership = await this.getMembershipOrThrow(workspaceId, userId);
 
     return {
       id: membership.workspace.id,
@@ -88,47 +114,40 @@ export class WorkspacesService {
   }
 
   async update(workspaceId: string, userId: string, name: string) {
-    const membership = await this.prisma.workspaceMember.findFirst({
-      where: {
-        workspaceId,
-        userId,
-      },
+    const cleanName = name?.trim();
+
+    if (!cleanName) {
+      throw new BadRequestException('Nome do workspace é obrigatório.');
+    }
+
+    const membership = await this.getMembershipOrThrow(workspaceId, userId);
+
+    this.assertOwnerOrAdmin(
+      membership.role,
+      'Você não tem permissão para editar este workspace.',
+    );
+
+    const workspace = await this.prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { name: cleanName },
       select: {
-        role: true,
+        id: true,
+        name: true,
+        logoUrl: true,
+        members: {
+          where: { userId },
+          select: { role: true },
+          take: 1,
+        },
       },
     });
 
-    if (!membership) {
-      throw new ForbiddenException('Você não pertence a este workspace.');
-    }
-
-    if (!['OWNER', 'ADMIN'].includes(membership.role)) {
-      throw new ForbiddenException(
-        'Você não tem permissão para editar este workspace.',
-      );
-    }
-
-    return this.prisma.workspace
-      .update({
-        where: { id: workspaceId },
-        data: { name },
-        select: {
-          id: true,
-          name: true,
-          logoUrl: true,
-          members: {
-            where: { userId },
-            select: { role: true },
-            take: 1,
-          },
-        },
-      })
-      .then((workspace) => ({
-        id: workspace.id,
-        name: workspace.name,
-        logoUrl: workspace.logoUrl,
-        role: workspace.members[0]?.role ?? 'MEMBER',
-      }));
+    return {
+      id: workspace.id,
+      name: workspace.name,
+      logoUrl: workspace.logoUrl,
+      role: workspace.members[0]?.role ?? Role.MEMBER,
+    };
   }
 
   async delete(workspaceId: string, userId: string) {
@@ -147,14 +166,28 @@ export class WorkspacesService {
     email: string,
     role: 'ADMIN' | 'MEMBER' | 'VIEWER',
   ) {
-    await this.acl.requirePermission(
+    const inviterRole = await this.acl.requirePermission(
       'workspace:invite',
       workspaceId,
       inviterUserId,
     );
 
+    if (!email?.trim()) {
+      throw new BadRequestException('Email é obrigatório.');
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!['ADMIN', 'MEMBER', 'VIEWER'].includes(role)) {
+      throw new BadRequestException('Role inválida.');
+    }
+
+    if (role === 'ADMIN' && inviterRole !== Role.OWNER) {
+      throw new ForbiddenException('Apenas OWNER pode convidar ADMIN.');
+    }
+
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
       select: {
         id: true,
         name: true,
@@ -204,17 +237,7 @@ export class WorkspacesService {
   }
 
   async listMembers(workspaceId: string, userId: string) {
-    const membership = await this.prisma.workspaceMember.findFirst({
-      where: {
-        workspaceId,
-        userId,
-      },
-      select: { id: true },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('Você não pertence a este workspace.');
-    }
+    await this.getMembershipOrThrow(workspaceId, userId);
 
     return this.prisma.workspaceMember.findMany({
       where: { workspaceId },
@@ -248,6 +271,10 @@ export class WorkspacesService {
       requesterUserId,
     );
 
+    if (!['ADMIN', 'MEMBER', 'VIEWER'].includes(role)) {
+      throw new BadRequestException('Role inválida.');
+    }
+
     const target = await this.prisma.workspaceMember.findFirst({
       where: {
         id: memberId,
@@ -276,9 +303,17 @@ export class WorkspacesService {
       throw new ForbiddenException('Você não pode alterar sua própria role.');
     }
 
-    if (requesterRole === 'ADMIN') {
-      if (target.role === 'OWNER' || target.role === 'ADMIN') {
-        throw new ForbiddenException('Você não pode alterar este membro.');
+    if (target.role === Role.OWNER) {
+      throw new ForbiddenException('Você não pode alterar a role do OWNER.');
+    }
+
+    if (role === 'ADMIN' && requesterRole !== Role.OWNER) {
+      throw new ForbiddenException('Apenas OWNER pode promover membros para ADMIN.');
+    }
+
+    if (requesterRole === Role.ADMIN) {
+      if (target.role === Role.ADMIN) {
+        throw new ForbiddenException('Você não pode alterar outro ADMIN.');
       }
     }
 
@@ -333,9 +368,13 @@ export class WorkspacesService {
       throw new ForbiddenException('Você não pode remover a si mesmo.');
     }
 
-    if (requesterRole === 'ADMIN') {
-      if (target.role === 'OWNER' || target.role === 'ADMIN') {
-        throw new ForbiddenException('Você não pode remover este membro.');
+    if (target.role === Role.OWNER) {
+      throw new ForbiddenException('Você não pode remover o OWNER.');
+    }
+
+    if (requesterRole === Role.ADMIN) {
+      if (target.role === Role.ADMIN) {
+        throw new ForbiddenException('Você não pode remover outro ADMIN.');
       }
     }
 
@@ -351,25 +390,16 @@ export class WorkspacesService {
     userId: string,
     file: Express.Multer.File,
   ) {
-    const membership = await this.prisma.workspaceMember.findFirst({
-      where: {
-        workspaceId,
-        userId,
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (!membership) {
-      throw new ForbiddenException('Você não pertence a este workspace.');
+    if (!file) {
+      throw new BadRequestException('Arquivo é obrigatório.');
     }
 
-    if (!['OWNER', 'ADMIN'].includes(membership.role)) {
-      throw new ForbiddenException(
-        'Você não tem permissão para editar este workspace.',
-      );
-    }
+    const membership = await this.getMembershipOrThrow(workspaceId, userId);
+
+    this.assertOwnerOrAdmin(
+      membership.role,
+      'Você não tem permissão para editar este workspace.',
+    );
 
     const uploaded = await this.cloudinary.uploadImage(file);
 
@@ -394,7 +424,7 @@ export class WorkspacesService {
       id: workspace.id,
       name: workspace.name,
       logoUrl: workspace.logoUrl,
-      role: workspace.members[0]?.role ?? 'MEMBER',
+      role: workspace.members[0]?.role ?? Role.MEMBER,
     };
   }
 
