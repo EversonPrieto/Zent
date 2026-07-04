@@ -1,4 +1,9 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TasksGateway } from '../tasks/tasks.gateway';
 
@@ -9,6 +14,21 @@ export class LabelsService {
     private tasksGateway: TasksGateway,
   ) {}
 
+  private async findLabelInWorkspaceOrThrow(id: string, workspaceId: string) {
+    const label = await this.prisma.label.findFirst({
+      where: {
+        id,
+        workspaceId,
+      },
+    });
+
+    if (!label) {
+      throw new NotFoundException('Label não encontrada.');
+    }
+
+    return label;
+  }
+
   async getLabels(workspaceId: string) {
     return this.prisma.label.findMany({
       where: { workspaceId },
@@ -17,14 +37,20 @@ export class LabelsService {
   }
 
   async createLabel(workspaceId: string, name: string, color: string) {
-    if (!name.trim()) {
-      throw new Error('Nome do label é obrigatório');
+    const cleanName = name?.trim();
+
+    if (!cleanName) {
+      throw new BadRequestException('Nome do label é obrigatório.');
+    }
+
+    if (!color?.trim()) {
+      throw new BadRequestException('Cor do label é obrigatória.');
     }
 
     return this.prisma.label.create({
       data: {
-        name: name.trim(),
-        color,
+        name: cleanName,
+        color: color.trim(),
         workspaceId,
       },
     });
@@ -34,25 +60,45 @@ export class LabelsService {
     id: string,
     workspaceId: string,
     data: { name?: string; color?: string },
+    userId?: string,
   ) {
-    const label = await this.prisma.label.findUnique({ where: { id } });
-    if (!label || label.workspaceId !== workspaceId) {
-      throw new ForbiddenException('Acesso negado');
+    await this.findLabelInWorkspaceOrThrow(id, workspaceId);
+
+    const cleanName = data.name === undefined ? undefined : data.name.trim();
+    const cleanColor = data.color === undefined ? undefined : data.color.trim();
+
+    if (data.name !== undefined && !cleanName) {
+      throw new BadRequestException('Nome do label não pode ficar vazio.');
+    }
+
+    if (data.color !== undefined && !cleanColor) {
+      throw new BadRequestException('Cor do label não pode ficar vazia.');
     }
 
     const updated = await this.prisma.label.update({
       where: { id },
       data: {
-        name: data.name ? data.name.trim() : undefined,
-        color: data.color,
+        name: cleanName,
+        color: cleanColor,
       },
     });
 
-    // Atualiza realtime as tasks que possuem essa label (usando room project-<projectId>)
+    const actor = userId
+      ? await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, name: true },
+        })
+      : null;
+
+    // Atualiza em realtime as tasks que possuem essa label.
     const taskLabels = await this.prisma.taskLabel.findMany({
       where: {
         labelId: id,
-        task: { project: { workspaceId } },
+        task: {
+          project: {
+            workspaceId,
+          },
+        },
       },
       select: {
         task: {
@@ -61,11 +107,34 @@ export class LabelsService {
             projectId: true,
             status: true,
             title: true,
+            description: true,
             priority: true,
             position: true,
+            assigneeId: true,
+            dueDate: true,
+            createdAt: true,
+            updatedAt: true,
             taskLabels: {
               include: {
-                label: { select: { id: true, name: true, color: true } },
+                label: {
+                  select: {
+                    id: true,
+                    name: true,
+                    color: true,
+                  },
+                },
+              },
+            },
+            taskAssignees: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    avatarUrl: true,
+                  },
+                },
               },
             },
           },
@@ -73,20 +142,12 @@ export class LabelsService {
       },
     });
 
-    for (const tl of taskLabels) {
+    for (const taskLabel of taskLabels) {
       this.tasksGateway.emitTaskUpdated(
-        tl.task.projectId,
-        {
-          id: tl.task.id,
-          projectId: tl.task.projectId,
-          status: tl.task.status,
-          title: tl.task.title,
-          priority: tl.task.priority,
-          position: tl.task.position,
-          taskLabels: tl.task.taskLabels.map((x) => ({ label: x.label })),
-        },
-        'unknown',
-        'Usuário',
+        taskLabel.task.projectId,
+        taskLabel.task,
+        actor?.id ?? userId ?? 'unknown',
+        actor?.name ?? 'Usuário',
       );
     }
 
@@ -94,11 +155,24 @@ export class LabelsService {
   }
 
   async deleteLabel(id: string, workspaceId: string) {
-    const label = await this.prisma.label.findUnique({ where: { id } });
-    if (!label || label.workspaceId !== workspaceId) {
-      throw new ForbiddenException('Acesso negado');
-    }
+    await this.findLabelInWorkspaceOrThrow(id, workspaceId);
 
-    return this.prisma.label.delete({ where: { id } });
+    await this.prisma.$transaction([
+      this.prisma.taskLabel.deleteMany({
+        where: {
+          labelId: id,
+          task: {
+            project: {
+              workspaceId,
+            },
+          },
+        },
+      }),
+      this.prisma.label.delete({
+        where: { id },
+      }),
+    ]);
+
+    return { message: 'Label deletada com sucesso.' };
   }
 }

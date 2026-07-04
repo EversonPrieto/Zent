@@ -32,11 +32,22 @@ export class CommentsService {
         id: true,
         title: true,
         projectId: true,
+        project: {
+          select: {
+            completed: true,
+          },
+        },
       },
     });
 
     if (!task) {
       throw new ForbiddenException('Task não pertence a este workspace');
+    }
+
+    if (task.project.completed) {
+      throw new ForbiddenException(
+        'Projeto está finalizado. Reabra o projeto para comentar.',
+      );
     }
 
     const comment = await this.prisma.comment.create({
@@ -120,6 +131,11 @@ export class CommentsService {
             id: true,
             title: true,
             projectId: true,
+            project: {
+              select: {
+                completed: true,
+              },
+            },
           },
         },
       },
@@ -132,6 +148,17 @@ export class CommentsService {
     if (comment.userId !== userId) {
       throw new ForbiddenException('Você não pode apagar este comentário');
     }
+
+    if (comment.task.project.completed) {
+      throw new ForbiddenException(
+        'Projeto está finalizado. Reabra o projeto para remover comentários.',
+      );
+    }
+
+    const actor = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true },
+    });
 
     await this.prisma.comment.delete({
       where: { id: commentId },
@@ -149,8 +176,8 @@ export class CommentsService {
     this.gateway.emitCommentDeleted(
       comment.taskId,
       commentId,
-      userId,
-      comment.userId === userId ? 'Você' : 'Usuário',
+      actor?.id ?? userId,
+      actor?.name ?? 'Usuário',
     );
 
     return { message: 'Comentário removido' };
