@@ -74,7 +74,7 @@ export class TasksController {
   }
 
   @ApiOperation({ summary: 'Remover task' })
-  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
+  @Roles(Role.OWNER, Role.ADMIN)
   @Delete(':id')
   delete(@Req() req: any, @Param('id') id: string) {
     return this.service.delete(req.workspaceId, id, req.user.sub);

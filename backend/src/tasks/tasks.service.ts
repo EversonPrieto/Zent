@@ -25,7 +25,7 @@ export class TasksService {
     private tasksGateway: TasksGateway,
     private limits: LimitsService,
     private emailTaskMovedDigestService: EmailTaskMovedDigestService,
-  ) {}
+  ) { }
 
   private uniqueIds(ids?: Array<string | null | undefined>) {
     return [...new Set((ids ?? []).filter((id): id is string => Boolean(id)))];
@@ -136,27 +136,27 @@ export class TasksService {
         assigneeId: dto.assigneeId,
         dueDate: dto.dueDate
           ? new Date(
-              dto.dueDate.endsWith('Z')
-                ? dto.dueDate
-                : `${dto.dueDate}T00:00:00.000Z`,
-            )
+            dto.dueDate.endsWith('Z')
+              ? dto.dueDate
+              : `${dto.dueDate}T00:00:00.000Z`,
+          )
           : null,
         position,
         taskLabels:
           dto.labelIds && dto.labelIds.length > 0
             ? {
-                create: this.uniqueIds(dto.labelIds).map((labelId) => ({
-                  labelId,
-                })),
-              }
+              create: this.uniqueIds(dto.labelIds).map((labelId) => ({
+                labelId,
+              })),
+            }
             : undefined,
         taskAssignees:
           dto.assigneeIds && dto.assigneeIds.length > 0
             ? {
-                create: this.uniqueIds(dto.assigneeIds).map((userId) => ({
-                  userId,
-                })),
-              }
+              create: this.uniqueIds(dto.assigneeIds).map((userId) => ({
+                userId,
+              })),
+            }
             : undefined,
       },
       include: {
@@ -184,9 +184,9 @@ export class TasksService {
 
     const actor = userId
       ? await this.prisma.user.findUnique({
-          where: { id: userId },
-          select: { id: true, name: true },
-        })
+        where: { id: userId },
+        select: { id: true, name: true },
+      })
       : null;
 
     this.tasksGateway.emitTaskCreated(
@@ -345,10 +345,10 @@ export class TasksService {
             ? undefined
             : dto.dueDate
               ? new Date(
-                  dto.dueDate.endsWith('Z')
-                    ? dto.dueDate
-                    : `${dto.dueDate}T00:00:00.000Z`,
-                )
+                dto.dueDate.endsWith('Z')
+                  ? dto.dueDate
+                  : `${dto.dueDate}T00:00:00.000Z`,
+              )
               : null,
       },
     });
@@ -368,9 +368,9 @@ export class TasksService {
       userId ?? 'unknown',
       userId
         ? (await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true },
-          }))?.name ?? 'Usuário'
+          where: { id: userId },
+          select: { name: true },
+        }))?.name ?? 'Usuário'
         : 'Usuário',
     );
 
@@ -471,9 +471,9 @@ export class TasksService {
       userId ?? 'unknown',
       userId
         ? (await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true },
-          }))?.name ?? 'Usuário'
+          where: { id: userId },
+          select: { name: true },
+        }))?.name ?? 'Usuário'
         : 'Usuário',
     );
 
@@ -519,6 +519,10 @@ export class TasksService {
   }
 
   async delete(workspaceId: string, id: string, userId?: string) {
+    if (userId) {
+      await this.acl.requirePermission('task:delete', workspaceId, userId);
+    }
+
     const task = await this.prisma.task.findFirst({
       where: {
         id,
@@ -561,9 +565,9 @@ export class TasksService {
       userId ?? 'unknown',
       userId
         ? (await this.prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true },
-          }))?.name ?? 'Usuário'
+          where: { id: userId },
+          select: { name: true },
+        }))?.name ?? 'Usuário'
         : 'Usuário',
     );
 

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -14,19 +15,35 @@ export class WorkspaceGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
 
     const userId = req.user?.sub;
-    const workspaceId = req.headers['x-workspace-id'] as string | undefined;
+    const rawWorkspaceId = req.headers['x-workspace-id'];
 
-    if (!userId) throw new ForbiddenException('Usuário não autenticado.');
-    if (!workspaceId)
-      throw new ForbiddenException('x-workspace-id é obrigatório.');
+    const workspaceId = Array.isArray(rawWorkspaceId)
+      ? rawWorkspaceId[0]?.trim()
+      : rawWorkspaceId?.trim();
+
+    if (!userId) {
+      throw new ForbiddenException('Usuário não autenticado.');
+    }
+
+    if (!workspaceId) {
+      throw new BadRequestException('x-workspace-id é obrigatório.');
+    }
 
     const membership = await this.prisma.workspaceMember.findUnique({
-      where: { workspaceId_userId: { workspaceId, userId } },
-      select: { role: true },
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
+      },
+      select: {
+        role: true,
+      },
     });
 
-    if (!membership)
+    if (!membership) {
       throw new ForbiddenException('Sem acesso a este workspace.');
+    }
 
     req.workspaceId = workspaceId;
     req.workspaceRole = membership.role;
