@@ -16,10 +16,21 @@ export class ProjectsService {
     private limits: LimitsService,
   ) {}
 
+  private async findProjectOrThrow(workspaceId: string, id: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id, workspaceId },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Projeto não encontrado.');
+    }
+
+    return project;
+  }
+
   async create(workspaceId: string, dto: CreateProjectDto, userId?: string) {
     if (userId) {
       await this.acl.requirePermission('project:create', workspaceId, userId);
-      // Check project limit
       await this.limits.checkProjectLimit(userId, workspaceId);
     }
 
@@ -87,23 +98,14 @@ export class ProjectsService {
   ) {
     await this.acl.requirePermission('project:update', workspaceId, userId);
 
-    const project = await this.prisma.project.findFirst({
-      where: { id, workspaceId },
-    });
-
-    if (!project) {
-      throw new NotFoundException('Projeto não encontrado.');
-    }
-
-    console.log('[ProjectsService] Update DTO:', dto);
-    console.log('[ProjectsService] Current description:', project.description);
-    console.log('[ProjectsService] DTO description:', dto.description);
+    const project = await this.findProjectOrThrow(workspaceId, id);
 
     const wasCompleted = project.completed;
     const isCompleting = dto.completed === true && !wasCompleted;
+    const isReopening = dto.completed === false && wasCompleted;
 
     const updated = await this.prisma.project.update({
-      where: { id },
+      where: { id: project.id },
       data: {
         name: dto.name ?? project.name,
         description:
@@ -111,16 +113,11 @@ export class ProjectsService {
         completed: dto.completed ?? project.completed,
         completedAt: isCompleting
           ? new Date()
-          : dto.completed === false
+          : isReopening
             ? null
             : project.completedAt,
       },
     });
-
-    console.log(
-      '[ProjectsService] Updated project description:',
-      updated.description,
-    );
 
     if (isCompleting) {
       await this.activity.create({
@@ -130,7 +127,7 @@ export class ProjectsService {
         projectId: updated.id,
         userId,
       });
-    } else if (dto.completed === false && wasCompleted) {
+    } else if (isReopening) {
       await this.activity.create({
         type: ActivityType.PROJECT_CREATED,
         description: `Projeto "${updated.name}" foi reaberto`,
@@ -148,7 +145,7 @@ export class ProjectsService {
 
     const project = await this.prisma.project.findFirst({
       where: { id, workspaceId },
-      select: { id: true, name: true },
+      select: { id: true },
     });
 
     if (!project) {
@@ -157,9 +154,10 @@ export class ProjectsService {
 
     // Importante: não crie ActivityLog referenciando projectId após deletar o projeto.
     // O schema usa FK e quebra a constraint quando o projeto já foi removido.
-    await this.prisma.project.delete({ where: { id } });
+    await this.prisma.project.delete({
+      where: { id: project.id },
+    });
 
-    // (Sem ActivityLog para deletar projeto por enquanto)
     return { message: 'Projeto deletado com sucesso.' };
   }
 }

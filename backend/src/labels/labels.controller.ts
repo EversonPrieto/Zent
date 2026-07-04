@@ -1,62 +1,77 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
-  Headers,
+  Patch,
+  Post,
+  Req,
   UseGuards,
-  BadRequestException,
 } from '@nestjs/common';
-import { LabelsService } from './labels.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { WorkspaceGuard } from '../workspaces/workspace.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+
+import { LabelsService } from './labels.service';
+
+@ApiTags('Labels')
+@ApiBearerAuth()
+@ApiSecurity('workspace-id')
+@UseGuards(JwtAuthGuard, WorkspaceGuard, RolesGuard)
 @Controller('labels')
-@UseGuards(JwtAuthGuard)
 export class LabelsController {
   constructor(private labelsService: LabelsService) {}
 
+  @ApiOperation({ summary: 'Listar labels do workspace atual' })
   @Get()
-  async getLabels(@Headers('x-workspace-id') workspaceId: string) {
-    if (!workspaceId) {
-      throw new BadRequestException('Workspace ID é obrigatório');
-    }
-    return this.labelsService.getLabels(workspaceId);
+  async getLabels(@Req() req: any) {
+    return this.labelsService.getLabels(req.workspaceId);
   }
 
+  @ApiOperation({ summary: 'Criar label no workspace atual' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Post()
   async createLabel(
-    @Headers('x-workspace-id') workspaceId: string,
+    @Req() req: any,
     @Body() data: { name: string; color: string },
   ) {
-    if (!workspaceId) {
-      throw new BadRequestException('Workspace ID é obrigatório');
-    }
-    return this.labelsService.createLabel(workspaceId, data.name, data.color);
+    return this.labelsService.createLabel(
+      req.workspaceId,
+      data.name,
+      data.color,
+    );
   }
 
+  @ApiOperation({ summary: 'Atualizar label' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Patch(':id')
   async updateLabel(
+    @Req() req: any,
     @Param('id') id: string,
-    @Headers('x-workspace-id') workspaceId: string,
     @Body() data: { name?: string; color?: string },
   ) {
-    if (!workspaceId) {
-      throw new BadRequestException('Workspace ID é obrigatório');
-    }
-    return this.labelsService.updateLabel(id, workspaceId, data);
+    return this.labelsService.updateLabel(
+      id,
+      req.workspaceId,
+      data,
+      req.user.sub,
+    );
   }
 
+  @ApiOperation({ summary: 'Deletar label' })
+  @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Delete(':id')
-  async deleteLabel(
-    @Param('id') id: string,
-    @Headers('x-workspace-id') workspaceId: string,
-  ) {
-    if (!workspaceId) {
-      throw new BadRequestException('Workspace ID é obrigatório');
-    }
-    return this.labelsService.deleteLabel(id, workspaceId);
+  async deleteLabel(@Req() req: any, @Param('id') id: string) {
+    return this.labelsService.deleteLabel(id, req.workspaceId);
   }
 }

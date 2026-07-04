@@ -357,26 +357,38 @@ export default function TaskModal({
   const StatusIcon = currentStatusConfig.icon;
   const PriorityIcon = currentPriorityConfig.icon;
 
-  async function handleSave() {
+    async function handleSave() {
     if (!title.trim()) return;
 
     try {
       setLoading(true);
       setError('');
 
+      // Pega o estado real da task ANTES de salvar.
+      // Isso é necessário porque o PATCH /tasks/:id não retorna taskLabels/taskAssignees.
+      const beforeTask = await api(`/tasks/${currentTask.id}`, {
+        workspaceId,
+      });
+
+      const currentLabelIds =
+        beforeTask.taskLabels?.map((tl: any) => tl.label.id) || [];
+
+      const currentAssigneeIds =
+        beforeTask.taskAssignees?.map((ta: any) => ta.user.id) || [];
+
       const updated = await api(`/tasks/${currentTask.id}`, {
         method: 'PATCH',
         workspaceId,
-        body: JSON.stringify({
+        body: {
           title,
           description,
           status,
           priority,
           dueDate: dueDate ? `${dueDate}T00:00:00.000Z` : null,
-        }),
+        },
       });
 
-      const currentLabelIds = updated.taskLabels?.map((tl: any) => tl.label.id) || [];
+      // Adiciona labels novas
       for (const labelId of selectedLabels) {
         if (!currentLabelIds.includes(labelId)) {
           try {
@@ -389,6 +401,8 @@ export default function TaskModal({
           }
         }
       }
+
+      // Remove labels desmarcadas
       for (const labelId of currentLabelIds) {
         if (!selectedLabels.includes(labelId)) {
           try {
@@ -402,7 +416,7 @@ export default function TaskModal({
         }
       }
 
-      const currentAssigneeIds = updated.taskAssignees?.map((ta: any) => ta.user.id) || [];
+      // Adiciona responsáveis novos
       for (const assigneeId of selectedAssignees) {
         if (!currentAssigneeIds.includes(assigneeId)) {
           try {
@@ -415,6 +429,8 @@ export default function TaskModal({
           }
         }
       }
+
+      // Remove responsáveis desmarcados
       for (const assigneeId of currentAssigneeIds) {
         if (!selectedAssignees.includes(assigneeId)) {
           try {
@@ -428,16 +444,21 @@ export default function TaskModal({
         }
       }
 
-      // Recarrega a task com os labels atualizados e devolve pro board em realtime
-      const finalTask = await api(`/tasks/${updated.id}`, { workspaceId });
+      // Recarrega a task já com labels e responsáveis atualizados
+      const finalTask = await api(`/tasks/${updated.id}`, {
+        workspaceId,
+      });
 
-      // Garante que as labels de tasks já abertas/visíveis sejam atualizadas
       onSaved(finalTask);
 
       try {
-        const activityResponse = await api(`/activities?taskId=${currentTask.id}`, {
-          workspaceId,
-        });
+        const activityResponse = await api(
+          `/activities?taskId=${currentTask.id}`,
+          {
+            workspaceId,
+          },
+        );
+
         const activityList = activityResponse.items || activityResponse;
         setActivities(Array.isArray(activityList) ? activityList : []);
       } catch (err) {
@@ -445,7 +466,6 @@ export default function TaskModal({
       }
 
       showToast('Task atualizada com sucesso', 'success', 3000);
-      onSaved(finalTask);
       onClose();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar task';
