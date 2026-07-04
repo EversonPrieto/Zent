@@ -72,11 +72,12 @@ export class TasksController {
   move(@Req() req: any, @Param('id') id: string, @Body() dto: MoveTaskDto) {
     return this.service.move(req.workspaceId, id, dto, req.user.sub);
   }
+
   @ApiOperation({ summary: 'Remover task' })
   @Roles(Role.OWNER, Role.ADMIN, Role.MEMBER)
   @Delete(':id')
   delete(@Req() req: any, @Param('id') id: string) {
-    return this.service.delete(req.workspaceId, id);
+    return this.service.delete(req.workspaceId, id, req.user.sub);
   }
 
   // Labels

@@ -27,6 +27,10 @@ export class TasksService {
     private emailTaskMovedDigestService: EmailTaskMovedDigestService,
   ) {}
 
+  private uniqueIds(ids?: Array<string | null | undefined>) {
+    return [...new Set((ids ?? []).filter((id): id is string => Boolean(id)))];
+  }
+
   private async ensureProjectInWorkspace(
     projectId: string,
     workspaceId: string,
@@ -41,8 +45,56 @@ export class TasksService {
     }
   }
 
+  private async ensureLabelsInWorkspace(
+    workspaceId: string,
+    labelIds?: string[],
+  ) {
+    const uniqueLabelIds = this.uniqueIds(labelIds);
+
+    if (uniqueLabelIds.length === 0) return;
+
+    const labelsCount = await this.prisma.label.count({
+      where: {
+        id: { in: uniqueLabelIds },
+        workspaceId,
+      },
+    });
+
+    if (labelsCount !== uniqueLabelIds.length) {
+      throw new ForbiddenException(
+        'Uma ou mais labels não pertencem a este workspace.',
+      );
+    }
+  }
+
+  private async ensureUsersInWorkspace(workspaceId: string, userIds?: string[]) {
+    const uniqueUserIds = this.uniqueIds(userIds);
+
+    if (uniqueUserIds.length === 0) return;
+
+    const membersCount = await this.prisma.workspaceMember.count({
+      where: {
+        workspaceId,
+        userId: { in: uniqueUserIds },
+      },
+    });
+
+    if (membersCount !== uniqueUserIds.length) {
+      throw new ForbiddenException(
+        'Um ou mais usuários não pertencem a este workspace.',
+      );
+    }
+  }
+
   async create(workspaceId: string, dto: CreateTaskDto, userId?: string) {
     await this.ensureProjectInWorkspace(dto.projectId, workspaceId);
+
+    await this.ensureLabelsInWorkspace(workspaceId, dto.labelIds);
+
+    await this.ensureUsersInWorkspace(
+      workspaceId,
+      this.uniqueIds([dto.assigneeId, ...(dto.assigneeIds ?? [])]),
+    );
 
     const project = await this.prisma.project.findFirst({
       where: { id: dto.projectId, workspaceId },
@@ -90,20 +142,18 @@ export class TasksService {
             )
           : null,
         position,
-        // Add label associations
         taskLabels:
           dto.labelIds && dto.labelIds.length > 0
             ? {
-                create: dto.labelIds.map((labelId) => ({
+                create: this.uniqueIds(dto.labelIds).map((labelId) => ({
                   labelId,
                 })),
               }
             : undefined,
-        // Add assignee associations (if labelIds are provided as assigneeIds)
         taskAssignees:
           dto.assigneeIds && dto.assigneeIds.length > 0
             ? {
-                create: dto.assigneeIds.map((userId) => ({
+                create: this.uniqueIds(dto.assigneeIds).map((userId) => ({
                   userId,
                 })),
               }
@@ -276,6 +326,10 @@ export class TasksService {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar as tasks.',
       );
+    }
+
+    if (dto.assigneeId) {
+      await this.ensureUsersInWorkspace(workspaceId, [dto.assigneeId]);
     }
 
     const updatedTask = await this.prisma.task.update({
@@ -527,10 +581,12 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-    if (task.project.completed)
+
+    if (task.project.completed) {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar.',
       );
+    }
 
     const label = await this.prisma.label.findFirst({
       where: { id: labelId, workspaceId },
@@ -562,13 +618,25 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-    if (task.project.completed)
+
+    if (task.project.completed) {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar.',
       );
+    }
 
-    await this.prisma.taskLabel.delete({
-      where: { taskId_labelId: { taskId, labelId } },
+    const label = await this.prisma.label.findFirst({
+      where: { id: labelId, workspaceId },
+      select: { id: true },
+    });
+
+    if (!label) throw new NotFoundException('Label não encontrado.');
+
+    await this.prisma.taskLabel.deleteMany({
+      where: {
+        taskId,
+        labelId,
+      },
     });
 
     return this.get(workspaceId, taskId);
@@ -585,10 +653,12 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-    if (task.project.completed)
+
+    if (task.project.completed) {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar.',
       );
+    }
 
     const member = await this.prisma.workspaceMember.findFirst({
       where: { workspaceId, userId },
@@ -620,13 +690,18 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-    if (task.project.completed)
+
+    if (task.project.completed) {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar.',
       );
+    }
 
-    await this.prisma.taskAssignee.delete({
-      where: { taskId_userId: { taskId, userId } },
+    await this.prisma.taskAssignee.deleteMany({
+      where: {
+        taskId,
+        userId,
+      },
     });
 
     return this.get(workspaceId, taskId);
@@ -652,10 +727,12 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-    if (task.project.completed)
+
+    if (task.project.completed) {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar.',
       );
+    }
 
     await this.prisma.attachment.create({
       data: {
@@ -685,10 +762,12 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task não encontrada.');
-    if (task.project.completed)
+
+    if (task.project.completed) {
       throw new ForbiddenException(
         'Projeto está finalizado. Reabra o projeto para editar.',
       );
+    }
 
     const attachment = await this.prisma.attachment.findUnique({
       where: { id: attachmentId },
