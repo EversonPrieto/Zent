@@ -5,19 +5,41 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 
+const getFrontendOrigins = () => {
+  const raw = process.env.FRONTEND_URL;
+
+  if (!raw) return ['http://localhost:3001'];
+
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+};
+
 @Injectable()
 @WebSocketGateway({
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      const allowedOrigins = getFrontendOrigins();
+
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
   },
 })
 export class CommentsGateway {
+  private readonly logger = new Logger(CommentsGateway.name);
+
   @WebSocketServer()
   server!: Server;
 
@@ -26,21 +48,43 @@ export class CommentsGateway {
     private readonly jwt: JwtService,
   ) {}
 
+  private getTaskRoom(taskId: string) {
+    return `task-${taskId}`;
+  }
+
+  private getJwtFromSocket(client: Socket): string | null {
+    const tokenFromHandshake =
+      (client.handshake?.auth as any)?.token ||
+      client.handshake?.headers?.authorization ||
+      null;
+
+    if (!tokenFromHandshake) return null;
+
+    if (typeof tokenFromHandshake === 'string') {
+      if (tokenFromHandshake.toLowerCase().startsWith('bearer ')) {
+        return tokenFromHandshake.slice('bearer '.length);
+      }
+
+      return tokenFromHandshake;
+    }
+
+    return null;
+  }
+
   private async getUserIdFromHandshake(client: Socket): Promise<string | null> {
     try {
-      const token =
-        (client.handshake?.auth as any)?.token ??
-        (() => {
-          const authHeader = client.handshake?.headers?.authorization;
-          if (typeof authHeader !== 'string') return null;
-          if (!authHeader.toLowerCase().startsWith('bearer ')) return null;
-          return authHeader.slice(7);
-        })();
+      const token = this.getJwtFromSocket(client);
 
       if (!token) return null;
 
-      const decoded = await this.jwt.verifyAsync(token);
-      return decoded?.sub ? String(decoded.sub) : null;
+      const decoded = await this.jwt.verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+
+      const userId = decoded?.sub ?? decoded?.id ?? decoded?.userId;
+
+      return userId ? String(userId) : null;
     } catch {
       return null;
     }
@@ -50,8 +94,14 @@ export class CommentsGateway {
     userId: string,
     taskId: string,
   ): Promise<boolean> {
+    if (!taskId || typeof taskId !== 'string' || !taskId.trim()) {
+      return false;
+    }
+
     const task = await this.prisma.task.findFirst({
-      where: { id: taskId },
+      where: {
+        id: taskId,
+      },
       select: {
         project: {
           select: {
@@ -68,10 +118,12 @@ export class CommentsGateway {
         workspaceId: task.project.workspaceId,
         userId,
       },
-      select: { id: true },
+      select: {
+        id: true,
+      },
     });
 
-    return !!membership;
+    return Boolean(membership);
   }
 
   @SubscribeMessage('join-task')
@@ -79,22 +131,79 @@ export class CommentsGateway {
     @MessageBody() taskId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    const userId = await this.getUserIdFromHandshake(client);
+    console.log('[CommentsGateway join-task]', {
+      taskId,
+      socketId: client.id,
+      hasToken: Boolean(this.getJwtFromSocket(client)),
+    });
 
-    if (!userId) {
-      client.emit('unauthorized');
-      client.disconnect(true);
+    try {
+      if (!taskId || typeof taskId !== 'string' || !taskId.trim()) {
+        client.emit('comments:join-error', {
+          taskId,
+          message: 'invalid taskId',
+        });
+
+        return;
+      }
+
+      const validTaskId = taskId.trim();
+
+      const userId = await this.getUserIdFromHandshake(client);
+
+      if (!userId) {
+        client.emit('comments:unauthorized', {
+          taskId: validTaskId,
+          message: 'unauthorized: missing or invalid token',
+        });
+
+        return;
+      }
+
+      const allowed = await this.isUserMemberOfTaskWorkspace(
+        userId,
+        validTaskId,
+      );
+
+      if (!allowed) {
+        client.emit('comments:unauthorized', {
+          taskId: validTaskId,
+          message: 'unauthorized: user is not workspace member',
+        });
+
+        return;
+      }
+
+      const room = this.getTaskRoom(validTaskId);
+
+      client.join(room);
+
+      this.logger.log(`🟢 usuário ${userId} entrou na sala de comments: ${room}`);
+
+      client.emit('comments:joined', {
+        taskId: validTaskId,
+        room,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'unknown comments join error';
+
+      console.error('[CommentsGateway join-task error]', {
+        taskId,
+        socketId: client.id,
+        message,
+      });
+
+      client.emit('comments:join-error', {
+        taskId,
+        message,
+      });
+
+      // IMPORTANTE:
+      // Não usar client.disconnect(true) aqui.
+      // O mesmo socket também é usado por Presence, ActivityFeed e Tasks.
       return;
     }
-
-    const allowed = await this.isUserMemberOfTaskWorkspace(userId, taskId);
-    if (!allowed) {
-      client.emit('unauthorized');
-      client.disconnect(true);
-      return;
-    }
-
-    client.join(`task-${taskId}`);
   }
 
   @SubscribeMessage('leave-task')
@@ -102,7 +211,20 @@ export class CommentsGateway {
     @MessageBody() taskId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    client.leave(`task-${taskId}`);
+    if (!taskId || typeof taskId !== 'string' || !taskId.trim()) {
+      return;
+    }
+
+    const validTaskId = taskId.trim();
+    const room = this.getTaskRoom(validTaskId);
+
+    client.leave(room);
+
+    console.log('[CommentsGateway leave-task]', {
+      taskId: validTaskId,
+      socketId: client.id,
+      room,
+    });
   }
 
   emitCommentCreated(
@@ -111,10 +233,11 @@ export class CommentsGateway {
     actorUserId: string,
     actorUserName: string,
   ) {
-    this.server.to(`task-${taskId}`).emit('comment:created', {
+    this.server.to(this.getTaskRoom(taskId)).emit('comment:created', {
       comment,
       actorUserId,
       actorUserName,
+      taskId,
     });
   }
 
@@ -124,10 +247,11 @@ export class CommentsGateway {
     actorUserId: string,
     actorUserName: string,
   ) {
-    this.server.to(`task-${taskId}`).emit('comment:deleted', {
+    this.server.to(this.getTaskRoom(taskId)).emit('comment:deleted', {
       commentId,
       actorUserId,
       actorUserName,
+      taskId,
     });
   }
 }
