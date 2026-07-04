@@ -1,6 +1,9 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000';
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3000';
 
 const getToken = () =>
   typeof window !== 'undefined' ? localStorage.getItem('zent_token') : null;
@@ -8,11 +11,15 @@ const getToken = () =>
 let lastConnectedToken: string | null = null;
 
 export const socket: Socket = io(SOCKET_URL, {
-  transports: ['websocket'],
+  // IMPORTANTE:
+  // Não force somente websocket em produção.
+  // Deixa o Socket.IO começar com polling e tentar upgrade para websocket.
+  transports: ['polling', 'websocket'],
   autoConnect: false,
   reconnection: true,
   reconnectionAttempts: 10,
   reconnectionDelay: 500,
+  withCredentials: true,
   auth: {
     token: null,
   },
@@ -33,8 +40,6 @@ export function ensureSocketConnected() {
     return false;
   }
 
-  // Se já está conectado, mas foi conectado com outro token,
-  // precisa reconectar para atualizar o handshake do Socket.IO.
   if (socket.connected && lastConnectedToken !== token) {
     console.warn('[socket] token mudou, reconectando socket...', {
       socketId: socket.id,
@@ -43,6 +48,12 @@ export function ensureSocketConnected() {
     });
 
     socket.disconnect();
+
+    socket.auth = {
+      ...(socket.auth as Record<string, unknown>),
+      token,
+    };
+
     socket.connect();
 
     lastConnectedToken = token;
@@ -50,7 +61,7 @@ export function ensureSocketConnected() {
     return true;
   }
 
-  if (!socket.connected) {
+  if (!socket.connected && !socket.active) {
     console.log('[socket] conectando...', {
       url: SOCKET_URL,
       active: socket.active,
@@ -58,6 +69,11 @@ export function ensureSocketConnected() {
       socketId: socket.id,
       hasToken: Boolean(token),
     });
+
+    socket.auth = {
+      ...(socket.auth as Record<string, unknown>),
+      token,
+    };
 
     socket.connect();
 
