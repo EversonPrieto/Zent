@@ -359,18 +359,27 @@ export default function ProjectBoardPage() {
   }, [projectId, router]);
 
   const { onlineUsers } = usePresence(
-    currentUser ? {
-      projectId,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      avatarUrl: currentUser.avatarUrl,
-    } : {
-      projectId,
-      userId: '',
-      userName: '',
-      avatarUrl: null,
-    }
+    currentUser
+      ? {
+          projectId,
+          userId: currentUser.id,
+          userName: currentUser.name,
+          avatarUrl: currentUser.avatarUrl,
+        }
+      : {
+          projectId,
+          userId: '',
+          userName: '',
+          avatarUrl: null,
+        },
   );
+
+  console.log('[Kanban debug]', {
+    workspaceId,
+    projectId,
+    currentUser,
+    onlineUsers,
+  });
 
   async function loadProjectName(ws: string) {
     try {
@@ -798,10 +807,18 @@ export default function ProjectBoardPage() {
                       </div>
                     </div>
                     <div className="p-4">
-                      <ActivityFeed
-                        workspaceId={workspaceId}
-                        projectId={projectId}
-                      />
+                      {typeof workspaceId === 'string' &&
+                      workspaceId.length > 0 &&
+                      typeof projectId === 'string' &&
+                      projectId.length > 0 ? (
+                        <>
+                          {console.log('[Kanban ActivityFeed props]', {
+                            workspaceId,
+                            projectId,
+                          })}
+                          <ActivityFeed workspaceId={workspaceId} projectId={projectId} />
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 </div>

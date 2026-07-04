@@ -120,21 +120,30 @@ export default function AppHeader() {
   }, [pathname]);
 
   useEffect(() => {
+    const isValidatingRef = { current: false };
+
     async function validateCurrentRole() {
-      if (!workspace) return;
+      if (!workspace?.id) return;
+      if (isValidatingRef.current) return;
+      isValidatingRef.current = true;
 
       try {
         const workspaces = await api('/workspaces');
-        const updatedWorkspace = workspaces.find((w: Workspace) => w.id === workspace.id);
+        const updatedWorkspace = workspaces.find(
+          (w: Workspace) => w.id === workspace.id,
+        );
 
         if (updatedWorkspace && updatedWorkspace.role !== workspace.role) {
-          console.log('🔄 AppHeader - Role alterado de', workspace.role, 'para', updatedWorkspace.role);
-          
-          localStorage.setItem('zent_workspace', JSON.stringify(updatedWorkspace));
+          localStorage.setItem(
+            'zent_workspace',
+            JSON.stringify(updatedWorkspace),
+          );
           setWorkspace(updatedWorkspace);
           setWorkspaces(workspaces);
         }
       } catch (err) {
+      } finally {
+        isValidatingRef.current = false;
       }
     }
 
@@ -142,7 +151,7 @@ export default function AppHeader() {
     const interval = setInterval(validateCurrentRole, 5000);
 
     return () => clearInterval(interval);
-  }, [workspace]);
+  }, [workspace?.id, workspace?.role]);
 
   useEffect(() => {
     async function loadWorkspaces() {

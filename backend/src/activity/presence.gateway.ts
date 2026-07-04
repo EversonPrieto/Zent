@@ -48,6 +48,7 @@ export class PresenceGateway implements OnGatewayDisconnect {
     },
     @ConnectedSocket() client: Socket,
   ) {
+    console.log('[PresenceGateway join-project]', data);
     console.log(
       `🟢 usuário ${data.name} (${data.userId}) entrou no projeto ${data.projectId}`,
     );
@@ -148,6 +149,11 @@ export class PresenceGateway implements OnGatewayDisconnect {
     const users = Array.from(
       (this.onlineUsers.get(projectId) || new Map()).values(),
     );
+    console.log('[PresenceGateway emit presence:updated]', {
+      projectId,
+      usersCount: users.length,
+      users,
+    });
     console.log(
       `👀 transmitindo ${users.length} usuários online para sala project-presence-${projectId}`,
     );
