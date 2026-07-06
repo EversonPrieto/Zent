@@ -1,3 +1,5 @@
+import 'multer';
+
 import {
   Body,
   Controller,
@@ -10,6 +12,8 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
@@ -19,7 +23,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateEmailPreferencesDto } from './dto/update-email-preferences.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 @ApiTags('Authentication')
@@ -38,6 +41,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @ApiBearerAuth()
   getProfile(@Req() req: any) {
     return req.user;
   }

@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../hooks/useTheme';
-import { PlanComparison } from '../../components/PlanComparison';
 import { CheckCircle2, Zap, Star, AlertCircle } from 'lucide-react';
+
+import { PLAN_FEATURES, PLAN_LIMITS } from '../../lib/plans';
 
 type Plan = {
   id: 'free' | 'pro';
@@ -22,8 +23,6 @@ type Plan = {
   };
 };
 
-import { PLAN_FEATURES, PLAN_LIMITS, PlanType } from '../../lib/plans';
-
 const plans: Plan[] = [
   {
     id: 'free',
@@ -31,7 +30,9 @@ const plans: Plan[] = [
     description: 'Para começar e validar sua rotina de projetos.',
     price: 0,
     period: 'sempre',
-    features: PLAN_FEATURES.free.map((f) => f.name + (f.value ? `: ${f.value}` : '')),
+    features: PLAN_FEATURES.free.map((f) =>
+      f.value ? `${f.name}: ${f.value}` : f.name,
+    ),
     cta: 'Começar Agora',
     limits: {
       workspaces: String(PLAN_LIMITS.free.workspaces),
@@ -47,7 +48,9 @@ const plans: Plan[] = [
     price: 29,
     period: 'mês',
     highlight: true,
-    features: PLAN_FEATURES.pro.map((f) => f.name + (f.value ? `: ${f.value}` : '')),
+    features: PLAN_FEATURES.pro.map((f) =>
+      f.value ? `${f.name}: ${f.value}` : f.name,
+    ),
     cta: 'Começar Trial Gratuito',
     limits: {
       workspaces: `até ${PLAN_LIMITS.pro.workspaces}`,
@@ -58,10 +61,20 @@ const plans: Plan[] = [
   },
 ];
 
-
 export default function PricingPage() {
   const router = useRouter();
   const { themeClasses } = useTheme();
+
+  function handleBack() {
+    const token = localStorage.getItem('zent_token');
+
+    if (!token) {
+      router.push('/');
+      return;
+    }
+
+    router.back();
+  }
 
   const handleUpgrade = (planId: string) => {
     if (planId === 'free') {
@@ -76,14 +89,15 @@ export default function PricingPage() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={handleBack}
           className={`group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${themeClasses.bg.subtle} ${themeClasses.border.primary} border hover:${themeClasses.bg.hover}`}
         >
-          <span className="transition-transform group-hover:-translate-x-0.5">←</span>
+          <span className="transition-transform group-hover:-translate-x-0.5">
+            ←
+          </span>
           <span>Voltar</span>
         </button>
       </div>
-
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
@@ -118,10 +132,13 @@ export default function PricingPage() {
               )}
 
               <div className="mb-6">
-                <h3 className={`text-2xl font-bold ${themeClasses.text.primary} mb-2`}>{plan.name}</h3>
-                <p className={`${themeClasses.text.tertiary} text-sm`}>{plan.description}</p>
+                <h3 className={`text-2xl font-bold ${themeClasses.text.primary} mb-2`}>
+                  {plan.name}
+                </h3>
+                <p className={`${themeClasses.text.tertiary} text-sm`}>
+                  {plan.description}
+                </p>
               </div>
-
 
               <div className="mb-8">
                 <div className="flex items-baseline gap-1">
@@ -136,25 +153,33 @@ export default function PricingPage() {
 
               {plan.limits && (
                 <div className={`mb-6 rounded-lg ${themeClasses.bg.subtle} p-4 space-y-3`}>
-                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Limites</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-
-
+                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>
+                    Limites
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className={themeClasses.text.tertiary}>Workspaces</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.workspaces}</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>
+                        {plan.limits.workspaces}
+                      </p>
                     </div>
                     <div>
                       <p className={themeClasses.text.tertiary}>Membros</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.members}</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>
+                        {plan.limits.members}
+                      </p>
                     </div>
                     <div>
                       <p className={themeClasses.text.tertiary}>Projetos</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.projects}</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>
+                        {plan.limits.projects}
+                      </p>
                     </div>
                     <div>
                       <p className={themeClasses.text.tertiary}>Storage</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>{plan.limits.storage}</p>
+                      <p className={`${themeClasses.text.primary} font-semibold`}>
+                        {plan.limits.storage}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -165,19 +190,19 @@ export default function PricingPage() {
                 className={`w-full rounded-lg py-3 font-semibold transition-all mb-8 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:ring-offset-0 group ${
                   plan.highlight
                     ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-lg shadow-violet-500/25 hover:scale-105 hover:shadow-violet-500/35'
-                    : `border ${themeClasses.border.primary} ${themeClasses.text.primary} bg-transparent hover:border-violet-500/40 hover:bg-violet-500/10` 
+                    : `border ${themeClasses.border.primary} ${themeClasses.text.primary} bg-transparent hover:border-violet-500/40 hover:bg-violet-500/10`
                 }`}
               >
                 {plan.cta}
               </button>
 
               {plan.id === 'pro' && plan.cta === 'Começar Trial Gratuito' && (
-                <div
-                  className={`mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3`}
-                >
+                <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-semibold text-red-300">Aviso do Trial (14 dias)</p>
+                    <p className="text-sm font-semibold text-red-300">
+                      Aviso do Trial (14 dias)
+                    </p>
                     <p className={`text-sm ${themeClasses.text.secondary}`}>
                       No trial gratuito de 14 dias, não haverá acesso à API e suporte 24/7.
                     </p>
@@ -187,7 +212,9 @@ export default function PricingPage() {
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-4">
-                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>Incluso</p>
+                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>
+                    Incluso
+                  </p>
                   <div className={`h-px flex-1 ${themeClasses.border.primary} opacity-60`} />
                 </div>
 
@@ -202,14 +229,20 @@ export default function PricingPage() {
                       </div>
 
                       <div className="flex-1">
-                        {/* Destaque visual do texto e do valor (ex: "Projetos por workspace: até 3") */}
                         <p className={`text-[14px] leading-relaxed ${themeClasses.text.secondary}`}>
                           {feature.includes(':') ? (
                             (() => {
-                              const [label, value] = feature.split(':').map((s) => s.trim());
+                              const [label, value] = feature
+                                .split(':')
+                                .map((s) => s.trim());
+
                               return (
                                 <span>
-                                  <span className={`text-[14px] opacity-90 ${themeClasses.text.tertiary}`}>{label}:</span>{' '}
+                                  <span
+                                    className={`text-[14px] opacity-90 ${themeClasses.text.tertiary}`}
+                                  >
+                                    {label}:
+                                  </span>{' '}
                                   <span
                                     className={`text-[14px] font-semibold px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 ${themeClasses.bg.subtle} backdrop-blur-sm`}
                                     style={{
@@ -236,7 +269,9 @@ export default function PricingPage() {
         </div>
 
         <div className="max-w-3xl mx-auto mt-16">
-          <h2 className={`text-3xl font-bold mb-8 text-center ${themeClasses.text.primary}`}>Perguntas Frequentes</h2>
+          <h2 className={`text-3xl font-bold mb-8 text-center ${themeClasses.text.primary}`}>
+            Perguntas Frequentes
+          </h2>
           <div className="space-y-4">
             {[
               {
@@ -270,9 +305,10 @@ export default function PricingPage() {
           </div>
         </div>
 
-
         <div className="mt-16 text-center">
-          <p className={`mb-4 ${themeClasses.text.tertiary}`}>Pronto para começar?</p>
+          <p className={`mb-4 ${themeClasses.text.tertiary}`}>
+            Pronto para começar?
+          </p>
           <button
             onClick={() => router.push('/signup')}
             className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-8 py-3 font-semibold text-white hover:scale-105 transition-transform shadow-lg shadow-violet-500/25"
