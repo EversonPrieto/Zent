@@ -15,8 +15,7 @@ import {
   Loader2,
   Sparkles,
   CheckCircle2,
-  Users,
-  Lock
+  Lock,
 } from 'lucide-react';
 
 type Role = 'ADMIN' | 'MEMBER' | 'VIEWER';
@@ -39,33 +38,34 @@ type Props = {
 };
 
 const roleConfig = {
-  ADMIN: { 
-    label: 'Administrador', 
-    icon: Shield, 
-    color: 'text-blue-400', 
+  ADMIN: {
+    label: 'Administrador',
+    icon: Shield,
+    color: 'text-blue-400',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/20',
-    description: 'Pode gerenciar membros, projetos e tasks'
+    description: 'Pode gerenciar membros, projetos e tasks',
   },
-  MEMBER: { 
-    label: 'Membro', 
-    icon: User, 
-    color: 'text-emerald-400', 
+  MEMBER: {
+    label: 'Membro',
+    icon: User,
+    color: 'text-emerald-400',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
-    description: 'Pode criar e editar tasks'
+    description: 'Pode criar e editar tasks',
   },
-  VIEWER: { 
-    label: 'Visualizador', 
-    icon: Eye, 
-    color: 'text-zinc-400', 
+  VIEWER: {
+    label: 'Visualizador',
+    icon: Eye,
+    color: 'text-zinc-400',
     bg: 'bg-zinc-500/10',
     border: 'border-zinc-500/20',
-    description: 'Apenas visualiza, não pode editar'
+    description: 'Apenas visualiza, não pode editar',
   },
 };
 
 const roleOptions: Role[] = ['ADMIN', 'MEMBER', 'VIEWER'];
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function InviteMemberModal({
   workspaceId,
@@ -73,6 +73,7 @@ export default function InviteMemberModal({
   onInvited,
 }: Props) {
   const { themeClasses } = useTheme();
+
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('MEMBER');
   const [loading, setLoading] = useState(false);
@@ -97,13 +98,11 @@ export default function InviteMemberModal({
   }, [workspaceId]);
 
   async function handleInvite() {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
     if (!email.trim()) {
       setError('Informe o email do usuário.');
       return;
     }
-    
+
     if (!emailRegex.test(email)) {
       setError('Informe um email válido.');
       return;
@@ -134,45 +133,51 @@ export default function InviteMemberModal({
     }
   }
 
-  const currentRoleConfig = roleConfig[role as keyof typeof roleConfig];
-  const RoleIcon = currentRoleConfig?.icon;
-  const isFormValid = email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isFormValid = email.trim() && emailRegex.test(email);
 
   if (!checkingPerms && !permissions?.canInviteMembers) {
     return (
-      <div className={`fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
-        <div className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 ${themeClasses.bg.primary} ${themeClasses.border.primary}`}>
-          <div className={`border-b p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
+      <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-hidden bg-black/70 p-2 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+        <div
+          className={`relative flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 sm:max-h-[90vh] ${themeClasses.bg.primary} ${themeClasses.border.primary}`}
+        >
+          <div className={`flex-shrink-0 border-b p-4 sm:p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
             <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-red-500/10 p-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex-shrink-0 rounded-lg bg-red-500/10 p-2">
                   <Lock className="h-5 w-5 text-red-400" />
                 </div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+
+                <h2 className="truncate bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-lg font-bold text-transparent sm:text-xl">
                   Sem permissão
                 </h2>
               </div>
+
               <button
                 onClick={onClose}
-                className={`rounded-lg p-1 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+                className={`flex-shrink-0 rounded-lg p-2 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+                aria-label="Fechar modal"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="flex flex-col items-center text-center">
               <div className="mb-4 rounded-full bg-red-500/10 p-3">
                 <Lock className="h-8 w-8 text-red-400" />
               </div>
+
               <h3 className={`mb-2 text-lg font-semibold ${themeClasses.text.primary}`}>
                 Acesso restrito
               </h3>
+
               <p className={`mb-6 text-sm ${themeClasses.text.tertiary}`}>
                 Apenas <span className="font-medium text-violet-400">ADMIN</span> e{' '}
                 <span className="font-medium text-violet-400">OWNER</span> podem convidar membros.
               </p>
+
               <button
                 onClick={onClose}
                 className={`w-full rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${themeClasses.border.primary} ${themeClasses.bg.secondary} ${themeClasses.text.secondary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
@@ -187,19 +192,23 @@ export default function InviteMemberModal({
   }
 
   return (
-    <div className={`fixed inset-0 z-[70] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200`}>
-      <div className={`relative w-full max-w-md overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 ${themeClasses.bg.primary} ${themeClasses.border.primary}`}>
-        <div className={`border-b p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
+    <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-hidden bg-black/70 p-2 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+      <div
+        className={`relative flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border shadow-2xl animate-in slide-in-from-bottom-4 duration-300 sm:max-h-[90vh] ${themeClasses.bg.primary} ${themeClasses.border.primary}`}
+      >
+        <div className={`flex-shrink-0 border-b p-4 sm:p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex-shrink-0 rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
                 <Mail className="h-5 w-5 text-violet-400" />
               </div>
-              <div>
-                <h2 className={`text-xl font-bold ${themeClasses.text.primary}`}>
+
+              <div className="min-w-0">
+                <h2 className={`truncate text-lg font-bold sm:text-xl ${themeClasses.text.primary}`}>
                   Convidar membro
                 </h2>
-                <p className={`mt-1 text-sm ${themeClasses.text.tertiary}`}>
+
+                <p className={`mt-1 text-sm leading-snug ${themeClasses.text.tertiary}`}>
                   Envie um convite por email para colaborar
                 </p>
               </div>
@@ -207,20 +216,22 @@ export default function InviteMemberModal({
 
             <button
               onClick={onClose}
-              className={`rounded-lg p-2 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+              className={`flex-shrink-0 rounded-lg p-2 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+              aria-label="Fechar modal"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="space-y-5">
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-5 p-4 sm:p-6">
             <div>
               <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                <Mail className="h-4 w-4 text-violet-400" />
+                <Mail className="h-4 w-4 flex-shrink-0 text-violet-400" />
                 Email do convidado
               </label>
+
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -229,7 +240,8 @@ export default function InviteMemberModal({
                 autoFocus
                 className={`w-full rounded-xl border px-4 py-2.5 outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 ${themeClasses.input}`}
               />
-              {email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (
+
+              {email && emailRegex.test(email) && (
                 <div className="mt-2 flex items-center gap-1 text-xs text-emerald-400">
                   <CheckCircle2 className="h-3 w-3" />
                   <span>Email válido</span>
@@ -239,38 +251,42 @@ export default function InviteMemberModal({
 
             <div>
               <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                <Shield className="h-4 w-4 text-violet-400" />
+                <Shield className="h-4 w-4 flex-shrink-0 text-violet-400" />
                 Permissão
               </label>
+
               <div className="grid gap-2">
                 {roleOptions.map((option) => {
-                  const config = roleConfig[option as keyof typeof roleConfig];
-                  const Icon = config?.icon;
+                  const config = roleConfig[option];
+                  const Icon = config.icon;
                   const isSelected = role === option;
-                  
+
                   return (
                     <button
                       key={option}
                       onClick={() => setRole(option)}
-                      className={`group relative flex items-center gap-3 rounded-xl border p-3 transition-all ${
+                      className={`group relative flex items-start gap-3 rounded-xl border p-3 transition-all ${
                         isSelected
                           ? `${config.bg} ${config.border} border-opacity-100`
                           : `${themeClasses.border.primary} ${themeClasses.bg.secondary} hover:${themeClasses.bg.hover}`
                       }`}
                     >
-                      <div className={`rounded-lg p-1.5 ${isSelected ? config.bg : themeClasses.bg.hover}`}>
+                      <div className={`flex-shrink-0 rounded-lg p-1.5 ${isSelected ? config.bg : themeClasses.bg.hover}`}>
                         <Icon className={`h-4 w-4 ${config.color}`} />
                       </div>
-                      <div className="flex-1 text-left">
+
+                      <div className="min-w-0 flex-1 text-left">
                         <p className={`text-sm font-medium ${config.color}`}>
                           {config.label}
                         </p>
-                        <p className={`text-xs ${themeClasses.text.hint}`}>
+
+                        <p className={`text-xs leading-snug ${themeClasses.text.hint}`}>
                           {config.description}
                         </p>
                       </div>
+
                       {isSelected && (
-                        <div className={`absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-${themeClasses.bg.primary}`} />
+                        <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-black/10" />
                       )}
                     </button>
                   );
@@ -280,20 +296,26 @@ export default function InviteMemberModal({
 
             <div className={`rounded-lg border p-3 ${themeClasses.bg.secondary} ${themeClasses.border.secondary}`}>
               <div className="flex items-start gap-2">
-                <Sparkles className="h-4 w-4 text-violet-400 mt-0.5" />
-                <div className={`text-xs ${themeClasses.text.hint}`}>
-                  <p className={`mb-1 font-medium ${themeClasses.text.secondary}`}>O que acontece depois?</p>
+                <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-violet-400" />
+
+                <div className={`min-w-0 text-xs ${themeClasses.text.hint}`}>
+                  <p className={`mb-1 font-medium ${themeClasses.text.secondary}`}>
+                    O que acontece depois?
+                  </p>
+
                   <ul className="space-y-1">
-                    <li className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                    <li className="flex items-start gap-1">
+                      <CheckCircle2 className="mt-0.5 h-3 w-3 flex-shrink-0 text-emerald-400" />
                       <span>O convidado receberá um email com o link de acesso</span>
                     </li>
-                    <li className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+
+                    <li className="flex items-start gap-1">
+                      <CheckCircle2 className="mt-0.5 h-3 w-3 flex-shrink-0 text-emerald-400" />
                       <span>Ele poderá aceitar ou recusar o convite</span>
                     </li>
-                    <li className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+
+                    <li className="flex items-start gap-1">
+                      <CheckCircle2 className="mt-0.5 h-3 w-3 flex-shrink-0 text-emerald-400" />
                       <span>Após aceitar, será adicionado automaticamente</span>
                     </li>
                   </ul>
@@ -302,43 +324,46 @@ export default function InviteMemberModal({
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                {error}
+              <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={onClose}
-                className={`rounded-lg px-4 py-2 text-sm transition-all ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={handleInvite}
-                disabled={loading || !isFormValid}
-                className="group inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Enviando...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    Enviar convite
-                  </>
-                )}
-              </button>
-            </div>
-
             <p className={`text-center text-xs ${themeClasses.text.hint}`}>
-              O convite será enviado para <span className="text-violet-400">{email || 'email informado'}</span>
+              O convite será enviado para{' '}
+              <span className="break-all text-violet-400">
+                {email || 'email informado'}
+              </span>
             </p>
           </div>
+        </div>
+
+        <div className={`flex flex-shrink-0 flex-col-reverse gap-2 border-t p-4 sm:flex-row sm:justify-end sm:gap-3 sm:p-6 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
+          <button
+            onClick={onClose}
+            className={`w-full rounded-lg px-4 py-2 text-sm transition-all ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} sm:w-auto`}
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={handleInvite}
+            disabled={loading || !isFormValid}
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:w-auto"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Enviar convite
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

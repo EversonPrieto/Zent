@@ -57,6 +57,15 @@ const roleConfig = {
   VIEWER: { icon: Eye, label: 'Visualizador', color: 'from-zinc-500 to-zinc-600', text: 'text-zinc-400', bg: 'bg-zinc-500/10' },
 };
 
+// Constantes auxiliares visuais
+const baseButtonClass = 'transition-all duration-200 ease-out';
+const baseIconButtonClass = 'rounded-lg p-2 transition-all duration-200 ease-out hover:scale-105 active:scale-95';
+const dropdownContainerClass = 'rounded-2xl border shadow-2xl backdrop-blur-xl p-2 animate-in fade-in slide-in-from-top-2 duration-200';
+const dropdownItemClass = 'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200';
+const navButtonBaseClass = 'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs lg:text-sm font-medium transition-all duration-200 border border-transparent';
+const mobileSectionClass = 'rounded-2xl border p-4';
+const mobileButtonClass = 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 w-full';
+
 export default function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
@@ -210,7 +219,7 @@ export default function AppHeader() {
 
       setNotifications((prev) => {
         const updated = [newNotification, ...prev];
-        localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20))); // Manter últimas 20
+        localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20)));
         return updated;
       });
 
@@ -228,14 +237,12 @@ export default function AppHeader() {
   }, []);
 
   function handleLogout() {
-    // Reset state immediately before navigation to prevent icon flash
     setUser(null);
     setWorkspace(null);
     setWorkspaces([]);
     setUserMenuOpen(false);
     setWorkspaceMenuOpen(false);
 
-    // Manter configurações de usuário, limpar apenas dados de sessão
     localStorage.removeItem('zent_token');
     disconnectSocket();
     localStorage.removeItem('zent_user');
@@ -255,7 +262,7 @@ export default function AppHeader() {
 
     setNotifications((prev) => {
       const updated = [newNotification, ...prev];
-      localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20))); // Manter últimas 20
+      localStorage.setItem('zent_notifications', JSON.stringify(updated.slice(0, 20)));
       return updated;
     });
 
@@ -317,25 +324,32 @@ export default function AppHeader() {
 
   return (
     <>
-      <header className={`sticky top-0 z-50 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} backdrop-blur-xl`}>
-        <div className={`mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 md:px-5 xl:px-6`}>
-          <div className="flex items-center gap-4 lg:gap-5">
+      <header className={`sticky top-0 z-50 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary}`}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 md:px-5 lg:px-6 xl:px-8">
+          {/* Left section: Logo + Workspace selector */}
+          <div className="flex items-center gap-3 lg:gap-4">
+            {/* Logo */}
             <button
               onClick={() => router.push('/dashboard/projects')}
-              className="group flex items-center gap-2"
+              className={`group flex items-center gap-2.5 ${baseButtonClass} hover:opacity-80`}
             >
-              <img
-                src="/logo.png"
-                alt="Zent"
-                className="h-8 w-8 rounded-lg shadow-lg shadow-violet-500/25 transition-all group-hover:scale-105"
-              />
-              <span className={`text-xl font-bold hidden sm:inline ${themeClasses.text.primary}`}>
+              <div className="relative">
+                <img
+                  src="/logo.png"
+                  alt="Zent"
+                  className="h-8 w-8 rounded-lg shadow-lg shadow-violet-500/20 transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/10" />
+              </div>
+              <span className={`text-xl font-bold hidden sm:inline tracking-tight ${themeClasses.text.primary}`}>
                 Zent
               </span>
             </button>
 
-            <div className={`hidden h-6 w-px md:mx-1 md:block ${themeClasses.border.primary}`} />
+            {/* Divider */}
+            <div className={`hidden h-6 w-px lg:block ${themeClasses.border.primary}`} />
 
+            {/* Desktop Workspace Selector */}
             <div className="relative hidden md:block" ref={workspaceMenuRef}>
               {workspace ? (
                 <button
@@ -343,9 +357,9 @@ export default function AppHeader() {
                     setWorkspaceMenuOpen((prev) => !prev);
                     setUserMenuOpen(false);
                   }}
-                  className={`group flex items-center gap-3 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-1.5 transition-all ${themeClasses.border.hover} ${themeClasses.bg.hover}`}
+                  className={`group flex items-center gap-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-2 ${baseButtonClass} hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5`}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
+                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-white/5">
                     {workspace.logoUrl ? (
                       <img
                         src={workspace.logoUrl}
@@ -357,56 +371,59 @@ export default function AppHeader() {
                     )}
                   </div>
 
-                  <div className="text-left">
-                    <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                  <div className="text-left flex-1 min-w-0">
+                    <p className={`text-sm font-semibold truncate ${themeClasses.text.primary}`}>
                       {workspace.name}
                     </p>
                     {RoleIcon && (
-                      <div className="flex items-center gap-1">
-                        <RoleIcon className="h-3 w-3 text-zinc-400" />
-                        <p className="text-xs text-zinc-500">
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <RoleIcon className={`h-3 w-3 ${roleInfo?.text}`} />
+                        <p className={`text-xs font-medium ${roleInfo?.text}`}>
                           {roleInfo?.label}
                         </p>
                       </div>
                     )}
                   </div>
 
-                  <ChevronDown className={`h-4 w-4 text-zinc-400 transition-transform duration-200 ${workspaceMenuOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 ${themeClasses.text.tertiary} transition-transform duration-300 group-hover:text-violet-400 ${workspaceMenuOpen ? 'rotate-180 text-violet-400' : ''}`} />
                 </button>
               ) : (
                 <button
                   onClick={() => setShowCreateWorkspaceModal(true)}
-                  className={`flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-1.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.border.hover} ${themeClasses.bg.hover}`}
+                  className={`flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2 text-sm font-medium ${themeClasses.text.secondary} ${baseButtonClass} hover:border-violet-500/30 hover:text-violet-400 hover:shadow-lg hover:shadow-violet-500/5`}
                 >
                   <PlusCircle className="h-4 w-4" />
                   Criar workspace
                 </button>
               )}
 
+              {/* Workspace Dropdown */}
               {workspaceMenuOpen && workspace && (
-                <div className={`absolute left-0 top-full mt-2 w-80 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
+                <div className={`absolute left-0 top-full mt-2 w-80 ${themeClasses.border.primary} ${themeClasses.bg.secondary} ${dropdownContainerClass}`}>
                   <div className="px-3 py-2">
-                    <p className={`text-xs font-medium ${themeClasses.text.hint}`}>Trocar workspace</p>
+                    <p className={`text-xs font-semibold uppercase tracking-wider ${themeClasses.text.hint}`}>
+                      Trocar workspace
+                    </p>
                   </div>
 
-                  <div className="max-h-64 space-y-1 overflow-y-auto">
+                  <div className="max-h-64 space-y-0.5 overflow-y-auto">
                     {uniqueWorkspaces.map((ws) => {
                       const wsRoleInfo = roleConfig[ws.role as keyof typeof roleConfig];
                       const WsRoleIcon = wsRoleInfo?.icon;
                       const isActive = workspace?.id === ws.id;
                       
-                            return (
+                      return (
                         <button
                           key={ws.id}
                           onClick={() => handleSwitchWorkspace(ws)}
-                          className={`group relative w-full rounded-xl px-3 py-2 text-left transition-all ${
+                          className={`group relative w-full rounded-xl px-3 py-2.5 text-left ${baseButtonClass} ${
                             isActive
-                              ? 'bg-gradient-to-r from-violet-500/20 to-indigo-500/20'
-                              : themeClasses.bg.hover
+                              ? 'bg-gradient-to-r from-violet-500/15 to-indigo-500/15 ring-1 ring-violet-500/20'
+                              : `hover:${themeClasses.bg.subtle}`
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
+                            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-white/5">
                               {ws.logoUrl ? (
                                 <img
                                   src={ws.logoUrl}
@@ -418,14 +435,14 @@ export default function AppHeader() {
                               )}
                             </div>
 
-                              <div className="flex-1">
-                              <p className={`text-sm font-medium ${isActive ? themeClasses.text.primary : themeClasses.text.secondary}`}>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-semibold truncate ${isActive ? 'text-violet-300' : themeClasses.text.primary}`}>
                                 {ws.name}
                               </p>
                               {WsRoleIcon && (
-                                  <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1.5 mt-0.5">
                                   <WsRoleIcon className={`h-3 w-3 ${wsRoleInfo?.text}`} />
-                                  <p className={`text-xs ${themeClasses.text.tertiary}`}>
+                                  <p className={`text-xs font-medium ${wsRoleInfo?.text}`}>
                                     {wsRoleInfo?.label}
                                   </p>
                                 </div>
@@ -433,7 +450,9 @@ export default function AppHeader() {
                             </div>
 
                             {isActive && (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              <div className="flex-shrink-0 rounded-full bg-emerald-500/10 p-1">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                              </div>
                             )}
                           </div>
                         </button>
@@ -441,16 +460,16 @@ export default function AppHeader() {
                     })}
                   </div>
 
-                  <div className="mt-2 space-y-1 border-t border-white/10 pt-2">
+                  <div className="mt-2 space-y-0.5 border-t border-white/[0.06] pt-2">
                     <button
                       onClick={() => {
                         setWorkspaceMenuOpen(false);
                         router.push('/dashboard/workspace/settings');
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
                     >
-                      <Settings className="h-4 w-4" />
-                      Configurações
+                      <Settings className="h-4 w-4 flex-shrink-0" />
+                      <span>Configurações</span>
                     </button>
 
                     <button
@@ -458,26 +477,23 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         setShowMembersModal(true);
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
                     >
-                      <Users className="h-4 w-4" />
-                      Ver membros
+                      <Users className="h-4 w-4 flex-shrink-0" />
+                      <span>Ver membros</span>
                     </button>
 
                     {canManageWorkspace && workspace && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setWorkspaceMenuOpen(false);
-                            setShowInviteMemberModal(true);
-                          }}
-                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-                        >
-                          <Mail className="h-4 w-4" />
-                          Convidar membro
-                        </button>
-
-                      </>
+                      <button
+                        onClick={() => {
+                          setWorkspaceMenuOpen(false);
+                          setShowInviteMemberModal(true);
+                        }}
+                        className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
+                      >
+                        <Mail className="h-4 w-4 flex-shrink-0" />
+                        <span>Convidar membro</span>
+                      </button>
                     )}
 
                     <button
@@ -485,10 +501,10 @@ export default function AppHeader() {
                         setWorkspaceMenuOpen(false);
                         setShowCreateWorkspaceModal(true);
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.accent.violet.split(' ')[1] || themeClasses.text.primary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} text-violet-400 hover:bg-violet-500/10`}
                     >
-                      <PlusCircle className="h-4 w-4" />
-                      Criar nova workspace
+                      <PlusCircle className="h-4 w-4 flex-shrink-0" />
+                      <span>Criar nova workspace</span>
                     </button>
                   </div>
                 </div>
@@ -496,62 +512,66 @@ export default function AppHeader() {
             </div>
           </div>
 
-          <div className="hidden md:flex md:items-center md:gap-3 lg:gap-4 xl:gap-5">
-            <nav className={`ml-2 lg:ml-4 mr-1 lg:mr-2 flex items-center gap-1.5 lg:gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-0.5 lg:p-1`}>
+          {/* Center/Right section: Navigation + Actions */}
+          <div className="hidden md:flex md:items-center md:gap-2 lg:gap-3">
+            {/* Navigation Pills */}
+            <nav className={`flex items-center gap-1 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-1`}>
               <button
                 onClick={() => router.push('/dashboard/overview')}
                 title="Visão geral"
-                className={`inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium transition-all ${
+                className={`${navButtonBaseClass} ${
                   pathname === '/dashboard/overview'
-                    ? `bg-violet-500/20 text-violet-300 border-violet-400/40`
-                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
+                    ? `bg-violet-500/20 text-violet-300 border-violet-400/30 shadow-lg shadow-violet-500/10`
+                    : `${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:${themeClasses.text.primary}`
                 }`}
               >
-                <LayoutDashboard className="h-4 w-4" />
+                <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
                 <span className="hidden xl:inline whitespace-nowrap">Visão geral</span>
               </button>
+
               <button
                 onClick={() => router.push('/dashboard/projects')}
                 title="Projetos"
-                className={`inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium transition-all ${
+                className={`${navButtonBaseClass} ${
                   pathname === '/dashboard/projects'
-                    ? `bg-violet-500/20 text-violet-300 border-violet-400/40`
-                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
+                    ? `bg-violet-500/20 text-violet-300 border-violet-400/30 shadow-lg shadow-violet-500/10`
+                    : `${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:${themeClasses.text.primary}`
                 }`}
               >
-                <FolderKanban className="h-4 w-4" />
+                <FolderKanban className="h-4 w-4 flex-shrink-0" />
                 <span className="hidden xl:inline whitespace-nowrap">Projetos</span>
               </button>
+
               <button
                 onClick={() => router.push('/dashboard/activity')}
                 title="Atividade"
-                className={`inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm font-medium transition-all ${
+                className={`${navButtonBaseClass} ${
                   pathname === '/dashboard/activity'
-                    ? `bg-violet-500/20 text-violet-300 border-violet-400/40`
-                    : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
+                    ? `bg-violet-500/20 text-violet-300 border-violet-400/30 shadow-lg shadow-violet-500/10`
+                    : `${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:${themeClasses.text.primary}`
                 }`}
               >
-                <Activity className="h-4 w-4" />
+                <Activity className="h-4 w-4 flex-shrink-0" />
                 <span className="hidden xl:inline whitespace-nowrap">Atividade</span>
               </button>
             </nav>
 
+            {/* Search Button */}
             <button
               onClick={() => router.push('/search')}
-              className={`inline-flex items-center gap-1.5 rounded-lg border ${themeClasses.border.primary} px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
+              className={`${baseIconButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
               title="Busca Global (Ctrl+K)"
             >
               <Search className="h-4 w-4" />
-              <span className="hidden lg:inline">Buscar</span>
             </button>
 
+            {/* Plans Button */}
             <button
               onClick={() => router.push('/pricing')}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
+              className={`${baseIconButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-amber-400`}
               title="Planos"
             >
               <Crown className="h-4 w-4" />
-              <span className="hidden lg:inline">Planos</span>
             </button>
 
             {/* Notifications Button */}
@@ -561,53 +581,78 @@ export default function AppHeader() {
                   setNotificationsOpen((prev) => !prev);
                   setUserMenuOpen(false);
                 }}
-                className={`relative rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
+                className={`relative ${baseIconButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400 ${
+                  notificationsOpen ? `text-violet-400 ${themeClasses.bg.subtle}` : ''
+                }`}
                 title="Notificações"
               >
                 <Bell className="h-4 w-4" />
                 {notifications.length > 0 && (
-                  <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-bold">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-zinc-900 dark:ring-zinc-100">
                     {notifications.length > 9 ? '9+' : notifications.length}
                   </span>
                 )}
               </button>
 
-                {notificationsOpen && (
-                <div className={`absolute right-0 top-full mt-2 w-80 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
+              {/* Notifications Dropdown */}
+              {notificationsOpen && (
+                <div className={`absolute right-0 top-full mt-2 w-80 ${themeClasses.border.primary} ${themeClasses.bg.secondary} ${dropdownContainerClass}`}>
                   <div className={`border-b ${themeClasses.border.primary} px-4 py-3`}>
-                    <h3 className={`font-semibold ${themeClasses.text.primary}`}>Notificações</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className={`font-semibold ${themeClasses.text.primary}`}>Notificações</h3>
+                      {notifications.length > 0 && (
+                        <span className="rounded-full bg-violet-500/10 px-2 py-0.5 text-xs font-medium text-violet-400">
+                          {notifications.length}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="max-h-96 overflow-y-auto">
                     {notifications.length > 0 ? (
-                      <div className="space-y-2 p-2">
+                      <div className="space-y-1 p-2">
                         {notifications.map((notif) => (
                           <div
                             key={notif.id}
-                            className={`rounded-lg ${themeClasses.bg.subtle} border ${themeClasses.border.primary} p-3 ${themeClasses.bg.hover} transition-all cursor-pointer`}
+                            className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3 ${baseButtonClass} hover:border-violet-500/20 hover:shadow-md cursor-pointer`}
                           >
-                            <p className={`text-sm ${themeClasses.text.primary}`}>{notif.message}</p>
-                            <p className={`text-xs ${themeClasses.text.hint} mt-1`}>
-                              {notif.type === 'task' && '📋 Tarefa'}
-                              {notif.type === 'comment' && '💬 Comentário'}
-                              {notif.type === 'mention' && '🔔 Menção'}
-                            </p>
+                            <div className="flex items-start gap-2.5">
+                              <div className="mt-0.5 flex-shrink-0">
+                                {notif.type === 'task' && <CheckCircle2 className="h-4 w-4 text-violet-400" />}
+                                {notif.type === 'comment' && <Mail className="h-4 w-4 text-blue-400" />}
+                                {notif.type === 'mention' && <User className="h-4 w-4 text-amber-400" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm ${themeClasses.text.primary}`}>{notif.message}</p>
+                                <p className={`text-xs mt-1 ${themeClasses.text.hint}`}>
+                                  {notif.type === 'task' && 'Tarefa'}
+                                  {notif.type === 'comment' && 'Comentário'}
+                                  {notif.type === 'mention' && 'Menção'}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-8 text-center">
-                        <Bell className={`h-8 w-8 mx-auto mb-2 ${themeClasses.text.tertiary}`} />
-                        <p className={`text-sm ${themeClasses.text.hint}`}>Sem notificações</p>
+                      <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+                        <div className={`rounded-full ${themeClasses.bg.subtle} p-3 mb-3`}>
+                          <Bell className={`h-6 w-6 ${themeClasses.text.tertiary}`} />
+                        </div>
+                        <p className={`text-sm font-medium ${themeClasses.text.primary}`}>Sem notificações</p>
+                        <p className={`text-xs mt-1 ${themeClasses.text.hint}`}>Você está em dia!</p>
                       </div>
                     )}
                   </div>
 
                   {notifications.length > 0 && (
-                      <div className={`border-t ${themeClasses.border.primary} p-2`}>
+                    <div className={`border-t ${themeClasses.border.primary} p-2`}>
                       <button
-                        onClick={() => setNotifications([])}
-                        className={`w-full py-2 rounded-lg text-sm ${themeClasses.text.secondary} ${themeClasses.bg.hover} transition-all`}
+                        onClick={() => {
+                          setNotifications([]);
+                          localStorage.removeItem('zent_notifications');
+                        }}
+                        className={`w-full rounded-lg py-2 text-sm font-medium ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-red-400 transition-all duration-200`}
                       >
                         Limpar tudo
                       </button>
@@ -620,7 +665,7 @@ export default function AppHeader() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className={`rounded-lg px-3 py-2 text-sm transition-all ${themeClasses.text.secondary} ${themeClasses.bg.hover}`}
+              className={`${baseIconButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-amber-400`}
               title={theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
             >
               {theme === 'dark' ? (
@@ -630,62 +675,79 @@ export default function AppHeader() {
               )}
             </button>
 
-            <div className="relative ml-1 lg:ml-2" ref={userMenuRef}>
+            {/* User Menu */}
+            <div className="relative ml-1" ref={userMenuRef}>
               <button
                 onClick={() => {
                   setUserMenuOpen((prev) => !prev);
                   setWorkspaceMenuOpen(false);
                 }}
-                className={`flex min-w-[240px] lg:min-w-[290px] items-center justify-between gap-3 rounded-xl border ${themeClasses.border.primary} transition-all px-3.5 lg:px-4.5 py-1.5 ${themeClasses.bg.hover}`}
+                className={`flex items-center gap-2.5 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-3 py-1.5 ${baseButtonClass} hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/5 ${userMenuOpen ? 'border-violet-500/40 shadow-lg shadow-violet-500/10' : ''}`}
               >
                 <div className="relative">
                   {user?.avatarUrl ? (
                     <img 
                       src={user.avatarUrl} 
                       alt={user.name}
-                      className="h-8 w-8 rounded-lg object-cover"
+                      className="h-8 w-8 rounded-lg object-cover ring-1 ring-white/10"
                     />
                   ) : (
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${themeClasses.bg.subtle} text-sm font-semibold ${themeClasses.text.primary}`}>
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-bold ${themeClasses.text.primary} ring-1 ring-white/10`}>
                       {userInitial}
                     </div>
                   )}
-                  <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-lg dark:border-zinc-900" />
+                  <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-lg dark:border-zinc-900" />
                 </div>
 
-                <div className="hidden text-right md:block">
-                  <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
+                <div className="hidden text-left lg:block min-w-0 max-w-[140px]">
+                  <p className={`text-sm font-semibold truncate ${themeClasses.text.primary}`}>
                     {user?.name}
                   </p>
-                  <p className={`text-xs ${themeClasses.text.hint}`}>
+                  <p className={`text-xs ${themeClasses.text.hint} truncate`}>
                     {user?.email}
                   </p>
                 </div>
 
-                <ChevronDown className={`h-4 w-4 ${themeClasses.text.secondary} transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 flex-shrink-0 ${themeClasses.text.tertiary} transition-transform duration-300 ${userMenuOpen ? 'rotate-180 text-violet-400' : ''}`} />
               </button>
 
+              {/* User Dropdown */}
               {userMenuOpen && (
-                <div className={`absolute right-0 top-full mt-2 w-64 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-2 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
-                  <div className={`border-b ${themeClasses.border.primary} px-3 py-2`}>
-                    <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
-                      {user?.name}
-                    </p>
-                    <p className={`${themeClasses.text.hint} text-xs`}>
-                      {user?.email}
-                    </p>
+                <div className={`absolute right-0 top-full mt-2 w-64 ${themeClasses.border.primary} ${themeClasses.bg.secondary} ${dropdownContainerClass}`}>
+                  <div className={`border-b ${themeClasses.border.primary} px-3 py-3`}>
+                    <div className="flex items-center gap-3">
+                      {user?.avatarUrl ? (
+                        <img 
+                          src={user.avatarUrl} 
+                          alt={user.name}
+                          className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/10"
+                        />
+                      ) : (
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-bold ${themeClasses.text.primary} ring-1 ring-white/10`}>
+                          {userInitial}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold truncate ${themeClasses.text.primary}`}>
+                          {user?.name}
+                        </p>
+                        <p className={`text-xs ${themeClasses.text.hint} truncate`}>
+                          {user?.email}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-2 space-y-0.5">
                     <button
                       onClick={() => {
                         setUserMenuOpen(false);
                         router.push('/dashboard/projects');
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
                     >
-                      <LayoutDashboard className="h-4 w-4" />
-                      Projetos
+                      <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+                      <span>Projetos</span>
                     </button>
 
                     <button
@@ -693,10 +755,10 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/dashboard/activity');
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
                     >
-                      <Activity className="h-4 w-4" />
-                      Atividade
+                      <Activity className="h-4 w-4 flex-shrink-0" />
+                      <span>Atividade</span>
                     </button>
 
                     <button
@@ -704,10 +766,10 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/pricing');
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-amber-400`}
                     >
-                      <Crown className="h-4 w-4" />
-                      Planos
+                      <Crown className="h-4 w-4 flex-shrink-0" />
+                      <span>Planos</span>
                     </button>
 
                     <button
@@ -715,10 +777,10 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/dashboard/profile');
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
                     >
-                      <User className="h-4 w-4" />
-                      Perfil
+                      <User className="h-4 w-4 flex-shrink-0" />
+                      <span>Perfil</span>
                     </button>
 
                     <div className={`border-t ${themeClasses.border.primary} my-2`} />
@@ -728,10 +790,10 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         router.push('/dashboard');
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${dropdownItemClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.subtle} hover:text-violet-400`}
                     >
-                      <Building2 className="h-4 w-4" />
-                      Meus Workspaces
+                      <Building2 className="h-4 w-4 flex-shrink-0" />
+                      <span>Meus Workspaces</span>
                     </button>
 
                     <button
@@ -739,10 +801,10 @@ export default function AppHeader() {
                         setUserMenuOpen(false);
                         handleLogout();
                       }}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-400 transition-all hover:bg-red-500/10`}
+                      className={`${dropdownItemClass} text-red-400 hover:bg-red-500/10`}
                     >
-                      <LogOut className="h-4 w-4" />
-                      Sair
+                      <LogOut className="h-4 w-4 flex-shrink-0" />
+                      <span>Sair</span>
                     </button>
                   </div>
                 </div>
@@ -750,183 +812,376 @@ export default function AppHeader() {
             </div>
           </div>
 
+          {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`mobile-menu-button rounded-lg p-2 transition-colors md:hidden ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+            className={`rounded-lg p-2 transition-all duration-200 md:hidden ${
+              mobileMenuOpen 
+                ? 'bg-violet-500/10 text-violet-400' 
+                : `${themeClasses.text.tertiary} hover:${themeClasses.bg.subtle} hover:${themeClasses.text.primary}`
+            }`}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
+        {/* Mobile Menu - Fundo sólido sem transparência */}
         {mobileMenuOpen && (
           <div
             ref={mobileMenuRef}
-            className={`absolute top-full left-0 right-0 z-50 border-t ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 backdrop-blur-xl md:hidden animate-in slide-in-from-top-2 duration-200`}
+            className={`absolute left-0 right-0 top-full z-50 max-h-[calc(100dvh-60px)] overflow-y-auto border-t ${themeClasses.border.primary} ${themeClasses.bg.primary} md:hidden animate-in slide-in-from-top-2 duration-200`}
           >
-            {workspace && (
-              <div className={`mb-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
-                    {workspace.logoUrl ? (
-                      <img
-                        src={workspace.logoUrl}
-                        alt={workspace.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Building2 className="h-5 w-5 text-violet-400" />
-                    )}
+            <div className="space-y-4 p-4">
+              {/* Current Workspace */}
+              {workspace && (
+                <div className={`${mobileSectionClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                  <p className={`mb-3 text-xs font-semibold uppercase tracking-wider ${themeClasses.text.hint}`}>
+                    Workspace atual
+                  </p>
+
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-white/5">
+                      {workspace.logoUrl ? (
+                        <img
+                          src={workspace.logoUrl}
+                          alt={workspace.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Building2 className="h-5 w-5 text-violet-400" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className={`truncate text-sm font-semibold ${themeClasses.text.primary}`}>
+                        {workspace.name}
+                      </p>
+
+                      {RoleIcon && (
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <RoleIcon className={`h-3.5 w-3.5 flex-shrink-0 ${roleInfo?.text}`} />
+                          <p className={`text-xs font-medium ${roleInfo?.text}`}>
+                            {roleInfo?.label}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className={`font-semibold ${themeClasses.text.primary}`}>{workspace.name}</p>
-                    {RoleIcon && (
-                      <div className="flex items-center gap-1">
-                        <RoleIcon className="h-3 w-3 text-zinc-400" />
-                        <p className={`${themeClasses.text.hint} text-xs`}>{roleInfo?.label}</p>
+
+                  {uniqueWorkspaces.length > 1 && (
+                    <div className="mt-4">
+                      <p className={`mb-2 text-xs font-medium ${themeClasses.text.tertiary}`}>
+                        Trocar workspace
+                      </p>
+
+                      <div className="max-h-40 space-y-1 overflow-y-auto">
+                        {uniqueWorkspaces.map((ws) => {
+                          const wsRoleInfo = roleConfig[ws.role as keyof typeof roleConfig];
+                          const WsRoleIcon = wsRoleInfo?.icon;
+                          const isActive = workspace?.id === ws.id;
+
+                          return (
+                            <button
+                              key={ws.id}
+                              onClick={() => handleSwitchWorkspace(ws)}
+                              className={`flex w-full min-w-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm transition-all duration-200 ${
+                                isActive
+                                  ? 'bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20'
+                                  : `${themeClasses.text.secondary} hover:${themeClasses.bg.subtle}`
+                              }`}
+                            >
+                              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
+                                {ws.logoUrl ? (
+                                  <img
+                                    src={ws.logoUrl}
+                                    alt={ws.name}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <Building2 className="h-4 w-4 text-violet-400" />
+                                )}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate font-semibold">{ws.name}</p>
+
+                                {WsRoleIcon && (
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <WsRoleIcon className={`h-3 w-3 flex-shrink-0 ${wsRoleInfo?.text}`} />
+                                    <p className={`truncate text-xs font-medium ${wsRoleInfo?.text}`}>
+                                      {wsRoleInfo?.label}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {isActive && (
+                                <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-400" />
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
-                    )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    router.push('/search');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center justify-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 text-sm font-medium ${themeClasses.text.secondary} transition-all duration-200 active:scale-95`}
+                >
+                  <Search className="h-4 w-4" />
+                  Buscar
+                </button>
+
+                <button
+                  onClick={toggleTheme}
+                  className={`flex items-center justify-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 text-sm font-medium ${themeClasses.text.secondary} transition-all duration-200 active:scale-95`}
+                >
+                  {theme === 'dark' ? (
+                    <>
+                      <Sun className="h-4 w-4" />
+                      Claro
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4" />
+                      Escuro
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Notifications */}
+              {notifications.length > 0 && (
+                <div className={`${mobileSectionClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="rounded-lg bg-violet-500/10 p-1.5">
+                        <Bell className="h-4 w-4 text-violet-400" />
+                      </div>
+                      <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                        Notificações
+                      </p>
+                    </div>
+
+                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                      {notifications.length > 9 ? '9+' : notifications.length}
+                    </span>
                   </div>
-                  <ChevronRight className={`h-4 w-4 ${themeClasses.text.hint}`} />
+
+                  <div className="max-h-32 space-y-1.5 overflow-y-auto">
+                    {notifications.slice(0, 3).map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-3`}
+                      >
+                        <p className={`line-clamp-2 text-sm ${themeClasses.text.primary}`}>
+                          {notif.message}
+                        </p>
+                        <p className={`mt-1 text-xs ${themeClasses.text.hint}`}>
+                          {notif.type === 'task' && '📋 Tarefa'}
+                          {notif.type === 'comment' && '💬 Comentário'}
+                          {notif.type === 'mention' && '🔔 Menção'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setNotifications([]);
+                      localStorage.removeItem('zent_notifications');
+                    }}
+                    className={`mt-3 w-full rounded-lg py-2.5 text-sm font-medium ${themeClasses.text.secondary} hover:bg-red-500/10 hover:text-red-400 transition-all duration-200`}
+                  >
+                    Limpar notificações
+                  </button>
+                </div>
+              )}
+
+              {/* Navigation */}
+              <div className={`${mobileSectionClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <p className={`mb-3 text-xs font-semibold uppercase tracking-wider ${themeClasses.text.hint}`}>
+                  Navegação
+                </p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      router.push('/dashboard/overview');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                      pathname === '/dashboard/overview'
+                        ? 'bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20'
+                        : `${themeClasses.text.secondary} hover:${themeClasses.bg.primary}`
+                    }`}
+                  >
+                    <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Dashboard</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/dashboard/projects');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                      pathname === '/dashboard/projects'
+                        ? 'bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20'
+                        : `${themeClasses.text.secondary} hover:${themeClasses.bg.primary}`
+                    }`}
+                  >
+                    <FolderKanban className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Projetos</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/dashboard/activity');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                      pathname === '/dashboard/activity'
+                        ? 'bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20'
+                        : `${themeClasses.text.secondary} hover:${themeClasses.bg.primary}`
+                    }`}
+                  >
+                    <Activity className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Atividade</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/pricing');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium ${themeClasses.text.secondary} transition-all duration-200 hover:${themeClasses.bg.primary} hover:text-amber-400`}
+                  >
+                    <Crown className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Planos</span>
+                  </button>
                 </div>
               </div>
-            )}
 
-            <div className="space-y-1">
-              <button
-                onClick={() => {
-                  router.push('/dashboard/overview');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </button>
+              {/* Workspace Actions */}
+              <div className={`${mobileSectionClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <p className={`mb-3 text-xs font-semibold uppercase tracking-wider ${themeClasses.text.hint}`}>
+                  Workspace
+                </p>
 
-              <button
-                onClick={() => {
-                  router.push('/dashboard/projects');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <FolderKanban className="h-4 w-4" />
-                Projetos
-              </button>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => {
+                      router.push('/dashboard/workspace/settings');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`${mobileButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.primary} hover:text-violet-400`}
+                  >
+                    <Settings className="h-4 w-4 flex-shrink-0" />
+                    <span>Configurações</span>
+                  </button>
 
-              <button
-                onClick={() => {
-                  router.push('/dashboard/activity');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <Activity className="h-4 w-4" />
-                Atividade
-              </button>
+                  <button
+                    onClick={() => {
+                      setShowMembersModal(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`${mobileButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.primary} hover:text-violet-400`}
+                  >
+                    <Users className="h-4 w-4 flex-shrink-0" />
+                    <span>Ver membros</span>
+                  </button>
 
-              <button
-                onClick={() => {
-                  router.push('/pricing');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <Crown className="h-4 w-4" />
-                Planos
-              </button>
-
-              <button
-                onClick={() => {
-                  router.push('/dashboard/workspace/settings');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <Settings className="h-4 w-4" />
-                Configurações
-              </button>
-
-              <button
-                onClick={() => {
-                  router.push('/dashboard/profile');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <User className="h-4 w-4" />
-                Perfil
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowMembersModal(true);
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <Users className="h-4 w-4" />
-                Ver membros
-              </button>
-
-              {canManageWorkspace && workspace && (
-                <>
+                  {canManageWorkspace && workspace && (
                     <button
                       onClick={() => {
                         setShowInviteMemberModal(true);
                         setMobileMenuOpen(false);
                       }}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
+                      className={`${mobileButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.primary} hover:text-violet-400`}
                     >
-                      <Mail className="h-4 w-4" />
-                      Convidar membro
+                      <Mail className="h-4 w-4 flex-shrink-0" />
+                      <span>Convidar membro</span>
                     </button>
+                  )}
 
-                </>
-              )}
+                  <button
+                    onClick={() => {
+                      setShowCreateWorkspaceModal(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`${mobileButtonClass} text-violet-400 hover:bg-violet-500/10`}
+                  >
+                    <PlusCircle className="h-4 w-4 flex-shrink-0" />
+                    <span>Criar nova workspace</span>
+                  </button>
 
-              <button
-                onClick={() => {
-                  setShowCreateWorkspaceModal(true);
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm ${themeClasses.text.secondary} transition-all ${themeClasses.bg.hover}`}
-              >
-                <PlusCircle className="h-4 w-4" />
-                Criar nova workspace
-              </button>
-
-              <div className={`my-2 h-px ${themeClasses.border.primary}`} />
-
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400 transition-all hover:bg-red-500/10`}
-              >
-                <LogOut className="h-4 w-4" />
-                Sair
-              </button>
-            </div>
-
-            <div className={`mt-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
-              <div className="flex items-center gap-3">
-                {user?.avatarUrl ? (
-                  <img 
-                    src={user.avatarUrl} 
-                    alt={user.name}
-                    className="h-10 w-10 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${themeClasses.bg.subtle} text-sm font-semibold ${themeClasses.text.primary}`}>
-                    {userInitial}
-                  </div>
-                )}
-                <div>
-                  <p className={`text-sm font-medium ${themeClasses.text.primary}`}>{user?.name}</p>
-                  <p className={`${themeClasses.text.hint} text-xs`}>{user?.email}</p>
+                  <button
+                    onClick={() => {
+                      router.push('/dashboard');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`${mobileButtonClass} ${themeClasses.text.secondary} hover:${themeClasses.bg.primary} hover:text-violet-400`}
+                  >
+                    <Building2 className="h-4 w-4 flex-shrink-0" />
+                    <span>Meus Workspaces</span>
+                  </button>
                 </div>
+              </div>
+
+              {/* User Section */}
+              <div className={`${mobileSectionClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                <div className="flex min-w-0 items-center gap-3">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="h-11 w-11 flex-shrink-0 rounded-xl object-cover ring-1 ring-white/10"
+                    />
+                  ) : (
+                    <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-sm font-bold ${themeClasses.text.primary} ring-1 ring-white/10`}>
+                      {userInitial}
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <p className={`truncate text-sm font-semibold ${themeClasses.text.primary}`}>
+                      {user?.name}
+                    </p>
+                    <p className={`text-xs ${themeClasses.text.hint} truncate`}>
+                      {user?.email}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      router.push('/dashboard/profile');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`rounded-lg px-3 py-2 text-xs font-medium ${themeClasses.text.secondary} hover:${themeClasses.bg.primary} hover:text-violet-400 transition-all duration-200`}
+                  >
+                    Perfil
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-400 transition-all duration-200 hover:bg-red-500/20 active:scale-95"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </button>
               </div>
             </div>
           </div>
@@ -939,7 +1194,6 @@ export default function AppHeader() {
           onCreated={handleWorkspaceCreated}
         />
       )}
-
 
       {showInviteMemberModal && workspace && (
         <InviteMemberModal
