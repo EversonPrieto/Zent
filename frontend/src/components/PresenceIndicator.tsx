@@ -1,7 +1,6 @@
 'use client';
 
 import { useTheme } from '../hooks/useTheme';
-
 import { OnlineUser } from '../hooks/usePresence';
 
 interface PresenceIndicatorProps {
@@ -22,37 +21,54 @@ export function PresenceIndicator({
     minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${themeClasses.bg.subtle} border ${themeClasses.border.primary}`}>
-      <div className="relative">
+    <div
+      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 hover:bg-violet-500/5 ${
+        isCurrentUser
+          ? 'bg-violet-500/5 ring-1 ring-violet-500/20'
+          : `${themeClasses.bg.subtle} border ${themeClasses.border.primary}`
+      }`}
+      title={`${user.name}${isCurrentUser ? ' (você)' : ''}`}
+    >
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
         {user.avatarUrl ? (
           <img
             src={user.avatarUrl}
             alt={user.name || 'User avatar'}
-            className="w-8 h-8 rounded-full object-cover"
+            className="h-8 w-8 rounded-full object-cover ring-2 ring-white/10"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center text-sm font-semibold text-violet-400">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-xs font-bold text-violet-400 ring-2 ring-white/10">
             {(user.name || 'U').charAt(0).toUpperCase()}
           </div>
         )}
-        <div className={`absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border ${theme === 'dark' ? 'border-slate-900' : 'border-white'}`}></div>
+        
+        {/* Online Dot */}
+        <div
+          className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 bg-emerald-500 shadow-lg ${
+            theme === 'dark' ? 'border-zinc-900' : 'border-white'
+          }`}
+        />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${themeClasses.text.primary} truncate`}>
+      {/* Info */}
+      <div className="min-w-0 flex-1">
+        <p className={`truncate text-sm font-semibold ${themeClasses.text.primary}`}>
           {user.name}
-          {isCurrentUser && ' (você)'}
+          {isCurrentUser && (
+            <span className="ml-1.5 text-xs font-medium text-violet-400">(você)</span>
+          )}
         </p>
 
-        {user.editingTaskId && (
-          <p className={`text-xs truncate ${themeClasses.text.secondary}`}>
+        {user.editingTaskId ? (
+          <p className={`truncate text-xs font-medium text-amber-400`}>
             ✏️ Editando task
           </p>
+        ) : (
+          <p className={`truncate text-xs ${themeClasses.text.tertiary}`}>
+            Online há {timeString}
+          </p>
         )}
-
-        <p className={`text-xs ${themeClasses.text.muted}`}>
-          Online há {timeString}
-        </p>
       </div>
     </div>
   );

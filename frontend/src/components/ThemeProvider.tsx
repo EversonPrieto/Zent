@@ -14,11 +14,11 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     if (theme === 'light') {
       htmlElement.classList.remove('dark');
       htmlElement.classList.add('light');
-      document.body.className = 'bg-white text-zinc-950';
+      document.body.className = 'bg-white text-zinc-950 antialiased';
     } else {
       htmlElement.classList.remove('light');
       htmlElement.classList.add('dark');
-      document.body.className = 'bg-zinc-950 text-white';
+      document.body.className = 'bg-zinc-950 text-white antialiased';
     }
   };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../lib/api';
 import { useTheme } from '../hooks/useTheme';
 import { getWorkspacePermissions, type Permissions } from '../lib/permissions';
@@ -101,6 +102,14 @@ const priorityOptions: TaskPriority[] = [
   'URGENT',
 ];
 
+// Constantes auxiliares visuais
+const inputBaseClass = 'w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-200 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60';
+const labelClass = 'mb-2 flex items-center gap-2 text-sm font-semibold';
+const sectionTitleClass = 'flex items-center gap-2.5 text-lg font-semibold';
+const badgeBaseClass = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200';
+const primaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-200 hover:shadow-violet-500/40 sm:hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:sm:hover:scale-100 sm:px-5';
+const secondaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-zinc-800/50 active:scale-[0.98] sm:px-5';
+
 export default function TaskModal({
   task,
   workspaceId,
@@ -110,33 +119,38 @@ export default function TaskModal({
   projectCompleted = false,
 }: Props) {
   const { theme, themeClasses } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  // Status e Priority configs dinâmicos baseados no tema
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const statusConfig = theme === 'dark' ? {
-    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20' },
-    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/20', dot: 'bg-zinc-400' },
+    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', dot: 'bg-blue-400' },
+    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-400' },
+    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
+    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', dot: 'bg-red-400' },
   } : {
-    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-500', bg: 'bg-zinc-100', border: 'border-zinc-200' },
-    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
-    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
-    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
-    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' },
+    TODO: { label: 'A fazer', icon: Clock, color: 'text-zinc-600', bg: 'bg-zinc-100', border: 'border-zinc-200', dot: 'bg-zinc-600' },
+    IN_PROGRESS: { label: 'Em progresso', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', dot: 'bg-blue-600' },
+    IN_REVIEW: { label: 'Em revisão', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200', dot: 'bg-amber-600' },
+    DONE: { label: 'Concluído', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200', dot: 'bg-emerald-600' },
+    ABORTED: { label: 'Cancelado', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', dot: 'bg-red-600' },
   };
 
   const priorityConfig = theme === 'dark' ? {
-    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
-    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
+    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', dot: 'bg-blue-400' },
+    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-400' },
+    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', dot: 'bg-orange-400' },
+    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', dot: 'bg-red-400' },
   } : {
-    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
-    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
-    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200' },
-    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200' },
+    LOW: { label: 'Baixa', icon: Flag, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', dot: 'bg-blue-600' },
+    MEDIUM: { label: 'Média', icon: Flag, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200', dot: 'bg-amber-600' },
+    HIGH: { label: 'Alta', icon: Flag, color: 'text-orange-600', bg: 'bg-orange-100', border: 'border-orange-200', dot: 'bg-orange-600' },
+    URGENT: { label: 'Urgente', icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100', border: 'border-red-200', dot: 'bg-red-600' },
   };
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>('TODO');
@@ -150,7 +164,6 @@ export default function TaskModal({
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
 
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
-
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -234,7 +247,6 @@ export default function TaskModal({
         const fresh = await api(`/tasks/${taskId}`, { workspaceId });
         onSaved(fresh);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Erro ao recarregar detalhes da task (para anexos):', err);
       }
     }
@@ -335,7 +347,7 @@ export default function TaskModal({
     },
   });
 
-  if (!task) return null;
+  if (!mounted || !task) return null;
 
   const currentTask = task;
 
@@ -348,24 +360,22 @@ export default function TaskModal({
       const refreshed = await api(`/tasks/${currentTask.id}`, { workspaceId });
       onSaved(refreshed);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('Erro ao recarregar anexos da task:', err);
     }
   }
+
   const currentStatusConfig = statusConfig[status];
   const currentPriorityConfig = priorityConfig[priority];
   const StatusIcon = currentStatusConfig.icon;
   const PriorityIcon = currentPriorityConfig.icon;
 
-    async function handleSave() {
+  async function handleSave() {
     if (!title.trim()) return;
 
     try {
       setLoading(true);
       setError('');
 
-      // Pega o estado real da task ANTES de salvar.
-      // Isso é necessário porque o PATCH /tasks/:id não retorna taskLabels/taskAssignees.
       const beforeTask = await api(`/tasks/${currentTask.id}`, {
         workspaceId,
       });
@@ -388,7 +398,6 @@ export default function TaskModal({
         },
       });
 
-      // Adiciona labels novas
       for (const labelId of selectedLabels) {
         if (!currentLabelIds.includes(labelId)) {
           try {
@@ -402,7 +411,6 @@ export default function TaskModal({
         }
       }
 
-      // Remove labels desmarcadas
       for (const labelId of currentLabelIds) {
         if (!selectedLabels.includes(labelId)) {
           try {
@@ -416,7 +424,6 @@ export default function TaskModal({
         }
       }
 
-      // Adiciona responsáveis novos
       for (const assigneeId of selectedAssignees) {
         if (!currentAssigneeIds.includes(assigneeId)) {
           try {
@@ -430,7 +437,6 @@ export default function TaskModal({
         }
       }
 
-      // Remove responsáveis desmarcados
       for (const assigneeId of currentAssigneeIds) {
         if (!selectedAssignees.includes(assigneeId)) {
           try {
@@ -444,7 +450,6 @@ export default function TaskModal({
         }
       }
 
-      // Recarrega a task já com labels e responsáveis atualizados
       const finalTask = await api(`/tasks/${updated.id}`, {
         workspaceId,
       });
@@ -576,71 +581,87 @@ export default function TaskModal({
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl animate-in slide-in-from-bottom-4 duration-300`}>
-        <div className={`sticky top-0 z-10 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} p-6`}>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`inline-flex items-center gap-1.5 rounded-full ${currentStatusConfig.bg} px-2.5 py-1`}>
-                  <StatusIcon className={`h-3 w-3 ${currentStatusConfig.color}`} />
-                  <span className={`text-xs font-medium ${currentStatusConfig.color}`}>
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] isolate flex items-start justify-center overflow-hidden bg-black/60 p-2 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-6">
+      <div className={`relative z-[1001] flex max-h-[calc(100dvh-1rem)] w-full max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl shadow-black/20 animate-in slide-in-from-bottom-6 duration-300 sm:max-h-[92vh] sm:max-w-5xl sm:rounded-3xl`}>
+        {/* Header */}
+        <div className={`flex-shrink-0 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} px-4 py-4 sm:px-8 sm:py-6`}>
+          <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-6">
+            <div className="min-w-0 flex-1">
+              {/* Status & Priority Badges */}
+              <div className="mb-3 flex flex-wrap items-center gap-2 sm:mb-4">
+                <div className={`${badgeBaseClass} ${currentStatusConfig.bg} ${currentStatusConfig.border} border`}>
+                  <div className={`h-2 w-2 rounded-full ${currentStatusConfig.dot} shadow-[0_0_6px_currentColor]`} />
+                  <StatusIcon className={`h-3.5 w-3.5 ${currentStatusConfig.color}`} />
+                  <span className={`${currentStatusConfig.color}`}>
                     {currentStatusConfig.label}
                   </span>
                 </div>
-                <div className={`inline-flex items-center gap-1.5 rounded-full ${currentPriorityConfig.bg} px-2.5 py-1`}>
-                  <PriorityIcon className={`h-3 w-3 ${currentPriorityConfig.color}`} />
-                  <span className={`text-xs font-medium ${currentPriorityConfig.color}`}>
+                
+                <div className={`${badgeBaseClass} ${currentPriorityConfig.bg} ${currentPriorityConfig.border} border`}>
+                  <div className={`h-2 w-2 rounded-full ${currentPriorityConfig.dot} shadow-[0_0_6px_currentColor]`} />
+                  <PriorityIcon className={`h-3.5 w-3.5 ${currentPriorityConfig.color}`} />
+                  <span className={`${currentPriorityConfig.color}`}>
                     {currentPriorityConfig.label}
                   </span>
                 </div>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-                {currentTask.title}
+
+              {/* Title */}
+              <h2 className="break-words text-xl font-bold tracking-tight sm:text-3xl">
+                <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+                  {currentTask.title}
+                </span>
               </h2>
-              <div className={`mt-2 flex items-center gap-3 text-xs ${themeClasses.text.muted}`}>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>Criado {new Date(currentTask.createdAt).toLocaleDateString('pt-BR')}</span>
+
+              {/* Metadata */}
+              <div className={`mt-3 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs font-medium ${themeClasses.text.tertiary}`}>
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Criado em {format(new Date(currentTask.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>Atualizado {new Date(currentTask.updatedAt).toLocaleDateString('pt-BR')}</span>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>Atualizado {format(new Date(currentTask.updatedAt), "dd/MM/yyyy", { locale: ptBR })}</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className={`rounded-lg p-2 ${themeClasses.text.tertiary} transition-colors hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+              className={`flex-shrink-0 rounded-xl p-2.5 transition-all duration-200 ${themeClasses.text.tertiary} hover:bg-zinc-800/50 hover:text-white hover:scale-105 active:scale-95`}
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="space-y-4">
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 py-5 sm:px-8 sm:py-8">
+          <div className="grid min-w-0 gap-6 lg:grid-cols-3 lg:gap-10">
+            {/* Main Content */}
+            <div className="min-w-0 space-y-6 lg:col-span-2 lg:space-y-8">
+              {/* Form Fields */}
+              <div className="min-w-0 space-y-5 sm:space-y-6">
+                {/* Title Input */}
                 <div>
-                  <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                    <Edit2 className="h-4 w-4" />
+                  <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                    <Edit2 className="h-4 w-4 text-violet-400" />
                     Título
                   </label>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     disabled={!canEdit}
-                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
+                    className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary}`}
                     placeholder="Título da task"
                   />
                 </div>
 
+                {/* Description */}
                 <div>
-                  <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                    <Tag className="h-4 w-4" />
+                  <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                    <Tag className="h-4 w-4 text-violet-400" />
                     Descrição
                   </label>
                   <textarea
@@ -648,22 +669,23 @@ export default function TaskModal({
                     onChange={(e) => setDescription(e.target.value)}
                     disabled={!canEdit}
                     rows={5}
-                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
+                    className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary} resize-y min-h-[120px]`}
                     placeholder="Descreva os detalhes da task..."
                   />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                {/* Status & Priority Grid */}
+                <div className="grid min-w-0 gap-4 sm:grid-cols-2 sm:gap-5">
                   <div>
-                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                      <Clock className="h-4 w-4" />
+                    <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                      <Clock className="h-4 w-4 text-violet-400" />
                       Status
                     </label>
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value as TaskStatus)}
                       disabled={!canEdit}
-                      className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
+                      className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary} cursor-pointer`}
                     >
                       {statusOptions.map((option) => (
                         <option key={option} value={option} className={themeClasses.bg.secondary}>
@@ -674,15 +696,15 @@ export default function TaskModal({
                   </div>
 
                   <div>
-                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                      <Flag className="h-4 w-4" />
+                    <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                      <Flag className="h-4 w-4 text-violet-400" />
                       Prioridade
                     </label>
                     <select
                       value={priority}
                       onChange={(e) => setPriority(e.target.value as TaskPriority)}
                       disabled={!canEdit}
-                      className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
+                      className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary} cursor-pointer`}
                     >
                       {priorityOptions.map((option) => (
                         <option key={option} value={option} className={themeClasses.bg.secondary}>
@@ -693,10 +715,11 @@ export default function TaskModal({
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                {/* Due Date & Assignees */}
+                <div className="grid min-w-0 gap-4 sm:grid-cols-2 sm:gap-5">
                   <div>
-                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                      <Calendar className="h-4 w-4" />
+                    <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                      <Calendar className="h-4 w-4 text-violet-400" />
                       Data de Entrega
                     </label>
                     <input
@@ -704,89 +727,116 @@ export default function TaskModal({
                       value={dueDate}
                       onChange={(e) => setDueDate(e.target.value)}
                       disabled={!canEdit}
-                      className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
+                      className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary}`}
                     />
                   </div>
 
                   <div>
-                    <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                      <Users className="h-4 w-4" />
+                    <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                      <Users className="h-4 w-4 text-violet-400" />
                       Responsáveis
                     </label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {availableAssignees.map((member: any) => (
-                        <label key={member.user?.id || member.id} className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 cursor-pointer hover:${themeClasses.bg.hover} transition-colors`}>
-                          <input
-                            type="checkbox"
-                            checked={selectedAssignees.includes(member.user?.id || member.id)}
-                            onChange={(e) => {
-                              const userId = member.user?.id || member.id;
-                              if (e.target.checked) {
-                                setSelectedAssignees([...selectedAssignees, userId]);
-                              } else {
-                                setSelectedAssignees(selectedAssignees.filter(id => id !== userId));
-                              }
-                            }}
-                            disabled={!canEdit}
-                            className="cursor-pointer disabled:cursor-not-allowed"
-                          />
-                          <span className={`text-sm ${themeClasses.text.primary}`}>{member.user?.name || member.name}</span>
-                        </label>
-                      ))}
+                    <div className="max-h-48 space-y-1.5 overflow-y-auto custom-scrollbar rounded-xl border border-transparent">
+                      {availableAssignees.map((member: any) => {
+                        const memberId = member.user?.id || member.id;
+                        const memberName = member.user?.name || member.name;
+                        const memberAvatar = member.user?.avatarUrl;
+                        const isSelected = selectedAssignees.includes(memberId);
+
+                        return (
+                          <label
+                            key={memberId}
+                            className={`flex items-center gap-3 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 cursor-pointer transition-all duration-200 hover:border-violet-500/30 hover:bg-violet-500/5 ${
+                              isSelected ? 'border-violet-500/40 bg-violet-500/5 ring-1 ring-violet-500/20' : ''
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedAssignees([...selectedAssignees, memberId]);
+                                } else {
+                                  setSelectedAssignees(selectedAssignees.filter(id => id !== memberId));
+                                }
+                              }}
+                              disabled={!canEdit}
+                              className="h-4 w-4 rounded border-zinc-600 text-violet-500 focus:ring-violet-500/20 cursor-pointer disabled:cursor-not-allowed"
+                            />
+                            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                              {memberAvatar ? (
+                                <img
+                                  src={memberAvatar}
+                                  alt={memberName}
+                                  className="h-7 w-7 rounded-full object-cover ring-1 ring-white/10"
+                                />
+                              ) : (
+                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 text-xs font-bold ring-1 ring-white/10">
+                                  {memberName?.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <span className={`text-sm font-medium truncate ${themeClasses.text.primary}`}>
+                                {memberName}
+                              </span>
+                            </div>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
 
+                {/* Labels */}
                 <div>
-                  <label className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}>
-                    <Tag className="h-4 w-4" />
+                  <label className={`${labelClass} ${themeClasses.text.secondary}`}>
+                    <Tag className="h-4 w-4 text-violet-400" />
                     Labels
                   </label>
                   {labelsLoading ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-5 w-5 animate-spin text-violet-500" />
                     </div>
                   ) : (
-                    <div className="space-y-3 max-h-40 overflow-y-auto">
-                      {/* Criar label (mesmo UX do CreateTaskModal) */}
+                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                       {canEdit && !isReadOnly && (
-                        <div className="mb-2">
+                        <div className="mb-3">
                           <button
                             type="button"
                             onClick={() => {
-                              // abre inline creator: a UI já usa os campos newLabelName/newLabelColor
-                              // e mostra o bloco abaixo através de um toggle simples
                               setEditingLabelId('__new__');
                               setEditingLabelName('');
                               setEditingLabelColor(DEFAULT_LABEL_COLOR);
                             }}
                             disabled={loading}
-                            className={`inline-flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.secondary} hover:${themeClasses.bg.hover} px-2 py-1 text-xs disabled:opacity-60`}
+                            className={`inline-flex items-center gap-2 rounded-xl border border-dashed ${themeClasses.border.primary} px-4 py-2.5 text-xs font-semibold ${themeClasses.text.secondary} transition-all duration-200 hover:border-violet-500/40 hover:text-violet-400 hover:bg-violet-500/5 disabled:opacity-60`}
                           >
-                            <span className="text-lg leading-none">+</span>
-                            Nova
+                            <span className="text-base leading-none">+</span>
+                            Nova Label
                           </button>
 
                           {editingLabelId === '__new__' && (
-                            <div className={`mt-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
-                              <div className="grid grid-cols-2 gap-2">
+                            <div className={`mt-3 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
+                              <div className="grid gap-3 sm:grid-cols-2">
                                 <input
                                   value={newLabelName}
                                   onChange={(e) => setNewLabelName(e.target.value)}
                                   disabled={!canEdit}
-                                  placeholder="Nome"
-                                  className={`w-full rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:opacity-50`}
+                                  placeholder="Nome da label"
+                                  className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.primary} py-2.5`}
                                 />
-                                <input
-                                  type="color"
-                                  value={newLabelColor}
-                                  onChange={(e) => setNewLabelColor(e.target.value)}
-                                  disabled={!canEdit}
-                                  className="h-8 w-full cursor-pointer rounded-lg p-0"
-                                />
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="color"
+                                    value={newLabelColor}
+                                    onChange={(e) => setNewLabelColor(e.target.value)}
+                                    disabled={!canEdit}
+                                    className="h-10 w-14 cursor-pointer rounded-lg border-0 p-1"
+                                  />
+                                  <span className="text-xs text-zinc-500">Cor</span>
+                                </div>
                               </div>
 
-                              <div className="mt-2 flex gap-2">
+                              <div className="mt-3 flex gap-2">
                                 <button
                                   onClick={async () => {
                                     const name = newLabelName.trim();
@@ -810,9 +860,9 @@ export default function TaskModal({
                                     }
                                   }}
                                   disabled={loading || !newLabelName.trim() || !canEdit}
-                                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+                                  className={`flex-1 ${primaryButtonClass} py-2 text-xs`}
                                 >
-                                  <Send className="h-4 w-4" />
+                                  <Send className="h-3.5 w-3.5" />
                                   Criar
                                 </button>
 
@@ -823,7 +873,7 @@ export default function TaskModal({
                                     setError('');
                                   }}
                                   disabled={loading || !canEdit}
-                                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} disabled:cursor-not-allowed disabled:opacity-50`}
+                                  className={`flex-1 ${secondaryButtonClass} py-2 text-xs ${themeClasses.text.tertiary}`}
                                 >
                                   Cancelar
                                 </button>
@@ -833,19 +883,21 @@ export default function TaskModal({
                         </div>
                       )}
 
-
-                      {/* Lista de labels */}
                       {labels.map((label: any) => {
                         const isEditing = editingLabelId === label.id;
+                        const isChecked = selectedLabels.includes(label.id);
+
                         return (
-                          <div key={label.id} className="rounded-xl border border-transparent">
+                          <div key={label.id}>
                             {!isEditing ? (
                               <label
-                                className={`flex items-center gap-2 rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 cursor-pointer hover:${themeClasses.bg.hover} transition-colors`}
+                                className={`flex items-center gap-3 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 cursor-pointer transition-all duration-200 hover:border-violet-500/30 hover:bg-violet-500/5 ${
+                                  isChecked ? 'border-violet-500/40 bg-violet-500/5 ring-1 ring-violet-500/20' : ''
+                                }`}
                               >
                                 <input
                                   type="checkbox"
-                                  checked={selectedLabels.includes(label.id)}
+                                  checked={isChecked}
                                   onChange={(e) => {
                                     if (e.target.checked) {
                                       setSelectedLabels([...selectedLabels, label.id]);
@@ -854,13 +906,15 @@ export default function TaskModal({
                                     }
                                   }}
                                   disabled={!canEdit}
-                                  className="cursor-pointer disabled:cursor-not-allowed"
+                                  className="h-4 w-4 rounded border-zinc-600 text-violet-500 focus:ring-violet-500/20 cursor-pointer disabled:cursor-not-allowed"
                                 />
                                 <div
-                                  className="w-3 h-3 rounded-full flex-shrink-0"
+                                  className="h-3.5 w-3.5 rounded-full flex-shrink-0 shadow-[0_0_6px_currentColor]"
                                   style={{ backgroundColor: label.color }}
                                 />
-                                <span className={`text-sm ${themeClasses.text.primary} flex-1 truncate`}>{label.name}</span>
+                                <span className={`text-sm font-medium ${themeClasses.text.primary} flex-1 truncate`}>
+                                  {label.name}
+                                </span>
 
                                 {canEdit && !isReadOnly && (
                                   <button
@@ -873,30 +927,34 @@ export default function TaskModal({
                                       setEditingLabelColor(label.color);
                                       setError('');
                                     }}
-                                    className={`rounded-lg px-2 py-1 text-xs ${themeClasses.text.tertiary} hover:${themeClasses.text.primary} hover:${themeClasses.bg.hover}`}
+                                    className={`rounded-lg px-3 py-1.5 text-xs font-medium ${themeClasses.text.tertiary} hover:text-violet-400 hover:bg-violet-500/10 transition-all duration-200`}
                                   >
                                     Editar
                                   </button>
                                 )}
                               </label>
                             ) : (
-                              <div className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
-                                <div className="grid grid-cols-2 gap-2">
+                              <div className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
+                                <div className="grid gap-3 sm:grid-cols-2">
                                   <input
                                     value={editingLabelName}
                                     onChange={(e) => setEditingLabelName(e.target.value)}
                                     disabled={!canEdit}
-                                    className={`w-full rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:opacity-50`}
+                                    placeholder="Nome da label"
+                                    className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.primary} py-2.5`}
                                   />
-                                  <input
-                                    type="color"
-                                    value={editingLabelColor}
-                                    onChange={(e) => setEditingLabelColor(e.target.value)}
-                                    disabled={!canEdit}
-                                    className="h-7 w-full cursor-pointer rounded-lg p-0"
-                                  />
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="color"
+                                      value={editingLabelColor}
+                                      onChange={(e) => setEditingLabelColor(e.target.value)}
+                                      disabled={!canEdit}
+                                      className="h-10 w-14 cursor-pointer rounded-lg border-0 p-1"
+                                    />
+                                    <span className="text-xs text-zinc-500">Cor</span>
+                                  </div>
                                 </div>
-                                <div className="mt-2 flex gap-2">
+                                <div className="mt-3 flex gap-2">
                                   <button
                                     type="button"
                                     onClick={async () => {
@@ -908,8 +966,7 @@ export default function TaskModal({
                                       try {
                                         setLoading(true);
                                         setError('');
-                                        const updated = await updateLabel(label.id, name, editingLabelColor);
-                                        setSelectedLabels((prev) => (prev.includes(updated.id) ? prev : prev));
+                                        await updateLabel(label.id, name, editingLabelColor);
                                         setEditingLabelId(null);
                                       } catch (e) {
                                         const msg = e instanceof Error ? e.message : 'Erro ao atualizar label';
@@ -919,9 +976,9 @@ export default function TaskModal({
                                       }
                                     }}
                                     disabled={loading || !canEdit}
-                                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                    className={`flex-1 ${primaryButtonClass} py-2 text-xs`}
                                   >
-                                    <Save className="h-4 w-4" />
+                                    <Save className="h-3.5 w-3.5" />
                                     Salvar
                                   </button>
                                   <button
@@ -931,7 +988,7 @@ export default function TaskModal({
                                       setError('');
                                     }}
                                     disabled={loading || !canEdit}
-                                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${themeClasses.text.tertiary} hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} disabled:cursor-not-allowed disabled:opacity-50`}
+                                    className={`flex-1 ${secondaryButtonClass} py-2 text-xs ${themeClasses.text.tertiary}`}
                                   >
                                     Cancelar
                                   </button>
@@ -945,181 +1002,202 @@ export default function TaskModal({
                   )}
                 </div>
 
-
+                {/* Error Message */}
                 {error && (
-                  <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+                  <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     {error}
                   </div>
                 )}
 
+                {/* Permissions Warning */}
                 {!checkingPerms && !permissions?.canEditTasks && (
-                  <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
+                  <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">
                     <Lock className="h-4 w-4 flex-shrink-0" />
                     Você não tem permissão para editar tasks. Apenas MEMBER+ podem editar.
                   </div>
                 )}
 
+                {/* Project Completed Warning */}
                 {isReadOnly && (
-                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400 mb-4">
-                    <Archive className="h-4 w-4 flex-shrink-0" />
+                  <div className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-400">
+                    <Archive className="h-4 w-4 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium">Projeto Finalizado</p>
-                      <p className="text-emerald-400/70">Este projeto está finalizado. Aguarde até que um ADMIN reabra para editar.</p>
+                      <p className="font-semibold">Projeto Finalizado</p>
+                      <p className="text-emerald-400/70 mt-0.5">Este projeto está finalizado. Aguarde até que um ADMIN reabra para editar.</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className={`border-t ${themeClasses.border.primary} pt-6`}>
-                {/* Anexos - upload sempre disponível no modo edit; visualização somente se houver anexos */}
+              {/* Attachments & Comments Section */}
+              <div className={`border-t ${themeClasses.border.primary} pt-8`}>
+                {/* Attachments */}
                 {(canEdit && !isReadOnly) || (currentTask.attachments && currentTask.attachments.length > 0) ? (
-                  <div className="mb-6">
-                    <div className="mb-3 flex items-center gap-2">
+                  <div className="mb-8">
+                    <div className={sectionTitleClass}>
                       <Paperclip className="h-5 w-5 text-violet-400" />
-                      <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Anexos</h3>
+                      <h3 className={`${themeClasses.text.primary}`}>Anexos</h3>
                     </div>
 
-                    <AttachmentUploader
-                      taskId={currentTask.id}
-                      workspaceId={workspaceId}
-                      attachments={currentTask.attachments || []}
-                      onAttachmentAdded={() => {
-                        refreshTaskAttachments();
-                      }}
-                      onAttachmentRemoved={() => {
-                        refreshTaskAttachments();
-                      }}
-                    />
+                    <div className="mt-4">
+                      <AttachmentUploader
+                        taskId={currentTask.id}
+                        workspaceId={workspaceId}
+                        attachments={currentTask.attachments || []}
+                        onAttachmentAdded={() => {
+                          refreshTaskAttachments();
+                        }}
+                        onAttachmentRemoved={() => {
+                          refreshTaskAttachments();
+                        }}
+                      />
+                    </div>
                   </div>
                 ) : null}
 
-                <div className="mb-4 flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-violet-400" />
-                  <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Comentários</h3>
-                  <span className={`rounded-full ${themeClasses.bg.subtle} px-2 py-0.5 text-xs ${themeClasses.text.tertiary}`}>
-                    {comments.length}
-                  </span>
-                </div>
-
-                {commentsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+                {/* Comments */}
+                <div>
+                  <div className={`${sectionTitleClass} mb-4`}>
+                    <MessageSquare className="h-5 w-5 text-violet-400" />
+                    <h3 className={`${themeClasses.text.primary}`}>Comentários</h3>
+                    <span className={`rounded-full ${themeClasses.bg.subtle} px-2.5 py-0.5 text-xs font-semibold ${themeClasses.text.tertiary}`}>
+                      {comments.length}
+                    </span>
                   </div>
-                ) : (
-                  <div className="max-h-64 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-                    {comments.map((comment) => (
-                      <div key={comment.id} className={`group rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 transition-all hover:${themeClasses.border.hover}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            {comment.user?.avatarUrl ? (
-                              <img
-                                src={comment.user.avatarUrl}
-                                alt={comment.user?.name || 'Avatar do usuário'}
-                                className="h-8 w-8 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
-                                <User className="h-4 w-4 text-violet-400" />
+
+                  {commentsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+                    </div>
+                  ) : (
+                    <div className="max-h-80 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                      {comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className={`group rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4 transition-all duration-200 hover:border-violet-500/20 hover:shadow-md`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              {comment.user?.avatarUrl ? (
+                                <img
+                                  src={comment.user.avatarUrl}
+                                  alt={comment.user?.name || 'Avatar do usuário'}
+                                  className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10"
+                                />
+                              ) : (
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-2 ring-white/10">
+                                  <User className="h-4 w-4 text-violet-400" />
+                                </div>
+                              )}
+                              <div>
+                                <p className={`break-words text-sm font-semibold ${themeClasses.text.primary}`}>
+                                  {comment.user?.name ?? 'Usuário'}
+                                </p>
+                                <p className={`break-words text-xs ${themeClasses.text.tertiary}`}>
+                                  {format(new Date(comment.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                </p>
                               </div>
-                            )}
-                            <div>
-                              <p className={`text-sm font-medium ${themeClasses.text.primary}`}>
-                                {comment.user?.name ?? 'Usuário'}
-                              </p>
-                              <p className={`text-xs ${themeClasses.text.muted}`}>
-                                {new Date(comment.createdAt).toLocaleString('pt-BR')}
-                              </p>
                             </div>
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              className={`flex-shrink-0 rounded-lg p-1.5 ${themeClasses.text.tertiary} opacity-0 transition-all duration-200 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400`}
+                              title="Deletar comentário"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleDeleteComment(comment.id)}
-                            className={`rounded-lg p-1 ${themeClasses.text.muted} opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          <p className={`mt-3 break-words text-sm leading-relaxed ${themeClasses.text.secondary}`}>
+                            {comment.content}
+                          </p>
                         </div>
-                        <p className={`mt-2 text-sm ${themeClasses.text.secondary}`}>{comment.content}</p>
-                      </div>
-                    ))}
+                      ))}
 
-                    {comments.length === 0 && (
-                      <div className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-8 text-center`}>
-                        <MessageSquare className={`h-8 w-8 ${themeClasses.text.muted} mx-auto mb-2`} />
-                        <p className={`text-sm ${themeClasses.text.tertiary}`}>
-                          Nenhum comentário ainda
-                        </p>
-                        <p className={`text-xs ${themeClasses.text.muted}`}>
-                          Seja o primeiro a comentar
-                        </p>
-                      </div>
-                    )}
+                      {comments.length === 0 && (
+                        <div className={`rounded-xl border-2 border-dashed ${themeClasses.border.primary} px-6 py-12 text-center`}>
+                          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/10`}>
+                            <MessageSquare className="h-8 w-8 text-violet-400" />
+                          </div>
+                          <p className={`break-words text-sm font-medium ${themeClasses.text.primary}`}>
+                            Nenhum comentário ainda
+                          </p>
+                          <p className={`mt-1 text-xs ${themeClasses.text.tertiary}`}>
+                            Seja o primeiro a comentar
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Comment Input */}
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAddComment();
+                        }
+                      }}
+                      placeholder="Escreva um comentário..."
+                      disabled={!canEdit}
+                      className={`flex-1 ${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary}`}
+                    />
+                    <button
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim() || !canEdit || commentSubmitting}
+                      className={`${primaryButtonClass} sm:w-auto`}
+                    >
+                      {commentSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" />
+                          Enviar
+                        </>
+                      )}
+                    </button>
                   </div>
-                )}
-
-                <div className="mt-4 flex gap-2">
-                  <input
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleAddComment();
-                      }
-                    }}
-                    placeholder="Escreva um comentário..."
-                    disabled={!canEdit}
-                    className={`flex-1 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 text-sm ${themeClasses.text.primary} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50`}
-                  />
-                  <button
-                    onClick={handleAddComment}
-                    disabled={!newComment.trim() || !canEdit || commentSubmitting}
-                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    {commentSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4" />
-                        Enviar
-                      </>
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-1">
-              <div className="sticky top-24">
-                <div className="mb-4 flex items-center gap-2">
+            {/* Activity Sidebar */}
+            <div className="min-w-0 lg:col-span-1">
+              <div className="min-w-0 lg:sticky lg:top-24">
+                <div className={`${sectionTitleClass} mb-4`}>
                   <Activity className="h-5 w-5 text-violet-400" />
-                  <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Atividade</h3>
+                  <h3 className={`${themeClasses.text.primary}`}>Atividade</h3>
                 </div>
 
                 {activitiesLoading ? (
-                  <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                     {(Array.isArray(activities) ? activities : []).map((activity) => (
-                      <div key={activity.id} className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3 transition-all hover:${themeClasses.border.hover}`}>
-                        <div className="flex items-start gap-2">
-                          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20">
-                            <Activity className="h-3 w-3 text-violet-400" />
+                      <div
+                        key={activity.id}
+                        className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3.5 transition-all duration-200 hover:border-violet-500/20 hover:shadow-sm`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500/20 to-indigo-500/20 ring-1 ring-white/5">
+                            <Activity className="h-3.5 w-3.5 text-violet-400" />
                           </div>
-                          <div className="flex-1">
-                            <p className={`text-xs ${themeClasses.text.secondary}`}>
-                              <span className={`font-medium ${themeClasses.text.primary}`}>
+                          <div className="min-w-0 flex-1">
+                            <p className={`break-words text-sm ${themeClasses.text.secondary}`}>
+                              <span className={`font-semibold ${themeClasses.text.primary}`}>
                                 {activity.user?.name ?? 'Sistema'}
                               </span>{' '}
                               {activity.description}
                             </p>
-                            <p className={`mt-1 text-[10px] ${themeClasses.text.muted}`}>
-                              {new Date(activity.createdAt).toLocaleString('pt-BR')}
+                            <p className={`mt-1.5 break-words text-xs ${themeClasses.text.tertiary}`}>
+                              {format(new Date(activity.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                             </p>
                           </div>
                         </div>
@@ -1127,9 +1205,11 @@ export default function TaskModal({
                     ))}
 
                     {activities.length === 0 && (
-                      <div className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-8 text-center`}>
-                        <Activity className={`h-8 w-8 ${themeClasses.text.muted} mx-auto mb-2`} />
-                        <p className={`text-sm ${themeClasses.text.tertiary}`}>
+                      <div className={`rounded-xl border-2 border-dashed ${themeClasses.border.primary} px-4 py-12 text-center`}>
+                        <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/10`}>
+                          <Activity className="h-7 w-7 text-violet-400" />
+                        </div>
+                        <p className={`break-words text-sm font-medium ${themeClasses.text.primary}`}>
                           Nenhuma atividade ainda
                         </p>
                       </div>
@@ -1140,20 +1220,21 @@ export default function TaskModal({
             </div>
           </div>
 
-          <div className={`mt-6 flex items-center justify-between border-t ${themeClasses.border.primary} pt-6`}>
+          {/* Footer Actions */}
+          <div className={`mt-6 flex min-w-0 flex-col gap-3 border-t ${themeClasses.border.primary} pt-5 sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:pt-6`}>
             <button
               onClick={handleDelete}
               disabled={!canEdit || loading}
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-400 transition-all hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium text-red-400 transition-all duration-200 hover:bg-red-500/10 hover:text-red-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               <Trash2 className="h-4 w-4" />
               Deletar task
             </button>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:gap-3">
               <button
                 onClick={onClose}
-                className={`rounded-lg px-4 py-2 text-sm ${themeClasses.text.tertiary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+                className={`${secondaryButtonClass} ${themeClasses.text.tertiary} hover:text-white w-full sm:w-auto`}
               >
                 Cancelar
               </button>
@@ -1161,7 +1242,7 @@ export default function TaskModal({
               <button
                 onClick={handleSave}
                 disabled={loading || !title.trim() || !canEdit}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                className={`${primaryButtonClass} w-full sm:w-auto`}
               >
                 {loading ? (
                   <>
@@ -1171,7 +1252,7 @@ export default function TaskModal({
                 ) : (
                   <>
                     <Save className="h-4 w-4" />
-                    Salvar
+                    Salvar alterações
                   </>
                 )}
               </button>
@@ -1182,20 +1263,27 @@ export default function TaskModal({
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
+          height: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 3px;
+          background: transparent;
+          border-radius: 10px;
+          margin: 4px 0;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 3px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+          border: 2px solid transparent;
+          background-clip: padding-box;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.2);
+          border: 2px solid transparent;
+          background-clip: padding-box;
         }
       `}</style>
-    </div>
+    </div>,
+    document.body,
   );
 }

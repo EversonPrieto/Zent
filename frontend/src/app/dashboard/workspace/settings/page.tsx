@@ -249,16 +249,16 @@ export default function WorkspaceSettingsPage() {
   const isDarkMode = themeClasses.bg.primary === 'bg-zinc-950';
 
   return (
-    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
+    <main className={`min-h-screen overflow-x-hidden ${themeClasses.bg.primary}`}>
       {isDarkMode && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-40 -top-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
           <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
         </div>
       )}
 
-      <div className="relative mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-12">
-        <div className="mb-8">
+      <div className="relative mx-auto max-w-4xl px-4 py-6 sm:py-8 md:px-6 md:py-12">
+        <div className="mb-6 sm:mb-8">
           <button
             onClick={() => router.push('/dashboard/projects')}
             className={`group mb-4 inline-flex items-center gap-2 text-sm ${themeClasses.text.secondary} transition-colors hover:${themeClasses.text.primary}`}
@@ -267,30 +267,39 @@ export default function WorkspaceSettingsPage() {
             Voltar para projetos
           </button>
 
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div
-              className={`rounded-lg ${isDarkMode ? 'bg-gradient-to-br from-violet-500/20 to-indigo-500/20' : 'bg-gradient-to-br from-violet-100 to-indigo-100'} p-2`}
+              className={`w-fit rounded-lg ${
+                isDarkMode
+                  ? 'bg-gradient-to-br from-violet-500/20 to-indigo-500/20'
+                  : 'bg-gradient-to-br from-violet-100 to-indigo-100'
+              } p-2`}
             >
               <Building2 className={`h-6 w-6 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
             </div>
-            <div>
-              <h1 className={`text-3xl font-bold md:text-4xl ${themeClasses.text.primary}`}>
+
+            <div className="min-w-0">
+              <h1 className={`text-2xl font-bold sm:text-3xl md:text-4xl ${themeClasses.text.primary}`}>
                 Configurações do workspace
               </h1>
-              <p className={`mt-2 ${themeClasses.text.secondary}`}>Gerencie as configurações do seu workspace</p>
+
+              <p className={`mt-2 text-sm sm:text-base ${themeClasses.text.secondary}`}>
+                Gerencie as configurações do seu workspace
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Identidade */}
-        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-6`}>
-          <div className="flex items-center gap-2 mb-4">
+        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm sm:p-6`}>
+          <div className="mb-4 flex items-center gap-2">
             <Image className={`h-5 w-5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
-            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Identidade</h2>
+            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>
+              Identidade
+            </h2>
           </div>
 
-          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-            <div className="relative">
+          <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-6">
+            <div className="relative flex-shrink-0">
               <div
                 className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${
                   isDarkMode
@@ -306,6 +315,7 @@ export default function WorkspaceSettingsPage() {
                   <span className="text-3xl">{workspace.name.charAt(0).toUpperCase()}</span>
                 )}
               </div>
+
               {uploadingLogo && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 dark:bg-black/50">
                   <Loader2 className="h-6 w-6 animate-spin text-violet-400" />
@@ -313,11 +323,14 @@ export default function WorkspaceSettingsPage() {
               )}
             </div>
 
-            <div className="flex-1 text-center sm:text-left">
-              <p className={`text-sm ${themeClasses.text.secondary} mb-2`}>Envie uma imagem para personalizar seu workspace</p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2">
+            <div className="w-full flex-1 text-center sm:text-left">
+              <p className={`mb-3 text-sm ${themeClasses.text.secondary}`}>
+                Envie uma imagem para personalizar seu workspace
+              </p>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-start">
                 <label
-                  className={`inline-flex cursor-pointer items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover}`}
+                  className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} sm:w-auto`}
                 >
                   {uploadingLogo ? (
                     <>
@@ -330,28 +343,40 @@ export default function WorkspaceSettingsPage() {
                       Enviar logo
                     </>
                   )}
-                  <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploadingLogo || !canEdit} className="hidden" />
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    disabled={uploadingLogo || !canEdit}
+                    className="hidden"
+                  />
                 </label>
 
                 {logoPreview && (
                   <button
                     onClick={() => setLogoPreview(null)}
-                    className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover}`}
+                    className={`inline-flex w-full items-center justify-center rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} sm:w-auto`}
+                    aria-label="Cancelar preview"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
-              <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>PNG, JPG ou GIF. Máximo 5MB.</p>
+
+              <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>
+                PNG, JPG ou GIF. Máximo 5MB.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Informações */}
-        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-6`}>
-          <div className="flex items-center gap-2 mb-4">
+        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm sm:p-6`}>
+          <div className="mb-4 flex items-center gap-2">
             <Edit2 className={`h-5 w-5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
-            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Informações</h2>
+            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>
+              Informações
+            </h2>
           </div>
 
           <div>
@@ -359,6 +384,7 @@ export default function WorkspaceSettingsPage() {
               <Building2 className={`h-4 w-4 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
               Nome do workspace
             </label>
+
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -368,39 +394,47 @@ export default function WorkspaceSettingsPage() {
             />
 
             {name && (
-              <div className="mt-2 flex items-center justify-between text-xs">
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className={themeClasses.text.muted}>{nameLength} caracteres</span>
+
                 {isNameChanged && nameLength >= 3 && nameLength <= 50 && (
                   <span className={`flex items-center gap-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
                     <CheckCircle2 className="h-3 w-3" />
                     Pronto para salvar
                   </span>
                 )}
-                {nameLength > 50 && <span className="text-red-500">Máximo 50 caracteres</span>}
+
+                {nameLength > 50 && (
+                  <span className="text-red-500">Máximo 50 caracteres</span>
+                )}
               </div>
             )}
           </div>
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              {error}
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           {success && (
             <div
-              className={`mt-4 flex items-center gap-2 rounded-lg border ${isDarkMode ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400' : 'border-emerald-200 bg-emerald-50 text-emerald-600'} p-3 text-sm`}
+              className={`mt-4 flex items-start gap-2 rounded-lg border ${
+                isDarkMode
+                  ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                  : 'border-emerald-200 bg-emerald-50 text-emerald-600'
+              } p-3 text-sm`}
             >
-              <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-              {success}
+              <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{success}</span>
             </div>
           )}
 
           <button
             onClick={handleSave}
             disabled={loading || !canEdit || !name.trim() || nameLength > 50 || !isNameChanged}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:w-auto"
           >
             {loading ? (
               <>
@@ -416,19 +450,23 @@ export default function WorkspaceSettingsPage() {
           </button>
         </div>
 
-        {/* Membros */}
-        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} backdrop-blur-sm p-6`}>
-          <div className="flex items-center gap-2 mb-4">
+        <div className={`mb-6 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-4 backdrop-blur-sm sm:p-6`}>
+          <div className="mb-4 flex items-center gap-2">
             <UserCog className={`h-5 w-5 ${isDarkMode ? 'text-violet-400' : 'text-violet-600'}`} />
-            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>Membros</h2>
+            <h2 className={`text-lg font-semibold ${themeClasses.text.primary}`}>
+              Membros
+            </h2>
           </div>
-          <p className={`text-sm ${themeClasses.text.secondary}`}>Gerencie os membros e permissões do workspace.</p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <p className={`text-sm ${themeClasses.text.secondary}`}>
+            Gerencie os membros e permissões do workspace.
+          </p>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <button
               onClick={() => setInviteModalOpen(true)}
               disabled={!permissions?.canInviteMembers}
-              className={`inline-flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               <MailPlus className="h-4 w-4" />
               Convidar membro
@@ -437,7 +475,7 @@ export default function WorkspaceSettingsPage() {
             <button
               onClick={() => setMembersModalOpen(true)}
               disabled={!permissions?.canRemoveMembers && !permissions?.canInviteMembers}
-              className={`inline-flex items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.tertiary} px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               <Shield className="h-4 w-4" />
               Gerenciar membros
@@ -459,24 +497,29 @@ export default function WorkspaceSettingsPage() {
           />
         )}
 
-        {/* Zona de perigo */}
         {!checkingPerms && canDelete && (
           <div
-            className={`rounded-2xl border ${isDarkMode ? 'border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent' : 'border-red-200 bg-red-50/50'} p-6`}
+            className={`rounded-2xl border p-4 sm:p-6 ${
+              isDarkMode
+                ? 'border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent'
+                : 'border-red-200 bg-red-50/50'
+            }`}
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <AlertTriangle className={`h-5 w-5 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
-              <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>Zona de perigo</h2>
+              <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                Zona de perigo
+              </h2>
             </div>
 
-            <p className={`text-sm ${themeClasses.text.secondary} mb-4`}>
+            <p className={`mb-4 text-sm ${themeClasses.text.secondary}`}>
               Deletar o workspace remove todos os projetos, tasks, membros e dados relacionados. Esta ação é irreversível.
             </p>
 
             <button
               onClick={handleDelete}
               disabled={loading}
-              className={`inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${
                 isDarkMode
                   ? 'border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300'
                   : 'border-red-300 bg-red-100 text-red-700 hover:bg-red-200'
@@ -491,4 +534,3 @@ export default function WorkspaceSettingsPage() {
     </main>
   );
 }
-

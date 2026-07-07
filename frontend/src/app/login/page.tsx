@@ -1,69 +1,89 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { FormEvent, Suspense, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { api } from '../../lib/api';
+import { refreshSocketAuth } from '../../lib/socket';
 import { useTheme } from '../../hooks/useTheme';
-import { CheckCircle2, Zap, Star, AlertCircle } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  Sparkles,
+  Shield,
+  Users,
+  LayoutDashboard,
+  CheckCircle2,
+  Loader2,
+  AlertCircle,
+  ArrowLeft,
+} from 'lucide-react';
 
-import { PLAN_FEATURES, PLAN_LIMITS } from '../../lib/plans';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-type Plan = {
-  id: 'free' | 'pro';
-  name: string;
-  description: string;
-  price: number;
-  period: string;
-  features: string[];
-  cta: string;
-  highlight?: boolean;
-  limits?: {
-    workspaces: string;
-    members: string;
-    projects: string;
-    storage: string;
-  };
-};
-
-const plans: Plan[] = [
-  {
-    id: 'free',
-    name: 'Gratuito',
-    description: 'Para começar e validar sua rotina de projetos.',
-    price: 0,
-    period: 'sempre',
-    features: PLAN_FEATURES.free.map((f) =>
-      f.value ? `${f.name}: ${f.value}` : f.name,
-    ),
-    cta: 'Começar Agora',
-    limits: {
-      workspaces: String(PLAN_LIMITS.free.workspaces),
-      members: String(PLAN_LIMITS.free.teamMembers),
-      projects: `até ${PLAN_LIMITS.free.projectsPerWorkspace}`,
-      storage: `${PLAN_LIMITS.free.storageGB}GB`,
-    },
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Para times que precisam escalar e trabalhar com mais autonomia.',
-    price: 29,
-    period: 'mês',
-    highlight: true,
-    features: PLAN_FEATURES.pro.map((f) =>
-      f.value ? `${f.name}: ${f.value}` : f.name,
-    ),
-    cta: 'Começar Trial Gratuito',
-    limits: {
-      workspaces: `até ${PLAN_LIMITS.pro.workspaces}`,
-      members: `até ${PLAN_LIMITS.pro.teamMembers}`,
-      projects: `até ${PLAN_LIMITS.pro.projectsPerWorkspace}`,
-      storage: `${PLAN_LIMITS.pro.storageGB}GB`,
-    },
-  },
-];
-
-export default function PricingPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { themeClasses } = useTheme();
+
+  const inviteToken = searchParams.get('inviteToken');
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message = Array.isArray(data?.message)
+          ? data.message.join(', ')
+          : data?.message || 'Falha no login';
+
+        throw new Error(message);
+      }
+
+      localStorage.setItem('zent_token', data.accessToken);
+      refreshSocketAuth();
+      localStorage.setItem('zent_user', JSON.stringify(data.user));
+
+      if (inviteToken) {
+        await api(`/invites/${inviteToken}/accept`, {
+          method: 'POST',
+        });
+      }
+
+      const workspaces = await api('/workspaces');
+
+      if (workspaces.length > 0) {
+        localStorage.setItem('zent_workspace_id', workspaces[0].id);
+        localStorage.setItem('zent_workspace', JSON.stringify(workspaces[0]));
+        router.push('/dashboard/projects');
+      } else {
+        router.push('/onboarding/workspace');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao entrar');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function handleBack() {
     const token = localStorage.getItem('zent_token');
@@ -76,248 +96,252 @@ export default function PricingPage() {
     router.back();
   }
 
-  const handleUpgrade = (planId: string) => {
-    if (planId === 'free') {
-      router.push('/dashboard');
-    } else {
-      router.push('/billing/checkout?plan=pro');
-    }
-  };
+  const isFormValid = email.trim() && password.trim();
 
   return (
-    <main className={`min-h-screen ${themeClasses.bg.primary}`}>
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <main className={`min-h-screen overflow-x-hidden ${themeClasses.bg.primary}`}>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -right-40 -top-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-3 pt-4 sm:px-6 sm:pt-6 lg:px-8">
         <button
           type="button"
           onClick={handleBack}
-          className={`group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${themeClasses.bg.subtle} ${themeClasses.border.primary} border hover:${themeClasses.bg.hover}`}
+          className={`group inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${themeClasses.bg.subtle} ${themeClasses.border.primary} ${themeClasses.text.secondary} hover:border-violet-500/30 hover:text-violet-400`}
         >
-          <span className="transition-transform group-hover:-translate-x-0.5">
-            ←
-          </span>
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           <span>Voltar</span>
         </button>
       </div>
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
-      </div>
+      <div className="relative z-10 flex min-h-[calc(100vh-64px)] items-center justify-center px-3 py-6 sm:px-4 sm:py-10">
+        <div
+          className={`grid w-full max-w-5xl overflow-hidden rounded-3xl border shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500 lg:grid-cols-2 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}
+        >
+          <div
+            className={`hidden border-r p-8 lg:block lg:p-10 ${themeClasses.border.primary} ${themeClasses.bg.primary}`}
+          >
+            <div className="mb-6 flex items-center gap-2">
+              <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
+              <span className={`text-xl font-bold ${themeClasses.text.primary}`}>
+                Zent
+              </span>
+            </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className={`text-4xl sm:text-5xl font-bold mb-4 ${themeClasses.text.primary}`}>
-            Planos Simples e Transparentes
-          </h1>
-          <p className={`text-xl max-w-2xl mx-auto ${themeClasses.text.tertiary}`}>
-            Escolha o plano perfeito para sua equipe. Sem taxas ocultas.
-          </p>
-        </div>
+            <h1 className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-3xl font-bold text-transparent">
+              Bem-vindo de volta
+            </h1>
 
-        <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto mb-16">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative rounded-2xl transition-all ${
-                plan.highlight
-                  ? `border-2 border-violet-500 bg-gradient-to-br from-violet-500/10 to-indigo-500/10 scale-105 md:scale-105 ${themeClasses.border.primary}`
-                  : `border ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`
-              } p-8 hover:border-violet-500/50`}
-            >
-              {plan.highlight && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-1.5 text-sm font-semibold text-white">
-                  <Star className="h-4 w-4" />
-                  Mais Popular
+            <p className={`mt-4 leading-relaxed ${themeClasses.text.tertiary}`}>
+              Acesse sua workspace e continue organizando seus projetos com mais produtividade e clareza.
+            </p>
+
+            {inviteToken && (
+              <div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/10 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  <span className="text-sm font-medium text-violet-400">
+                    Convite pendente!
+                  </span>
                 </div>
-              )}
 
-              <div className="mb-6">
-                <h3 className={`text-2xl font-bold ${themeClasses.text.primary} mb-2`}>
-                  {plan.name}
-                </h3>
-                <p className={`${themeClasses.text.tertiary} text-sm`}>
-                  {plan.description}
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>
+                  Você foi convidado para uma workspace. Após o login, será automaticamente adicionado.
                 </p>
               </div>
+            )}
 
-              <div className="mb-8">
-                <div className="flex items-baseline gap-1">
-                  <span className={`text-4xl font-bold ${themeClasses.text.primary}`}>
-                    {plan.price === 0 ? 'Gratuito' : `R$ ${plan.price}`}
+            <div className="mt-8 space-y-3">
+              {[
+                { icon: Users, text: 'Gerencie múltiplas workspaces' },
+                { icon: LayoutDashboard, text: 'Organize projetos em Kanban' },
+                { icon: Shield, text: 'Controle de permissões por função' },
+              ].map((item, idx) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-center gap-3 text-sm ${themeClasses.text.tertiary}`}
+                  >
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/10">
+                      <Icon className="h-3.5 w-3.5 text-violet-400" />
+                    </div>
+                    <span>{item.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="min-w-0 p-5 sm:p-6 md:p-8 lg:p-10">
+            <div className="mb-6 text-center lg:text-left">
+              <div className="mb-4 flex justify-center lg:hidden">
+                <div className="flex items-center gap-2">
+                  <img src="/logo.png" alt="Zent" className="h-8 w-8 rounded-lg" />
+                  <span className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-xl font-bold text-transparent">
+                    Zent
                   </span>
-                  {plan.period && plan.price > 0 && (
-                    <span className={themeClasses.text.tertiary}>/{plan.period}</span>
-                  )}
                 </div>
               </div>
 
-              {plan.limits && (
-                <div className={`mb-6 rounded-lg ${themeClasses.bg.subtle} p-4 space-y-3`}>
-                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>
-                    Limites
-                  </p>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className={themeClasses.text.tertiary}>Workspaces</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>
-                        {plan.limits.workspaces}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={themeClasses.text.tertiary}>Membros</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>
-                        {plan.limits.members}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={themeClasses.text.tertiary}>Projetos</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>
-                        {plan.limits.projects}
-                      </p>
-                    </div>
-                    <div>
-                      <p className={themeClasses.text.tertiary}>Storage</p>
-                      <p className={`${themeClasses.text.primary} font-semibold`}>
-                        {plan.limits.storage}
-                      </p>
-                    </div>
-                  </div>
+              <h2 className="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
+                Entrar
+              </h2>
+
+              <p className={`mt-2 text-sm ${themeClasses.text.tertiary}`}>
+                Acesse sua conta e workspace
+              </p>
+            </div>
+
+            {inviteToken && (
+              <div className="mb-5 rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 lg:hidden">
+                <div className="mb-1 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  <span className="text-sm font-medium text-violet-400">
+                    Convite pendente
+                  </span>
+                </div>
+
+                <p className={`text-xs leading-relaxed ${themeClasses.text.tertiary}`}>
+                  Entre para aceitar automaticamente o convite da workspace.
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}
+                >
+                  <Mail className="h-4 w-4 text-violet-400" />
+                  Email
+                </label>
+
+                <input
+                  className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 text-sm ${themeClasses.text.primary} outline-none transition-all placeholder:text-zinc-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 sm:py-2.5`}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@email.com"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label
+                  className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}
+                >
+                  <Lock className="h-4 w-4 text-violet-400" />
+                  Senha
+                </label>
+
+                <div className="relative">
+                  <input
+                    className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 pr-10 text-sm ${themeClasses.text.primary} outline-none transition-all placeholder:text-zinc-500 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 sm:py-2.5`}
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Sua senha"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.tertiary} transition-colors hover:text-violet-400`}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <span className="break-words">{error}</span>
                 </div>
               )}
+
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className={`text-xs ${themeClasses.text.tertiary} transition-colors hover:text-violet-400`}
+                >
+                  Esqueceu a senha?
+                </Link>
+              </div>
 
               <button
-                onClick={() => handleUpgrade(plan.id)}
-                className={`w-full rounded-lg py-3 font-semibold transition-all mb-8 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:ring-offset-0 group ${
-                  plan.highlight
-                    ? 'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-lg shadow-violet-500/25 hover:scale-105 hover:shadow-violet-500/35'
-                    : `border ${themeClasses.border.primary} ${themeClasses.text.primary} bg-transparent hover:border-violet-500/40 hover:bg-violet-500/10`
-                }`}
+                type="submit"
+                disabled={loading || !isFormValid}
+                className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 sm:hover:scale-[1.02] disabled:sm:hover:scale-100"
               >
-                {plan.cta}
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      Entrar
+                      <LogIn className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </span>
               </button>
+            </form>
 
-              {plan.id === 'pro' && plan.cta === 'Começar Trial Gratuito' && (
-                <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold text-red-300">
-                      Aviso do Trial (14 dias)
-                    </p>
-                    <p className={`text-sm ${themeClasses.text.secondary}`}>
-                      No trial gratuito de 14 dias, não haverá acesso à API e suporte 24/7.
-                    </p>
-                  </div>
+            <div className="mt-6 text-center">
+              <p className={`text-sm ${themeClasses.text.tertiary}`}>
+                Não tem uma conta?{' '}
+                <Link
+                  href="/signup"
+                  className="font-medium text-violet-400 transition-colors hover:text-violet-300 hover:underline"
+                >
+                  Criar conta gratuita
+                </Link>
+              </p>
+            </div>
+
+            <div className="mt-6 block lg:hidden">
+              <div
+                className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}
+              >
+                <div className="mb-3 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  <span className={`text-xs font-medium ${themeClasses.text.tertiary}`}>
+                    Grátis por 14 dias
+                  </span>
                 </div>
-              )}
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-4">
-                  <p className={`text-xs font-semibold uppercase ${themeClasses.text.secondary}`}>
-                    Incluso
-                  </p>
-                  <div className={`h-px flex-1 ${themeClasses.border.primary} opacity-60`} />
-                </div>
-
-                <div className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <div
-                      key={index}
-                      className="group flex items-start gap-3 rounded-xl border border-white/0 bg-white/0 transition-colors hover:bg-white/5 hover:border-violet-500/25 px-3 py-2"
-                    >
-                      <div className="mt-0.5">
-                        <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                      </div>
-
-                      <div className="flex-1">
-                        <p className={`text-[14px] leading-relaxed ${themeClasses.text.secondary}`}>
-                          {feature.includes(':') ? (
-                            (() => {
-                              const [label, value] = feature
-                                .split(':')
-                                .map((s) => s.trim());
-
-                              return (
-                                <span>
-                                  <span
-                                    className={`text-[14px] opacity-90 ${themeClasses.text.tertiary}`}
-                                  >
-                                    {label}:
-                                  </span>{' '}
-                                  <span
-                                    className={`text-[14px] font-semibold px-2 py-0.5 rounded-md border ${themeClasses.border.primary} border-opacity-20 ${themeClasses.bg.subtle} backdrop-blur-sm`}
-                                    style={{
-                                      boxShadow:
-                                        '0 0 0 1px rgba(124, 58, 237, 0.35), 0 0 0 4px rgba(124, 58, 237, 0.10), 0 12px 26px rgba(124, 58, 237, 0.10)',
-                                    }}
-                                  >
-                                    {value}
-                                  </span>
-                                </span>
-                              );
-                            })()
-                          ) : (
-                            feature
-                          )}
-                        </p>
-                      </div>
+                <div className={`grid grid-cols-2 gap-2 text-xs ${themeClasses.text.muted}`}>
+                  {['Workspaces', 'Kanban', 'Comentários', 'Permissões'].map((item) => (
+                    <div key={item} className="flex min-w-0 items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3 flex-shrink-0 text-emerald-400" />
+                      <span className="truncate">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="max-w-3xl mx-auto mt-16">
-          <h2 className={`text-3xl font-bold mb-8 text-center ${themeClasses.text.primary}`}>
-            Perguntas Frequentes
-          </h2>
-          <div className="space-y-4">
-            {[
-              {
-                q: 'Posso cancelar a qualquer momento?',
-                a: 'Sim, sem penalidades. Cancele sua assinatura a qualquer momento no painel de configurações.',
-              },
-              {
-                q: 'Qual é o período de avaliação do plano Pro?',
-                a: '14 dias grátis. Sem necessidade de cartão de crédito para começar.',
-              },
-              {
-                q: 'Vocês oferecem descontos para equipes grandes?',
-                a: 'Sim! Entre em contato conosco para um orçamento personalizado.',
-              },
-              {
-                q: 'Os dados são seguros?',
-                a: 'Sim, todos os dados são criptografados em trânsito e em repouso com os melhores padrões de segurança.',
-              },
-            ].map((item, index) => (
-              <details
-                key={index}
-                className={`rounded-lg border p-4 cursor-pointer transition-colors ${themeClasses.border.primary} ${themeClasses.bg.tertiary} hover:border-violet-500/30`}
-              >
-                <summary className={`font-semibold flex items-center justify-between ${themeClasses.text.primary}`}>
-                  {item.q}
-                  <span className={themeClasses.text.tertiary}>+</span>
-                </summary>
-                <p className={`mt-3 ${themeClasses.text.tertiary}`}>{item.a}</p>
-              </details>
-            ))}
           </div>
-        </div>
-
-        <div className="mt-16 text-center">
-          <p className={`mb-4 ${themeClasses.text.tertiary}`}>
-            Pronto para começar?
-          </p>
-          <button
-            onClick={() => router.push('/signup')}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-8 py-3 font-semibold text-white hover:scale-105 transition-transform shadow-lg shadow-violet-500/25"
-          >
-            <Zap className="h-5 w-5" />
-            Criar Conta Grátis
-          </button>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <LoginContent />
+    </Suspense>
   );
 }

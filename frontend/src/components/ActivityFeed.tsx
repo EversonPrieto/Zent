@@ -18,6 +18,8 @@ import {
   Wifi,
   WifiOff,
   Sparkles,
+  AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -216,63 +218,45 @@ export default function ActivityFeed({
 
     const handleConnect = () => {
       console.log('🟢 Socket conectado no ActivityFeed:', socket.id);
-
       setSocketConnected(true);
-
       emitActivityJoin();
     };
 
     const handleDisconnect = () => {
       console.log('🔴 Socket desconectado no ActivityFeed');
-
       setSocketConnected(false);
       setJoinedActivityRoom(false);
     };
 
     const handleConnectError = (error: Error) => {
       console.error('❌ Socket connection error no ActivityFeed:', error);
-
       setSocketConnected(false);
       setJoinedActivityRoom(false);
     };
 
     const handleActivityJoined = (data: ActivityJoinResponse) => {
       console.log('[ActivityFeed activity:joined]', data);
-
       if (data?.workspaceId !== workspaceId) return;
-
       setSocketConnected(true);
       setJoinedActivityRoom(true);
     };
 
     const handleActivityUnauthorized = (data: ActivityJoinResponse) => {
       console.warn('[ActivityFeed activity:unauthorized]', data);
-
       if (data?.workspaceId && data.workspaceId !== workspaceId) return;
-
       setJoinedActivityRoom(false);
     };
 
     const handleActivityNew = (newActivity: ActivityItem) => {
       console.log('🔥 Nova activity recebida:', newActivity);
-
       if (!newActivity?.id) return;
-
-      if (newActivity.projectId && newActivity.projectId !== projectId) {
-        return;
-      }
-
-      if (newActivity.workspaceId && newActivity.workspaceId !== workspaceId) {
-        return;
-      }
+      if (newActivity.projectId && newActivity.projectId !== projectId) return;
+      if (newActivity.workspaceId && newActivity.workspaceId !== workspaceId) return;
 
       setActivities((prev) => {
         const exists = prev.some((activity) => activity.id === newActivity.id);
         if (exists) return prev;
-
-        const newActivities = [newActivity, ...prev];
-
-        return newActivities.slice(0, 50);
+        return [newActivity, ...prev].slice(0, 50);
       });
 
       setSocketConnected(true);
@@ -319,81 +303,70 @@ export default function ActivityFeed({
 
   return (
     <div className="w-full">
+      {/* Header compacto */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ActivityIcon className="h-4 w-4 flex-shrink-0 text-violet-400" />
-
           <h3 className={`text-sm font-medium ${themeClasses.text.primary}`}>
-            N° de Atividades
+            Atividades
           </h3>
-
           {hasActivities && (
-            <span
-              className={`rounded-full ${themeClasses.bg.subtle} px-2 py-0.5 text-xs ${themeClasses.text.tertiary}`}
-            >
+            <span className={`rounded-full ${themeClasses.bg.subtle} px-2 py-0.5 text-xs ${themeClasses.text.tertiary}`}>
               {activities.length}
             </span>
           )}
         </div>
 
-        {isLive ? (
-          <div
-            className="flex items-center gap-1 text-xs text-emerald-400"
-            title="Conexão em tempo real ativa"
-          >
-            <Wifi className="h-3 w-3" />
-            <span className="hidden sm:inline">Live</span>
-          </div>
-        ) : (
-          <div
-            className={`flex items-center gap-1 text-xs ${themeClasses.text.muted}`}
-            title="Conexão em tempo real inativa"
-          >
-            <WifiOff className="h-3 w-3" />
-            <span className="hidden sm:inline">Offline</span>
-          </div>
-        )}
+        <div
+          className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+            isLive
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'bg-zinc-500/10 text-zinc-500'
+          }`}
+          title={isLive ? 'Live' : 'Offline'}
+        >
+          {isLive ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+          <span className="hidden sm:inline">{isLive ? 'Live' : 'Off'}</span>
+        </div>
       </div>
 
+      {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+        <div className="flex items-center justify-center py-6">
+          <Loader2 className="h-5 w-5 animate-spin text-violet-500" />
         </div>
       )}
 
+      {/* Error */}
       {error && !loading && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-center">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-center">
           <p className="text-xs text-red-400">{error}</p>
-
           <button
             onClick={() => loadActivities(true)}
-            className="mt-2 text-xs text-red-400 hover:text-red-300"
+            className="mt-1.5 inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
           >
+            <RotateCcw className="h-3 w-3" />
             Tentar novamente
           </button>
         </div>
       )}
 
+      {/* Empty */}
       {!loading && !error && !hasActivities && (
-        <div
-          className={`rounded-xl border border-dashed ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 text-center`}
-        >
-          <Sparkles
-            className={`mx-auto mb-2 h-8 w-8 ${themeClasses.text.muted}`}
-          />
-
-          <p className={`text-sm ${themeClasses.text.tertiary}`}>
+        <div className={`rounded-lg border border-dashed ${themeClasses.border.primary} px-3 py-8 text-center`}>
+          <Sparkles className={`mx-auto mb-2 h-6 w-6 ${themeClasses.text.muted}`} />
+          <p className={`text-xs ${themeClasses.text.tertiary}`}>
             Nenhuma atividade ainda
           </p>
-
-          <p className={`mt-1 text-xs ${themeClasses.text.muted}`}>
-            Atividades aparecerão aqui em tempo real
+          <p className={`mt-0.5 text-[11px] ${themeClasses.text.hint}`}>
+            Atividades aparecerão em tempo real
           </p>
         </div>
       )}
 
+      {/* Activities List */}
       {!loading && !error && hasActivities && (
-        <div className="custom-scrollbar max-h-[400px] space-y-2 overflow-y-auto overflow-x-hidden pr-1">
+        <div className="custom-scrollbar max-h-[300px] space-y-1.5 overflow-y-auto overflow-x-hidden pr-1">
           {activities.map((act, index) => {
             const { icon: Icon, color, bg } = getActivityIcon(act.type);
             const isNew = index === 0 && !loading;
@@ -401,52 +374,37 @@ export default function ActivityFeed({
             return (
               <div
                 key={act.id}
-                className={`group relative rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} p-3 transition-all hover:scale-[1.02] hover:${themeClasses.border.hover} hover:shadow-lg ${
+                className={`group relative rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 transition-all duration-200 hover:border-violet-500/30 hover:shadow-sm ${
                   isNew
-                    ? 'animate-in slide-in-from-top-2 fade-in duration-300'
+                    ? 'border-violet-500/30 bg-violet-500/5 animate-in slide-in-from-top-2 fade-in duration-300'
                     : ''
                 }`}
               >
-                <div className="flex items-start gap-2">
-                  <div
-                    className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${bg}`}
-                  >
+                <div className="flex items-start gap-2.5">
+                  <div className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg ${bg}`}>
                     <Icon className={`h-3.5 w-3.5 ${color}`} />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p
-                      className={`break-words text-xs ${themeClasses.text.secondary} leading-relaxed`}
-                    >
-                      <span
-                        className={`font-medium ${themeClasses.text.primary}`}
-                      >
+                    <p className={`break-words text-xs ${themeClasses.text.secondary} leading-relaxed`}>
+                      <span className={`font-medium ${themeClasses.text.primary}`}>
                         {act.user?.name ?? 'Alguém'}
                       </span>{' '}
                       {translateActivityDescription(act.description)}
                     </p>
 
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                      <Clock
-                        className={`h-3 w-3 ${themeClasses.text.muted} flex-shrink-0`}
-                      />
-
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <Clock className={`h-3 w-3 ${themeClasses.text.muted} flex-shrink-0`} />
                       <p className={`text-[10px] ${themeClasses.text.muted}`}>
                         {getRelativeDate(act.createdAt)}
                       </p>
-
-                      <span className={themeClasses.text.muted}>•</span>
-
-                      <p
-                        className={`text-[10px] ${themeClasses.text.muted} opacity-0 transition-opacity group-hover:opacity-100`}
-                      >
+                      <span className={`text-[10px] ${themeClasses.text.hint}`}>•</span>
+                      <p className={`text-[10px] ${themeClasses.text.hint} opacity-0 transition-opacity group-hover:opacity-100`}>
                         {formatDate(act.createdAt)}
                       </p>
                     </div>
                   </div>
                 </div>
-
-                <div className="absolute left-0 top-0 h-full w-0.5 rounded-full bg-gradient-to-b from-violet-500 to-indigo-500 opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
             );
           })}
@@ -457,19 +415,16 @@ export default function ActivityFeed({
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.05);
+          background: transparent;
           border-radius: 2px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 2px;
         }
-
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.2);
         }
       `}</style>
     </div>

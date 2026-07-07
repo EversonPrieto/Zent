@@ -14,7 +14,6 @@ import {
   Upload,
   Eye,
   EyeOff,
-  CreditCard,
   Sparkles,
   ShieldCheck,
   BellRing,
@@ -26,6 +25,9 @@ type UserData = {
   name: string;
   email: string;
   avatar?: string;
+  avatarUrl?: string | null;
+  plan?: string;
+  subscriptionEndsAt?: string | null;
 };
 
 export default function ProfilePage() {
@@ -62,8 +64,8 @@ export default function ProfilePage() {
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
 
-  const profileCardClass = `rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm`;
-  const inputClassName = `w-full rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} px-4 py-3 text-sm outline-none transition-all placeholder:${themeClasses.text.hint} focus:border-violet-500/60 focus:bg-violet-500/10 focus:ring-2 focus:ring-violet-500/20`;
+  const profileCardClass = `rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm sm:rounded-3xl`;
+  const inputClassName = `w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} px-4 py-3 text-sm outline-none transition-all placeholder:${themeClasses.text.hint} focus:border-violet-500/60 focus:bg-violet-500/10 focus:ring-2 focus:ring-violet-500/20 sm:rounded-2xl`;
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -397,21 +399,21 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className={`min-h-screen ${themeClasses.bg.primary} pt-20 px-4`}>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 text-violet-400 animate-spin" />
+      <main className={`min-h-[calc(100vh-80px)] ${themeClasses.bg.primary}`}>
+        <div className="flex h-80 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
         </div>
       </main>
     );
   }
 
   return (
-    <main className={`min-h-screen ${themeClasses.bg.primary} px-4 pb-20 pt-20`}>
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
+    <main className={`min-h-[calc(100vh-80px)] ${themeClasses.bg.primary}`}>
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 pb-8 sm:gap-6">
         {error && (
           <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
-            <div>
+            <div className="min-w-0">
               <p className="font-medium text-red-400">Erro</p>
               <p className="text-sm text-red-300">{error}</p>
             </div>
@@ -421,16 +423,16 @@ export default function ProfilePage() {
         {success && (
           <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" />
-            <div>
+            <div className="min-w-0">
               <p className="font-medium text-emerald-400">Sucesso</p>
               <p className="text-sm text-emerald-300">{success}</p>
             </div>
           </div>
         )}
 
-        <section className={`${profileCardClass} overflow-hidden p-6 sm:p-8`}>
+        <section className={`${profileCardClass} overflow-hidden p-4 sm:p-6 lg:p-8`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left lg:items-center">
               <div className="relative">
                 <div className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-gradient-to-br from-violet-500/25 via-indigo-500/20 to-sky-500/20 shadow-lg shadow-violet-500/10 sm:h-28 sm:w-28`}>
                   {avatarUrl ? (
@@ -467,13 +469,13 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <div className="space-y-3">
+              <div className="min-w-0 space-y-3">
                 <div className={`inline-flex items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-xs font-medium ${themeClasses.text.secondary}`}>
                   <Sparkles className="h-3.5 w-3.5 text-violet-400" />
                   Perfil ativo
                 </div>
                 <div>
-                  <h1 className={`text-2xl font-semibold ${themeClasses.text.primary} sm:text-3xl`}>
+                  <h1 className={`break-words text-2xl font-semibold ${themeClasses.text.primary} sm:text-3xl`}>
                     Configurações de Perfil
                   </h1>
                   <p className={`mt-1 max-w-2xl text-sm sm:text-base ${themeClasses.text.secondary}`}>
@@ -481,7 +483,7 @@ export default function ProfilePage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`inline-flex items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-sm ${themeClasses.text.secondary}`}>
+                  <span className={`inline-flex w-fit items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-sm ${themeClasses.text.secondary}`}>
                     <ShieldCheck className="h-4 w-4 text-emerald-400" />
                     Conta protegida
                   </span>
@@ -493,7 +495,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 sm:min-w-[220px]`}>
+            <div className={`w-full rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 lg:w-auto lg:min-w-[220px]`}>
               <p className={`text-[11px] font-semibold uppercase tracking-[0.25em] ${themeClasses.text.hint}`}>
                 Resumo
               </p>
@@ -517,8 +519,8 @@ export default function ProfilePage() {
 
         <div className="grid gap-6 xl:grid-cols-[1.35fr_0.9fr]">
           <div className="space-y-6">
-            <section className={`${profileCardClass} p-6 sm:p-8`}>
-              <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
+              <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Dados pessoais</h2>
                   <p className={`text-sm ${themeClasses.text.secondary}`}>
@@ -582,9 +584,9 @@ export default function ProfilePage() {
               </form>
             </section>
 
-            <section className={`${profileCardClass} p-6 sm:p-8`}>
-              <div className="mb-6 flex items-center justify-between gap-3">
-                <div>
+            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
                   <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Segurança</h2>
                   <p className={`text-sm ${themeClasses.text.secondary}`}>
                     Atualize sua senha com segurança e mantenha sua conta protegida.
@@ -593,7 +595,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setShowPasswordChange(!showPasswordChange)}
-                  className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-sm font-medium text-violet-400 transition-all hover:bg-violet-500/20"
+                  className="w-full rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-sm font-medium text-violet-400 transition-all hover:bg-violet-500/20 sm:w-auto sm:py-1.5"
                 >
                   {showPasswordChange ? 'Cancelar' : 'Alterar senha'}
                 </button>
@@ -682,7 +684,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-6">
-            <section className={`${profileCardClass} p-6 sm:p-8`}>
+            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
               <div className="mb-6">
                 <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Preferências</h2>
                 <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>
@@ -691,12 +693,12 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-3">
-                <div className={`flex items-center justify-between rounded-2xl border ${themeClasses.border.primary} p-4 transition-all hover:${themeClasses.border.secondary}`}>
-                  <div>
+                <div className={`flex items-center justify-between gap-4 rounded-2xl border ${themeClasses.border.primary} p-4 transition-all hover:${themeClasses.border.secondary}`}>
+                  <div className="min-w-0">
                     <p className={`font-medium ${themeClasses.text.primary}`}>Notificações por email</p>
                     <p className={`text-sm ${themeClasses.text.secondary}`}>Receba alertas sobre suas tarefas</p>
                   </div>
-                  <label className="relative inline-flex cursor-pointer items-center">
+                  <label className="relative inline-flex flex-shrink-0 cursor-pointer items-center">
                     <input
                       type="checkbox"
                       checked={emailNotificationsEnabled}
@@ -707,12 +709,12 @@ export default function ProfilePage() {
                   </label>
                 </div>
 
-                <div className={`flex items-center justify-between rounded-2xl border ${themeClasses.border.primary} p-4 transition-all hover:${themeClasses.border.secondary}`}>
-                  <div>
-                    <p className={`font-medium ${themeClasses.text.primary}`}>Duas autenticações</p>
+                <div className={`flex items-center justify-between gap-4 rounded-2xl border ${themeClasses.border.primary} p-4 transition-all hover:${themeClasses.border.secondary}`}>
+                  <div className="min-w-0">
+                    <p className={`font-medium ${themeClasses.text.primary}`}>Autenticação em duas etapas</p>
                     <p className={`text-sm ${themeClasses.text.secondary}`}>Ativar 2FA para maior segurança</p>
                   </div>
-                  <label className="relative inline-flex cursor-pointer items-center">
+                  <label className="relative inline-flex flex-shrink-0 cursor-pointer items-center">
                     <input type="checkbox" className="peer sr-only" />
                     <div className="h-6 w-11 rounded-full bg-zinc-700 peer-checked:bg-violet-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                   </label>
@@ -720,9 +722,9 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section className={`${profileCardClass} p-6 sm:p-8`}>
-              <div className="mb-6 flex items-center gap-3">
-                <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-2`}>
+            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
+              <div className="mb-6 flex items-start gap-3">
+                <div className={`flex-shrink-0 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-2`}>
                   <Crown className={`h-5 w-5 ${themeClasses.text.primary}`} />
                 </div>
                 <div>
@@ -732,8 +734,8 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-4">
-                <div className={`flex items-center justify-between rounded-2xl border ${themeClasses.border.primary} p-4`}>
-                  <div>
+                <div className={`flex flex-col gap-3 rounded-2xl border ${themeClasses.border.primary} p-4 sm:flex-row sm:items-center sm:justify-between`}>
+                  <div className="min-w-0">
                     <p className={`font-medium ${themeClasses.text.primary}`}>Plano atual</p>
                     <p className={`text-sm ${themeClasses.text.secondary}`}>
                       {subscriptionData?.plan === 'pro' ? 'Plano Pro' : 'Plano Gratuito'}
@@ -750,8 +752,8 @@ export default function ProfilePage() {
 
                 {subscriptionData?.plan === 'pro' && subscriptionData?.subscriptionEndsAt && (
                   <>
-                    <div className={`flex items-center justify-between rounded-2xl border ${themeClasses.border.primary} p-4`}>
-                      <div>
+                    <div className={`flex flex-col gap-3 rounded-2xl border ${themeClasses.border.primary} p-4 sm:flex-row sm:items-center sm:justify-between`}>
+                      <div className="min-w-0">
                         <p className={`font-medium ${themeClasses.text.primary}`}>Validade da assinatura</p>
                         <p className={`text-sm ${themeClasses.text.secondary}`}>
                           {isSubscriptionActive() ? 'Ativo até' : 'Expirou em'}
@@ -822,14 +824,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <section className={`${profileCardClass} p-6 sm:p-8`}>
+        <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
           <div className="mb-6">
             <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Comparação de planos</h2>
             <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>
               Veja como o seu plano atual se compara aos recursos disponíveis.
             </p>
           </div>
-          <PlanComparison currentPlan={(subscriptionData?.plan as any) || 'free'} />
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+            <div className="min-w-[640px] sm:min-w-0">
+              <PlanComparison currentPlan={(subscriptionData?.plan as any) || 'free'} />
+            </div>
+          </div>
         </section>
       </div>
     </main>

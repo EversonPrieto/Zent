@@ -42,24 +42,97 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
 
 export const PLAN_FEATURES = {
   free: [
-    { name: 'Workspaces', value: '1', icon: '📁' },
-    { name: 'Projetos por workspace', value: 'até 3', icon: '📊' },
-    { name: 'Tarefas por projeto', value: 'até 50', icon: '✓' },
-    { name: 'Membros da equipe', value: 'até 5', icon: '👥' },
-    { name: 'Armazenamento', value: '1 GB', icon: '💾' },
-    { name: 'Retenção de atividades', value: '30 dias', icon: '📝' },
-    { name: 'Suporte', value: 'Comunidade', icon: '💬' },
+    {
+      name: 'Workspaces',
+      value: '1 workspace',
+      icon: '📁',
+    },
+    {
+      name: 'Projetos',
+      value: 'Até 3 por workspace',
+      icon: '📊',
+    },
+    {
+      name: 'Tarefas',
+      value: 'Até 50 por projeto',
+      icon: '✓',
+    },
+    {
+      name: 'Equipe',
+      value: 'Até 5 membros',
+      icon: '👥',
+    },
+    {
+      name: 'Armazenamento',
+      value: '1 GB',
+      icon: '💾',
+    },
+    {
+      name: 'Histórico',
+      value: '30 dias de atividades',
+      icon: '📝',
+    },
+    {
+      name: 'Suporte',
+      value: 'Comunidade',
+      icon: '💬',
+    },
   ],
   pro: [
-    { name: 'Workspaces', value: 'até 10', icon: '📁', highlight: true },
-    { name: 'Projetos por workspace', value: 'até 100', icon: '📊', highlight: true },
-    { name: 'Tarefas por projeto', value: 'até 10.000', icon: '✓', highlight: true },
-    { name: 'Membros da equipe', value: 'até 50', icon: '👥', highlight: true },
-    { name: 'Armazenamento', value: '100 GB', icon: '💾', highlight: true },
-    { name: 'Retenção de atividades', value: '1 ano', icon: '📝', highlight: true },
-    { name: 'Relatórios avançados', value: 'Incluído', icon: '📈', highlight: true },
-    { name: 'Acesso à API', value: 'Incluído', icon: '⚙️', highlight: true },
-    { name: 'Suporte prioritário', value: '24/7', icon: '⭐', highlight: true },
+    {
+      name: 'Workspaces',
+      value: 'Até 10 workspaces',
+      icon: '📁',
+      highlight: true,
+    },
+    {
+      name: 'Projetos',
+      value: 'Até 100 por workspace',
+      icon: '📊',
+      highlight: true,
+    },
+    {
+      name: 'Tarefas',
+      value: 'Até 10.000 por projeto',
+      icon: '✓',
+      highlight: true,
+    },
+    {
+      name: 'Equipe',
+      value: 'Até 50 membros',
+      icon: '👥',
+      highlight: true,
+    },
+    {
+      name: 'Armazenamento',
+      value: '100 GB',
+      icon: '💾',
+      highlight: true,
+    },
+    {
+      name: 'Histórico',
+      value: '1 ano de atividades',
+      icon: '📝',
+      highlight: true,
+    },
+    {
+      name: 'Relatórios',
+      value: 'Avançados',
+      icon: '📈',
+      highlight: true,
+    },
+    {
+      name: 'API',
+      value: 'Acesso incluído',
+      icon: '⚙️',
+      highlight: true,
+    },
+    {
+      name: 'Suporte',
+      value: 'Prioritário 24/7',
+      icon: '⭐',
+      highlight: true,
+    },
   ],
 };
 
@@ -69,10 +142,17 @@ export function getPlanLimits(plan: PlanType): PlanLimits {
 
 export function checkLimit(
   plan: PlanType,
-  limitKey: 'workspaces' | 'projectsPerWorkspace' | 'tasksPerProject' | 'teamMembers' | 'storageGB' | 'activityLogsRetentionDays',
-  currentCount: number
+  limitKey:
+    | 'workspaces'
+    | 'projectsPerWorkspace'
+    | 'tasksPerProject'
+    | 'teamMembers'
+    | 'storageGB'
+    | 'activityLogsRetentionDays',
+  currentCount: number,
 ): { allowed: boolean; limit: number; remaining: number } {
   const limit = PLAN_LIMITS[plan][limitKey] as number;
+
   return {
     allowed: currentCount < limit,
     limit,
