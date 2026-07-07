@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   BellRing,
   Crown,
+  Lock,
+  ArrowRight,
 } from 'lucide-react';
 
 type UserData = {
@@ -64,8 +66,8 @@ export default function ProfilePage() {
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
 
-  const profileCardClass = `rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_20px_60px_rgba(0,0,0,0.25)] backdrop-blur-sm sm:rounded-3xl`;
-  const inputClassName = `w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} px-4 py-3 text-sm outline-none transition-all placeholder:${themeClasses.text.hint} focus:border-violet-500/60 focus:bg-violet-500/10 focus:ring-2 focus:ring-violet-500/20 sm:rounded-2xl`;
+  const profileCardClass = `rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-5 sm:p-6 lg:p-8 transition-all duration-200 hover:shadow-lg`;
+  const inputClassName = `w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} ${themeClasses.text.primary} px-4 py-3 text-sm outline-none transition-all duration-200 placeholder:text-zinc-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20`;
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -84,13 +86,11 @@ export default function ProfilePage() {
           }
         }
 
-        // Fallback: localStorage (caso /auth/me não traga o campo)
         const savedEmailPrefs = localStorage.getItem('zent_email_notifications');
         if (savedEmailPrefs) {
           setEmailNotificationsEnabled(JSON.parse(savedEmailPrefs));
         }
 
-        // Fonte de verdade: buscar preferências no backend via /auth/me
         const token = localStorage.getItem('zent_token');
         if (token) {
           const response = await fetch(
@@ -115,7 +115,6 @@ export default function ProfilePage() {
           }
         }
 
-        // Load subscription data from user
         const subscriptionInfo = localStorage.getItem('zent_user');
         if (subscriptionInfo) {
           const parsed = JSON.parse(subscriptionInfo);
@@ -239,13 +238,11 @@ export default function ProfilePage() {
         throw new Error(errorData.message || 'Erro ao cancelar assinatura');
       }
 
-      // Update subscription data
       setSubscriptionData({
         plan: 'free',
         subscriptionEndsAt: null,
       });
 
-      // Update localStorage
       const userData = localStorage.getItem('zent_user');
       if (userData) {
         const parsed = JSON.parse(userData);
@@ -400,8 +397,14 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <main className={`min-h-[calc(100vh-80px)] ${themeClasses.bg.primary}`}>
-        <div className="flex h-80 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="relative">
+            <Loader2 className="h-10 w-10 animate-spin text-violet-500" />
+            <div className="absolute inset-0 h-10 w-10 animate-pulse rounded-full bg-violet-500/20 blur-lg" />
+          </div>
+          <p className={`mt-4 text-sm font-medium ${themeClasses.text.tertiary}`}>
+            Carregando perfil...
+          </p>
         </div>
       </main>
     );
@@ -409,32 +412,35 @@ export default function ProfilePage() {
 
   return (
     <main className={`min-h-[calc(100vh-80px)] ${themeClasses.bg.primary}`}>
-      <div className="mx-auto flex max-w-5xl flex-col gap-4 pb-8 sm:gap-6">
+      <div className="mx-auto flex max-w-5xl flex-col gap-5 px-4 pb-10 pt-6 sm:px-6 sm:gap-6 sm:pb-12 sm:pt-8">
+        {/* Notifications */}
         {error && (
-          <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+          <div className="flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 px-5 py-4">
             <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
             <div className="min-w-0">
-              <p className="font-medium text-red-400">Erro</p>
-              <p className="text-sm text-red-300">{error}</p>
+              <p className="text-sm font-semibold text-red-400">Erro</p>
+              <p className="text-sm text-red-400/80">{error}</p>
             </div>
           </div>
         )}
 
         {success && (
-          <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-5 py-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" />
             <div className="min-w-0">
-              <p className="font-medium text-emerald-400">Sucesso</p>
-              <p className="text-sm text-emerald-300">{success}</p>
+              <p className="text-sm font-semibold text-emerald-400">Sucesso</p>
+              <p className="text-sm text-emerald-400/80">{success}</p>
             </div>
           </div>
         )}
 
-        <section className={`${profileCardClass} overflow-hidden p-4 sm:p-6 lg:p-8`}>
+        {/* Header Card */}
+        <section className={profileCardClass}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left lg:items-center">
+            <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+              {/* Avatar */}
               <div className="relative">
-                <div className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-violet-500/40 bg-gradient-to-br from-violet-500/25 via-indigo-500/20 to-sky-500/20 shadow-lg shadow-violet-500/10 sm:h-28 sm:w-28`}>
+                <div className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-violet-500/30 bg-gradient-to-br from-violet-500/20 to-indigo-500/20 shadow-xl shadow-violet-500/10 sm:h-28 sm:w-28`}>
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
@@ -442,7 +448,7 @@ export default function ProfilePage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-violet-100">
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-violet-300">
                       {(user?.name || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -451,14 +457,14 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingAvatar}
-                  className="absolute bottom-[-6px] right-[-2px] flex items-center gap-2 rounded-full border border-white/10 bg-zinc-950/90 px-3 py-2 text-[11px] font-medium text-white shadow-lg backdrop-blur transition-all hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="absolute -bottom-1 -right-1 flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-900 px-3 py-1.5 text-[11px] font-semibold text-white shadow-lg backdrop-blur transition-all duration-200 hover:bg-zinc-800 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {uploadingAvatar ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
-                    <Upload className="h-3.5 w-3.5" />
+                    <Upload className="h-3 w-3" />
                   )}
-                  <span>{uploadingAvatar ? 'Enviando...' : 'Alterar foto'}</span>
+                  <span>{uploadingAvatar ? '...' : 'Alterar'}</span>
                 </button>
                 <input
                   ref={fileInputRef}
@@ -469,105 +475,101 @@ export default function ProfilePage() {
                 />
               </div>
 
+              {/* Info */}
               <div className="min-w-0 space-y-3">
-                <div className={`inline-flex items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-xs font-medium ${themeClasses.text.secondary}`}>
-                  <Sparkles className="h-3.5 w-3.5 text-violet-400" />
-                  Perfil ativo
-                </div>
-                <div>
-                  <h1 className={`break-words text-2xl font-semibold ${themeClasses.text.primary} sm:text-3xl`}>
-                    Configurações de Perfil
-                  </h1>
-                  <p className={`mt-1 max-w-2xl text-sm sm:text-base ${themeClasses.text.secondary}`}>
-                    Gerencie suas informações, segurança e preferências de conta com uma visão mais organizada.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className={`inline-flex w-fit items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-sm ${themeClasses.text.secondary}`}>
-                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-xs font-semibold ${themeClasses.text.secondary}`}>
+                    <Sparkles className="h-3.5 w-3.5 text-violet-400" />
+                    Perfil ativo
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-xs font-semibold ${themeClasses.text.secondary}`}>
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                     Conta protegida
                   </span>
-                  <span className={`inline-flex items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-sm ${themeClasses.text.secondary}`}>
-                    <BellRing className="h-4 w-4 text-violet-400" />
-                    Notificações {emailNotificationsEnabled ? 'ativas' : 'desativadas'}
-                  </span>
+                </div>
+                <div>
+                  <h1 className={`text-2xl font-bold tracking-tight sm:text-3xl ${themeClasses.text.primary}`}>
+                    Configurações de Perfil
+                  </h1>
+                  <p className={`mt-1.5 text-sm ${themeClasses.text.tertiary}`}>
+                    Gerencie suas informações, segurança e preferências de conta.
+                  </p>
                 </div>
               </div>
             </div>
 
+            {/* Summary Card */}
             <div className={`w-full rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 lg:w-auto lg:min-w-[220px]`}>
-              <p className={`text-[11px] font-semibold uppercase tracking-[0.25em] ${themeClasses.text.hint}`}>
+              <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${themeClasses.text.hint}`}>
                 Resumo
               </p>
               <div className="mt-3 space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className={`text-sm ${themeClasses.text.secondary}`}>Plano</span>
-                  <span className="text-sm font-semibold text-violet-400">
+                  <span className={`text-sm ${themeClasses.text.tertiary}`}>Plano</span>
+                  <span className={`text-sm font-bold ${subscriptionData?.plan === 'pro' ? 'text-violet-400' : themeClasses.text.primary}`}>
                     {subscriptionData?.plan === 'pro' ? 'Pro' : 'Free'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className={`text-sm ${themeClasses.text.secondary}`}>Status</span>
-                  <span className={`text-sm font-semibold ${themeClasses.text.primary}`}>
-                    {user?.email ? 'Ativo' : 'Pendente'}
-                  </span>
+                  <span className={`text-sm ${themeClasses.text.tertiary}`}>Status</span>
+                  <span className="text-sm font-bold text-emerald-400">Ativo</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[1.35fr_0.9fr]">
-          <div className="space-y-6">
-            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
-              <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Dados pessoais</h2>
-                  <p className={`text-sm ${themeClasses.text.secondary}`}>
-                    Atualize seu nome e e-mail sem alterar a estrutura da sua conta.
-                  </p>
-                </div>
-                <div className={`inline-flex items-center gap-2 rounded-full border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-1 text-sm ${themeClasses.text.secondary}`}>
-                  <User className="h-4 w-4 text-violet-400" />
-                  Informações principais
+        {/* Main Grid */}
+        <div className="grid gap-5 sm:gap-6 xl:grid-cols-[1.35fr_0.9fr]">
+          {/* Left Column */}
+          <div className="space-y-5 sm:space-y-6">
+            {/* Personal Data */}
+            <section className={profileCardClass}>
+              <div className="mb-5 sm:mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg bg-violet-500/10 p-2">
+                    <User className="h-5 w-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h2 className={`text-lg font-bold ${themeClasses.text.primary}`}>Dados pessoais</h2>
+                    <p className={`text-xs ${themeClasses.text.tertiary}`}>Atualize seu nome e e-mail</p>
+                  </div>
                 </div>
               </div>
 
-              <form onSubmit={handleUpdateProfile} className="space-y-6">
+              <form onSubmit={handleUpdateProfile} className="space-y-5">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className={`mb-2 block text-sm font-medium ${themeClasses.text.primary}`}>Nome completo</label>
-                    <div className="relative">
-                      <User className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${themeClasses.text.hint}`} />
-                      <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className={`pl-10 ${inputClassName}`}
-                        placeholder="Seu nome completo"
-                      />
-                    </div>
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-semibold ${themeClasses.text.secondary}`}>
+                      <User className="h-4 w-4 text-violet-400" /> Nome
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className={inputClassName}
+                      placeholder="Seu nome completo"
+                    />
                   </div>
 
                   <div>
-                    <label className={`mb-2 block text-sm font-medium ${themeClasses.text.primary}`}>Email</label>
-                    <div className="relative">
-                      <Mail className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${themeClasses.text.hint}`} />
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`pl-10 ${inputClassName}`}
-                        placeholder="seu@email.com"
-                      />
-                    </div>
+                    <label className={`mb-2 flex items-center gap-2 text-sm font-semibold ${themeClasses.text.secondary}`}>
+                      <Mail className="h-4 w-4 text-violet-400" /> Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className={inputClassName}
+                      placeholder="seu@email.com"
+                    />
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 font-medium text-white transition-all hover:from-violet-600 hover:to-indigo-600 disabled:from-zinc-600 disabled:to-zinc-600"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-200 hover:shadow-violet-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                 >
                   {saving ? (
                     <>
@@ -584,39 +586,45 @@ export default function ProfilePage() {
               </form>
             </section>
 
-            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Segurança</h2>
-                  <p className={`text-sm ${themeClasses.text.secondary}`}>
-                    Atualize sua senha com segurança e mantenha sua conta protegida.
-                  </p>
+            {/* Security */}
+            <section className={profileCardClass}>
+              <div className="mb-5 sm:mb-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="rounded-lg bg-violet-500/10 p-2">
+                      <Lock className="h-5 w-5 text-violet-400" />
+                    </div>
+                    <div>
+                      <h2 className={`text-lg font-bold ${themeClasses.text.primary}`}>Segurança</h2>
+                      <p className={`text-xs ${themeClasses.text.tertiary}`}>Atualize sua senha</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordChange(!showPasswordChange)}
+                    className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-semibold text-violet-400 transition-all duration-200 hover:bg-violet-500/20 active:scale-95"
+                  >
+                    {showPasswordChange ? 'Cancelar' : 'Alterar senha'}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordChange(!showPasswordChange)}
-                  className="w-full rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-sm font-medium text-violet-400 transition-all hover:bg-violet-500/20 sm:w-auto sm:py-1.5"
-                >
-                  {showPasswordChange ? 'Cancelar' : 'Alterar senha'}
-                </button>
               </div>
 
               {showPasswordChange && (
-                <div className="space-y-4">
+                <div className="space-y-4 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5">
                   <div>
-                    <label className={`mb-2 block text-sm font-medium ${themeClasses.text.primary}`}>Senha atual</label>
+                    <label className={`mb-2 block text-sm font-semibold ${themeClasses.text.secondary}`}>Senha atual</label>
                     <div className="relative">
                       <input
                         type={showPasswords.current ? 'text' : 'password'}
                         value={passwords.current}
                         onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                        className={`pr-10 ${inputClassName}`}
+                        className={`pr-11 ${inputClassName}`}
                         placeholder="Digite sua senha atual"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.secondary} hover:${themeClasses.text.primary}`}
+                        className={`absolute right-3.5 top-1/2 -translate-y-1/2 rounded-lg p-1 ${themeClasses.text.tertiary} transition-all duration-200 hover:text-violet-400 hover:bg-violet-500/10`}
                       >
                         {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -624,19 +632,19 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label className={`mb-2 block text-sm font-medium ${themeClasses.text.primary}`}>Nova senha</label>
+                    <label className={`mb-2 block text-sm font-semibold ${themeClasses.text.secondary}`}>Nova senha</label>
                     <div className="relative">
                       <input
                         type={showPasswords.new ? 'text' : 'password'}
                         value={passwords.new}
                         onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                        className={`pr-10 ${inputClassName}`}
+                        className={`pr-11 ${inputClassName}`}
                         placeholder="Digite uma nova senha"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.secondary} hover:${themeClasses.text.primary}`}
+                        className={`absolute right-3.5 top-1/2 -translate-y-1/2 rounded-lg p-1 ${themeClasses.text.tertiary} transition-all duration-200 hover:text-violet-400 hover:bg-violet-500/10`}
                       >
                         {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -644,19 +652,19 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <label className={`mb-2 block text-sm font-medium ${themeClasses.text.primary}`}>Confirmar senha</label>
+                    <label className={`mb-2 block text-sm font-semibold ${themeClasses.text.secondary}`}>Confirmar senha</label>
                     <div className="relative">
                       <input
                         type={showPasswords.confirm ? 'text' : 'password'}
                         value={passwords.confirm}
                         onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                        className={`pr-10 ${inputClassName}`}
+                        className={`pr-11 ${inputClassName}`}
                         placeholder="Confirme a nova senha"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 ${themeClasses.text.secondary} hover:${themeClasses.text.primary}`}
+                        className={`absolute right-3.5 top-1/2 -translate-y-1/2 rounded-lg p-1 ${themeClasses.text.tertiary} transition-all duration-200 hover:text-violet-400 hover:bg-violet-500/10`}
                       >
                         {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -667,7 +675,7 @@ export default function ProfilePage() {
                     type="button"
                     onClick={handleChangePassword}
                     disabled={saving}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 font-medium text-violet-400 transition-all hover:bg-violet-500/20 disabled:border-violet-500/10 disabled:bg-violet-500/5"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-500/10 px-4 py-3 text-sm font-semibold text-violet-400 transition-all duration-200 hover:bg-violet-500/20 active:scale-95 disabled:opacity-50"
                   >
                     {saving ? (
                       <>
@@ -683,20 +691,27 @@ export default function ProfilePage() {
             </section>
           </div>
 
-          <div className="space-y-6">
-            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
-              <div className="mb-6">
-                <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Preferências</h2>
-                <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>
-                  Ajuste as preferências da sua conta sem perder o contexto do seu fluxo de trabalho.
-                </p>
+          {/* Right Column */}
+          <div className="space-y-5 sm:space-y-6">
+            {/* Preferences */}
+            <section className={profileCardClass}>
+              <div className="mb-5 sm:mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg bg-violet-500/10 p-2">
+                    <BellRing className="h-5 w-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h2 className={`text-lg font-bold ${themeClasses.text.primary}`}>Preferências</h2>
+                    <p className={`text-xs ${themeClasses.text.tertiary}`}>Ajuste suas notificações</p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
-                <div className={`flex items-center justify-between gap-4 rounded-2xl border ${themeClasses.border.primary} p-4 transition-all hover:${themeClasses.border.secondary}`}>
+                <div className={`flex items-center justify-between gap-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 transition-all duration-200 hover:border-violet-500/30`}>
                   <div className="min-w-0">
-                    <p className={`font-medium ${themeClasses.text.primary}`}>Notificações por email</p>
-                    <p className={`text-sm ${themeClasses.text.secondary}`}>Receba alertas sobre suas tarefas</p>
+                    <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>Notificações por email</p>
+                    <p className={`text-xs ${themeClasses.text.tertiary}`}>Receba alertas sobre suas tarefas</p>
                   </div>
                   <label className="relative inline-flex flex-shrink-0 cursor-pointer items-center">
                     <input
@@ -705,61 +720,61 @@ export default function ProfilePage() {
                       onChange={(e) => handleEmailNotificationsChange(e.target.checked)}
                       className="peer sr-only"
                     />
-                    <div className="h-6 w-11 rounded-full bg-zinc-700 peer-checked:bg-violet-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                    <div className="h-6 w-11 rounded-full bg-zinc-700 transition-colors peer-checked:bg-violet-500 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-md after:transition-transform peer-checked:after:translate-x-full" />
                   </label>
                 </div>
 
-                <div className={`flex items-center justify-between gap-4 rounded-2xl border ${themeClasses.border.primary} p-4 transition-all hover:${themeClasses.border.secondary}`}>
+                <div className={`flex items-center justify-between gap-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 opacity-50`}>
                   <div className="min-w-0">
-                    <p className={`font-medium ${themeClasses.text.primary}`}>Autenticação em duas etapas</p>
-                    <p className={`text-sm ${themeClasses.text.secondary}`}>Ativar 2FA para maior segurança</p>
+                    <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>Autenticação em duas etapas</p>
+                    <p className={`text-xs ${themeClasses.text.tertiary}`}>Em breve</p>
                   </div>
-                  <label className="relative inline-flex flex-shrink-0 cursor-pointer items-center">
-                    <input type="checkbox" className="peer sr-only" />
-                    <div className="h-6 w-11 rounded-full bg-zinc-700 peer-checked:bg-violet-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-violet-500 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                  </label>
+                  <div className="h-6 w-11 rounded-full bg-zinc-800 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-zinc-600" />
                 </div>
               </div>
             </section>
 
-            <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
-              <div className="mb-6 flex items-start gap-3">
-                <div className={`flex-shrink-0 rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-2`}>
-                  <Crown className={`h-5 w-5 ${themeClasses.text.primary}`} />
-                </div>
-                <div>
-                  <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Assinatura</h2>
-                  <p className={`text-sm ${themeClasses.text.secondary}`}>Gerencie seu plano atual e recursos premium.</p>
+            {/* Subscription */}
+            <section className={profileCardClass}>
+              <div className="mb-5 sm:mb-6">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg bg-violet-500/10 p-2">
+                    <Crown className="h-5 w-5 text-violet-400" />
+                  </div>
+                  <div>
+                    <h2 className={`text-lg font-bold ${themeClasses.text.primary}`}>Assinatura</h2>
+                    <p className={`text-xs ${themeClasses.text.tertiary}`}>Gerencie seu plano</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className={`flex flex-col gap-3 rounded-2xl border ${themeClasses.border.primary} p-4 sm:flex-row sm:items-center sm:justify-between`}>
+              <div className="space-y-3">
+                <div className={`flex items-center justify-between gap-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4`}>
                   <div className="min-w-0">
-                    <p className={`font-medium ${themeClasses.text.primary}`}>Plano atual</p>
-                    <p className={`text-sm ${themeClasses.text.secondary}`}>
+                    <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>Plano atual</p>
+                    <p className={`text-xs ${themeClasses.text.tertiary}`}>
                       {subscriptionData?.plan === 'pro' ? 'Plano Pro' : 'Plano Gratuito'}
                     </p>
                   </div>
-                  <div className={`rounded-full px-3 py-1 text-sm font-medium ${
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                     subscriptionData?.plan === 'pro'
                       ? 'bg-violet-500/20 text-violet-400'
-                      : 'bg-zinc-700/50 text-zinc-300'
+                      : 'bg-zinc-700 text-zinc-300'
                   }`}>
                     {subscriptionData?.plan === 'pro' ? 'Pro' : 'Free'}
-                  </div>
+                  </span>
                 </div>
 
                 {subscriptionData?.plan === 'pro' && subscriptionData?.subscriptionEndsAt && (
                   <>
-                    <div className={`flex flex-col gap-3 rounded-2xl border ${themeClasses.border.primary} p-4 sm:flex-row sm:items-center sm:justify-between`}>
+                    <div className={`flex items-center justify-between gap-4 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4`}>
                       <div className="min-w-0">
-                        <p className={`font-medium ${themeClasses.text.primary}`}>Validade da assinatura</p>
-                        <p className={`text-sm ${themeClasses.text.secondary}`}>
+                        <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>Validade</p>
+                        <p className={`text-xs ${themeClasses.text.tertiary}`}>
                           {isSubscriptionActive() ? 'Ativo até' : 'Expirou em'}
                         </p>
                       </div>
-                      <p className={`font-medium ${isSubscriptionActive() ? themeClasses.text.primary : 'text-red-400'}`}>
+                      <p className={`text-sm font-bold ${isSubscriptionActive() ? 'text-emerald-400' : 'text-red-400'}`}>
                         {formatDate(subscriptionData.subscriptionEndsAt)}
                       </p>
                     </div>
@@ -768,32 +783,32 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => setShowCancelConfirmation(true)}
-                        className="w-full rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 font-medium text-red-400 transition-all hover:bg-red-500/20"
+                        className="w-full rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-semibold text-red-400 transition-all duration-200 hover:bg-red-500/10 active:scale-95"
                       >
                         Cancelar assinatura
                       </button>
                     ) : (
-                      <div className={`space-y-3 rounded-2xl border ${themeClasses.border.primary} bg-red-500/10 p-4`}>
-                        <p className={`font-medium ${themeClasses.text.primary}`}>
-                          Tem certeza que deseja cancelar sua assinatura?
+                      <div className="space-y-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-5">
+                        <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                          Cancelar assinatura?
                         </p>
-                        <p className={`text-sm ${themeClasses.text.secondary}`}>
-                          Você perderá acesso aos recursos premium imediatamente.
+                        <p className={`text-xs ${themeClasses.text.tertiary}`}>
+                          Você perderá acesso aos recursos premium.
                         </p>
-                        <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="flex gap-3">
                           <button
                             type="button"
                             onClick={() => setShowCancelConfirmation(false)}
                             disabled={cancelingSubscription}
-                            className="flex-1 rounded-2xl border border-zinc-600 px-4 py-2.5 font-medium text-zinc-300 transition-all hover:border-zinc-500 disabled:opacity-50"
+                            className="flex-1 rounded-xl border ${themeClasses.border.primary} px-4 py-2.5 text-sm font-semibold ${themeClasses.text.secondary} transition-all duration-200 hover:bg-zinc-800/50 disabled:opacity-50"
                           >
-                            Manter assinatura
+                            Manter
                           </button>
                           <button
                             type="button"
                             onClick={handleCancelSubscription}
                             disabled={cancelingSubscription}
-                            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-500 px-4 py-2.5 font-medium text-white transition-all hover:bg-red-600 disabled:bg-red-500/50"
+                            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-red-600 active:scale-95 disabled:opacity-50"
                           >
                             {cancelingSubscription ? (
                               <>
@@ -801,7 +816,7 @@ export default function ProfilePage() {
                                 Cancelando...
                               </>
                             ) : (
-                              'Confirmar cancelamento'
+                              'Confirmar'
                             )}
                           </button>
                         </div>
@@ -814,9 +829,10 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => router.push('/pricing')}
-                    className="w-full rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 font-medium text-white transition-all hover:from-violet-600 hover:to-indigo-600"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-200 hover:shadow-violet-500/40 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Atualizar para Pro
+                    <ArrowRight className="h-4 w-4" />
                   </button>
                 )}
               </div>
@@ -824,12 +840,18 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <section className={`${profileCardClass} p-4 sm:p-6 lg:p-8`}>
-          <div className="mb-6">
-            <h2 className={`text-xl font-semibold ${themeClasses.text.primary}`}>Comparação de planos</h2>
-            <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>
-              Veja como o seu plano atual se compara aos recursos disponíveis.
-            </p>
+        {/* Plan Comparison */}
+        <section className={profileCardClass}>
+          <div className="mb-5 sm:mb-6">
+            <div className="flex items-center gap-2.5">
+              <div className="rounded-lg bg-violet-500/10 p-2">
+                <Sparkles className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <h2 className={`text-lg font-bold ${themeClasses.text.primary}`}>Comparação de planos</h2>
+                <p className={`text-xs ${themeClasses.text.tertiary}`}>Veja os recursos disponíveis</p>
+              </div>
+            </div>
           </div>
           <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
             <div className="min-w-[640px] sm:min-w-0">

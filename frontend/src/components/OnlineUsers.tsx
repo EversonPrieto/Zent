@@ -1,4 +1,3 @@
-// src/components/OnlineUsers.tsx
 'use client';
 
 import { useTheme } from '../hooks/useTheme';

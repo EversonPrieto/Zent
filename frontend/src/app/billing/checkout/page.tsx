@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useTheme } from '../../../hooks/useTheme';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, ArrowLeft, Shield, Zap, CreditCard } from 'lucide-react';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -88,7 +88,6 @@ function CheckoutContent() {
       if (result.error) {
         setError(result.error.message || 'Erro ao processar pagamento');
       } else if (result.paymentIntent?.status === 'succeeded') {
-        // Confirmar pagamento no backend
         try {
           const token = localStorage.getItem('zent_token');
           console.log('[Checkout] Payment succeeded, confirming with backend...');
@@ -112,10 +111,7 @@ function CheckoutContent() {
           if (confirmResponse.ok) {
             const updatedUser = await confirmResponse.json();
             console.log('[Checkout] Updated user data received:', updatedUser);
-            console.log('[Checkout] Plan from backend:', updatedUser.plan);
-            console.log('[Checkout] Subscription ends at:', updatedUser.subscriptionEndsAt);
             
-            // Save updated user data with subscription info
             localStorage.setItem('zent_user', JSON.stringify(updatedUser));
             console.log('[Checkout] User data saved to localStorage');
           } else {
@@ -151,80 +147,122 @@ function CheckoutContent() {
 
   if (success) {
     return (
-      <main className={`min-h-screen flex items-center justify-center px-4 ${themeClasses.bg.primary}`}>
+      <main className={`relative min-h-screen flex items-center justify-center px-4 ${themeClasses.bg.primary}`}>
         <div className="max-w-md w-full text-center">
-          <CheckCircle2 className="h-16 w-16 text-emerald-400 mx-auto mb-4" />
-          <h1 className={`text-3xl font-bold mb-2 ${themeClasses.text.primary}`}>Pagamento Realizado!</h1>
-          <p className={`mb-6 ${themeClasses.text.tertiary}`}>
-            Sua assinatura foi ativada com sucesso. Redirecionando...
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-500/10">
+            <CheckCircle2 className="h-10 w-10 text-emerald-400" />
+          </div>
+          <h1 className={`text-3xl font-bold tracking-tight mb-3 ${themeClasses.text.primary}`}>
+            Pagamento Realizado!
+          </h1>
+          <p className={`text-sm leading-relaxed ${themeClasses.text.tertiary}`}>
+            Sua assinatura foi ativada com sucesso. Redirecionando para o dashboard...
           </p>
+          <div className="mt-6">
+            <Loader2 className="h-6 w-6 animate-spin text-violet-400 mx-auto" />
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className={themeClasses.bg.primary}>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-violet-500/30 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
+    <main className={`relative min-h-screen ${themeClasses.bg.primary}`}>
+      {/* Background */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-violet-500/8 blur-[100px]" />
+        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-indigo-500/8 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 max-w-md mx-auto px-4 py-12">
+      <div className="relative z-10 mx-auto max-w-md px-4 py-8 sm:py-12">
+        {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className={`mb-6 transition-colors ${themeClasses.text.tertiary} hover:${themeClasses.text.primary}`}
+          className={`group mb-6 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${themeClasses.text.tertiary} hover:text-violet-400 hover:bg-violet-500/5`}
         >
-          ← Voltar
+          <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
+          Voltar
         </button>
 
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 mb-6 flex gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-amber-400 font-medium text-sm">Modo de Teste</p>
-            <p className={`text-xs mt-1 ${themeClasses.text.tertiary}`}>
-              Use o cartão <span className="font-semibold text-amber-400">4242 4242 4242 4242</span> com qualquer data futura e CVC para testar. Nenhum valor será cobrado.
+        {/* Test Mode Alert */}
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+          <div className="rounded-lg bg-amber-500/10 p-1.5">
+            <AlertCircle className="h-5 w-5 text-amber-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-400">Modo de Teste</p>
+            <p className={`mt-1 text-xs leading-relaxed ${themeClasses.text.tertiary}`}>
+              Use o cartão <span className="font-bold text-amber-400">4242 4242 4242 4242</span> com qualquer data futura e CVC.
             </p>
           </div>
         </div>
 
-        <div className={`rounded-2xl border backdrop-blur-sm p-8 ${themeClasses.border.primary} ${themeClasses.bg.secondary}`}>
-          <h1 className={`text-2xl font-bold mb-2 ${themeClasses.text.primary}`}>Plano Pro</h1>
-          <p className={`mb-6 ${themeClasses.text.tertiary}`}>R$ 29,00/mês • 14 dias de avaliação gratuita</p>
+        {/* Checkout Card */}
+        <div className={`rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 sm:p-8 shadow-2xl shadow-black/10`}>
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-xl bg-violet-500/10 p-2">
+                <Zap className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <h1 className={`text-2xl font-bold tracking-tight ${themeClasses.text.primary}`}>
+                  Plano Pro
+                </h1>
+                <p className={`text-sm ${themeClasses.text.tertiary}`}>
+                  R$ 29,00/mês • 14 dias grátis
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Error */}
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 flex gap-3">
-                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
+            {/* Email */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>Email</label>
+              <label className={`mb-2 flex items-center gap-2 text-sm font-semibold ${themeClasses.text.secondary}`}>
+                Email
+              </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary}`}
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-4 py-3 text-sm ${themeClasses.text.primary} outline-none transition-all duration-200 placeholder:text-zinc-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20`}
+                placeholder="seu@email.com"
                 required
               />
             </div>
 
+            {/* Name */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>Nome</label>
+              <label className={`mb-2 flex items-center gap-2 text-sm font-semibold ${themeClasses.text.secondary}`}>
+                Nome completo
+              </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={`w-full rounded-lg border px-4 py-2 outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 ${themeClasses.border.primary} ${themeClasses.bg.tertiary} ${themeClasses.text.primary}`}
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-4 py-3 text-sm ${themeClasses.text.primary} outline-none transition-all duration-200 placeholder:text-zinc-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20`}
+                placeholder="Seu nome"
                 required
               />
             </div>
 
+            {/* Card */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${themeClasses.text.secondary}`}>Cartão</label>
-              <div className={`rounded-lg border p-3 ${themeClasses.border.primary} ${themeClasses.bg.tertiary}`}>
+              <label className={`mb-2 flex items-center gap-2 text-sm font-semibold ${themeClasses.text.secondary}`}>
+                <CreditCard className="h-4 w-4 text-violet-400" />
+                Cartão de crédito
+              </label>
+              <div className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 transition-all duration-200 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20`}>
                 <CardElement
                   options={{
                     style: {
@@ -232,8 +270,9 @@ function CheckoutContent() {
                         fontSize: '16px',
                         color: themeClasses.text.primary === 'text-white' ? '#ffffff' : '#18181b',
                         '::placeholder': {
-                          color: themeClasses.text.hint === 'text-zinc-400' ? '#71717a' : '#a1a1aa',
+                          color: '#71717a',
                         },
+                        fontFamily: 'inherit',
                       },
                       invalid: {
                         color: '#ef4444',
@@ -244,28 +283,35 @@ function CheckoutContent() {
               </div>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading || !stripe}
-              className="w-full mt-6 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 py-3 font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transition-transform"
+              className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-200 hover:shadow-violet-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
-                  Processando...
-                </>
-              ) : (
-                'Confirmar Pagamento'
-              )}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-4 w-4" />
+                    Confirmar Pagamento
+                  </>
+                )}
+              </span>
             </button>
 
-            <p className={`text-xs text-center ${themeClasses.text.tertiary}`}>
+            {/* Terms */}
+            <p className={`text-center text-xs ${themeClasses.text.tertiary}`}>
               Ao prosseguir, você concorda com nossos{' '}
-              <a href="#" className="text-violet-400 hover:underline">
+              <a href="#" className="text-violet-400 hover:underline font-medium">
                 Termos de Serviço
               </a>{' '}
               e{' '}
-              <a href="#" className="text-violet-400 hover:underline">
+              <a href="#" className="text-violet-400 hover:underline font-medium">
                 Política de Privacidade
               </a>
             </p>

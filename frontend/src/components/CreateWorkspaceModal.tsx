@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../lib/api';
 import { useTheme } from '../hooks/useTheme';
 import {
@@ -34,10 +35,15 @@ export default function CreateWorkspaceModal({
   onCreated,
 }: Props) {
   const { themeClasses } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function handleCreate() {
     if (!name.trim()) {
@@ -68,41 +74,36 @@ export default function CreateWorkspaceModal({
     }
   }
 
+  if (!mounted) return null;
+
   const isFormValid = name.trim();
   const nameLength = name.length;
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-hidden bg-black/70 p-2 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[2147483647] isolate flex items-center justify-center overflow-hidden bg-black/60 p-3 backdrop-blur-sm animate-in fade-in duration-200 sm:p-6">
       <div
-        className={`relative flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl animate-in slide-in-from-bottom-4 duration-300 sm:max-h-[90vh]`}
+        className={`relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl shadow-black/20 animate-in zoom-in-95 duration-300`}
       >
-        <div
-          className={`flex-shrink-0 border-b ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 sm:p-6`}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="flex-shrink-0 rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-500/20 p-2">
+        {/* Header */}
+        <div className={`flex-shrink-0 border-b ${themeClasses.border.primary} px-5 py-4 sm:px-6 sm:py-5`}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-violet-500/10 p-2">
                 <Building2 className="h-5 w-5 text-violet-400" />
               </div>
-
-              <div className="min-w-0">
-                <h2
-                  className={`truncate text-lg font-bold sm:text-xl ${themeClasses.text.primary}`}
-                >
+              <div>
+                <h2 className={`text-xl font-bold tracking-tight ${themeClasses.text.primary}`}>
                   Novo workspace
                 </h2>
-
-                <p
-                  className={`mt-1 text-sm leading-snug ${themeClasses.text.secondary}`}
-                >
-                  Crie um novo ambiente para seu time.
+                <p className={`mt-1 text-sm ${themeClasses.text.tertiary}`}>
+                  Crie um ambiente para seu time
                 </p>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className={`flex-shrink-0 rounded-lg p-2 ${themeClasses.text.secondary} transition-colors hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary}`}
+              className={`flex-shrink-0 rounded-xl p-2 transition-all duration-200 ${themeClasses.text.tertiary} hover:bg-zinc-800/50 hover:text-white hover:scale-105 active:scale-95`}
               aria-label="Fechar modal"
             >
               <X className="h-5 w-5" />
@@ -110,13 +111,13 @@ export default function CreateWorkspaceModal({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="space-y-5 p-4 sm:p-6">
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+          <div className="space-y-5">
+            {/* Name Input */}
             <div>
-              <label
-                className={`mb-2 flex items-center gap-2 text-sm font-medium ${themeClasses.text.secondary}`}
-              >
-                <Tag className="h-4 w-4 flex-shrink-0 text-violet-400" />
+              <label className={`mb-2 flex items-center gap-2 text-sm font-semibold ${themeClasses.text.secondary}`}>
+                <Tag className="h-4 w-4 text-violet-400" />
                 Nome do workspace
               </label>
 
@@ -125,24 +126,24 @@ export default function CreateWorkspaceModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex.: Equipe Zent, Marketing..."
                 autoFocus
-                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-2.5 ${themeClasses.text.primary} placeholder:${themeClasses.text.hint} outline-none transition-all focus:border-violet-500 focus:ring-1 focus:ring-violet-500`}
+                className={`w-full rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-4 py-3 text-sm ${themeClasses.text.primary} outline-none transition-all duration-200 placeholder:text-zinc-500 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20`}
               />
 
               {name && (
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className={themeClasses.text.secondary}>
-                    {nameLength} caracteres
+                  <span className={`font-medium ${themeClasses.text.tertiary}`}>
+                    {nameLength} caractere{nameLength !== 1 ? 's' : ''}
                   </span>
 
                   {nameLength >= 3 && nameLength <= 50 && (
-                    <span className="flex items-center gap-1 text-emerald-400">
-                      <CheckCircle2 className="h-3 w-3" />
+                    <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
                       Nome válido
                     </span>
                   )}
 
                   {nameLength > 50 && (
-                    <span className="text-red-400">
+                    <span className="text-red-400 font-medium">
                       Máximo 50 caracteres
                     </span>
                   )}
@@ -150,47 +151,40 @@ export default function CreateWorkspaceModal({
               )}
             </div>
 
-            <div
-              className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}
-            >
-              <div className="flex items-start gap-2">
-                <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-violet-400" />
-
-                <div className={`min-w-0 text-xs ${themeClasses.text.secondary}`}>
-                  <p
-                    className={`mb-2 font-medium ${themeClasses.text.primary}`}
-                  >
-                    O que você pode fazer com um workspace:
+            {/* Info Card */}
+            <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg bg-violet-500/10 p-1.5">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                    O que você pode fazer:
                   </p>
-
-                  <ul className="space-y-1.5">
-                    <li className="flex items-start gap-1.5">
-                      <Users className="mt-0.5 h-3 w-3 flex-shrink-0 text-violet-400" />
-                      <span>Convidar membros da sua equipe</span>
+                  <ul className="mt-2 space-y-2">
+                    <li className="flex items-start gap-2 text-xs">
+                      <Users className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-violet-400" />
+                      <span className={themeClasses.text.tertiary}>Convidar membros da sua equipe</span>
                     </li>
-
-                    <li className="flex items-start gap-1.5">
-                      <LayoutDashboard className="mt-0.5 h-3 w-3 flex-shrink-0 text-violet-400" />
-                      <span>Criar projetos e organizar tasks</span>
+                    <li className="flex items-start gap-2 text-xs">
+                      <LayoutDashboard className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-violet-400" />
+                      <span className={themeClasses.text.tertiary}>Criar projetos e organizar tasks</span>
                     </li>
-
-                    <li className="flex items-start gap-1.5">
-                      <Shield className="mt-0.5 h-3 w-3 flex-shrink-0 text-violet-400" />
-                      <span>Gerenciar permissões por função</span>
+                    <li className="flex items-start gap-2 text-xs">
+                      <Shield className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-violet-400" />
+                      <span className={themeClasses.text.tertiary}>Gerenciar permissões por função</span>
                     </li>
                   </ul>
                 </div>
               </div>
             </div>
 
+            {/* Suggestions */}
             {!name && (
-              <div
-                className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}
-              >
-                <p className={`mb-2 text-xs ${themeClasses.text.secondary}`}>
+              <div className={`rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-4`}>
+                <p className={`mb-3 text-xs font-semibold ${themeClasses.text.secondary}`}>
                   💡 Sugestões de nomes:
                 </p>
-
                 <div className="flex flex-wrap gap-2">
                   {[
                     'Equipe Design',
@@ -202,7 +196,7 @@ export default function CreateWorkspaceModal({
                     <button
                       key={suggestion}
                       onClick={() => setName(suggestion)}
-                      className={`rounded-lg border ${themeClasses.border.primary} ${themeClasses.bg.subtle} px-2 py-1 text-xs ${themeClasses.text.secondary} transition-all hover:border-violet-500/50 hover:bg-violet-500/10 hover:text-violet-400`}
+                      className={`rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} px-3 py-2 text-xs font-medium ${themeClasses.text.secondary} transition-all duration-200 hover:border-violet-500/40 hover:text-violet-400 hover:bg-violet-500/5 active:scale-95`}
                     >
                       {suggestion}
                     </button>
@@ -211,50 +205,53 @@ export default function CreateWorkspaceModal({
               </div>
             )}
 
+            {/* Error */}
             {error && (
-              <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <p className={`text-center text-xs ${themeClasses.text.secondary}`}>
+            {/* Owner Info */}
+            <p className={`text-center text-xs ${themeClasses.text.tertiary}`}>
               Você será o{' '}
-              <span className="text-violet-400">proprietário</span> deste
-              workspace
+              <span className="font-semibold text-violet-400">proprietário</span> deste workspace
             </p>
           </div>
         </div>
 
-        <div
-          className={`flex flex-shrink-0 flex-col-reverse gap-2 border-t ${themeClasses.border.primary} ${themeClasses.bg.primary} p-4 sm:flex-row sm:justify-end sm:gap-3 sm:p-6`}
-        >
-          <button
-            onClick={onClose}
-            className={`w-full rounded-lg px-4 py-2 text-sm ${themeClasses.text.secondary} transition-all hover:${themeClasses.bg.hover} hover:${themeClasses.text.primary} sm:w-auto`}
-          >
-            Cancelar
-          </button>
+        {/* Footer */}
+        <div className={`flex-shrink-0 border-t ${themeClasses.border.primary} px-5 py-4 sm:px-6 sm:py-5`}>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+            <button
+              onClick={onClose}
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200 ${themeClasses.text.tertiary} hover:text-white hover:bg-zinc-800/50 active:scale-[0.98]`}
+            >
+              Cancelar
+            </button>
 
-          <button
-            onClick={handleCreate}
-            disabled={loading || !isFormValid || nameLength > 50}
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-105 hover:shadow-violet-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 sm:w-auto"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Criando...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                Criar workspace
-              </>
-            )}
-          </button>
+            <button
+              onClick={handleCreate}
+              disabled={loading || !isFormValid || nameLength > 50}
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-200 hover:shadow-violet-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  Criar workspace
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
