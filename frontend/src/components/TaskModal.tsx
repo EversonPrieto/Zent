@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../lib/api';
 import { useTheme } from '../hooks/useTheme';
@@ -109,6 +109,155 @@ const sectionTitleClass = 'flex items-center gap-2.5 text-lg font-semibold';
 const badgeBaseClass = 'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200';
 const primaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all duration-200 hover:shadow-violet-500/40 sm:hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:sm:hover:scale-100 sm:px-5';
 const secondaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 hover:bg-zinc-800/50 active:scale-[0.98] sm:px-5';
+
+function renderInlineMarkdown(text: string, themeClasses: any) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={`${part}-${index}`} className={themeClasses.text.primary}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return <span key={`${part}-${index}`}>{part}</span>;
+  });
+}
+
+function DescriptionPreview({
+  value,
+  themeClasses,
+  readOnly = false,
+  onToggleChecklistItem,
+}: {
+  value: string;
+  themeClasses: any;
+  readOnly?: boolean;
+  onToggleChecklistItem?: (lineIndex: number) => void;
+}) {
+  if (!value.trim()) return null;
+
+  const lines = value.split('\n');
+
+  return (
+    <div className={`mt-3 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-3`}>
+      <div className={`mb-2 text-xs font-semibold ${themeClasses.text.tertiary}`}>
+        Prévia formatada
+      </div>
+
+      <div className={`space-y-1.5 text-sm leading-relaxed ${themeClasses.text.secondary}`}>
+        {lines.map((line, lineIndex) => {
+          const checklistMatch = line.match(/^(\s*)[-*]\s+\[([ xX])\]\s*(.*)$/);
+
+          if (checklistMatch) {
+            const checked = checklistMatch[2].toLowerCase() === 'x';
+            const content = checklistMatch[3] || 'Item sem texto';
+
+            return (
+              <div key={`${line}-${lineIndex}`} className="flex items-start gap-2">
+                <button
+                  type="button"
+                  onClick={() => onToggleChecklistItem?.(lineIndex)}
+                  disabled={readOnly || !onToggleChecklistItem}
+                  className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-all ${
+                    checked
+                      ? 'border-violet-500 bg-violet-500'
+                      : `border-zinc-500/60 ${themeClasses.bg.tertiary} hover:border-violet-500`
+                  } disabled:cursor-not-allowed disabled:opacity-70`}
+                  title={checked ? 'Marcar como pendente' : 'Marcar como concluído'}
+                >
+                  {checked && <span className="text-[10px] font-bold leading-none text-white">✓</span>}
+                </button>
+
+                <span className={`min-w-0 break-words ${checked ? `line-through ${themeClasses.text.tertiary}` : themeClasses.text.secondary}`}>
+                  {renderInlineMarkdown(content, themeClasses)}
+                </span>
+              </div>
+            );
+          }
+
+          const bulletMatch = line.match(/^(\s*)[-*]\s+(.*)$/);
+
+          if (bulletMatch) {
+            return (
+              <div key={`${line}-${lineIndex}`} className="flex items-start gap-2">
+                <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400" />
+                <span className="min-w-0 break-words">
+                  {renderInlineMarkdown(bulletMatch[2] || 'Item sem texto', themeClasses)}
+                </span>
+              </div>
+            );
+          }
+
+          if (!line.trim()) {
+            return <div key={`${line}-${lineIndex}`} className="h-2" />;
+          }
+
+          return (
+            <p key={`${line}-${lineIndex}`} className="break-words">
+              {renderInlineMarkdown(line, themeClasses)}
+            </p>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DescriptionToolbar({
+  disabled,
+  themeClasses,
+  onBold,
+  onChecklist,
+  onList,
+}: {
+  disabled?: boolean;
+  themeClasses: any;
+  onBold: () => void;
+  onChecklist: () => void;
+  onList: () => void;
+}) {
+  return (
+    <div className={`mb-2 flex flex-wrap items-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2`}>
+      <button
+        type="button"
+        onClick={onBold}
+        disabled={disabled}
+        className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${themeClasses.text.secondary} hover:bg-violet-500/10 hover:text-violet-400 disabled:cursor-not-allowed disabled:opacity-50`}
+        title="Negrito"
+      >
+        B
+      </button>
+
+      <button
+        type="button"
+        onClick={onChecklist}
+        disabled={disabled}
+        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${themeClasses.text.secondary} hover:bg-violet-500/10 hover:text-violet-400 disabled:cursor-not-allowed disabled:opacity-50`}
+        title="Inserir checklist"
+      >
+        ☑ Checklist
+      </button>
+
+      <button
+        type="button"
+        onClick={onList}
+        disabled={disabled}
+        className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${themeClasses.text.secondary} hover:bg-violet-500/10 hover:text-violet-400 disabled:cursor-not-allowed disabled:opacity-50`}
+        title="Inserir lista"
+      >
+        • Lista
+      </button>
+
+      <span className={`ml-auto hidden text-[11px] ${themeClasses.text.muted} sm:inline`}>
+        **negrito** · - [ ] checklist · - lista
+      </span>
+    </div>
+  );
+}
+
 
 export default function TaskModal({
   task,
@@ -368,6 +517,124 @@ export default function TaskModal({
   const currentPriorityConfig = priorityConfig[priority];
   const StatusIcon = currentStatusConfig.icon;
   const PriorityIcon = currentPriorityConfig.icon;
+
+  const descriptionTextareaId = 'task-description-textarea';
+
+  function focusDescription(cursorPosition?: number) {
+    window.setTimeout(() => {
+      const textarea = document.getElementById(descriptionTextareaId) as HTMLTextAreaElement | null;
+      if (!textarea) return;
+
+      textarea.focus();
+
+      if (typeof cursorPosition === 'number') {
+        textarea.setSelectionRange(cursorPosition, cursorPosition);
+      }
+    }, 0);
+  }
+
+  function insertDescriptionAround(beforeText: string, afterText: string, placeholder: string) {
+    const textarea = document.getElementById(descriptionTextareaId) as HTMLTextAreaElement | null;
+    const start = textarea?.selectionStart ?? description.length;
+    const end = textarea?.selectionEnd ?? description.length;
+    const selectedText = description.slice(start, end) || placeholder;
+
+    const nextDescription =
+      description.slice(0, start) +
+      beforeText +
+      selectedText +
+      afterText +
+      description.slice(end);
+
+    setDescription(nextDescription);
+    focusDescription(start + beforeText.length + selectedText.length);
+  }
+
+  function insertDescriptionLine(line: string) {
+    const prefix = description.length === 0 || description.endsWith('\n') ? '' : '\n';
+    const nextDescription = `${description}${prefix}${line}`;
+
+    setDescription(nextDescription);
+    focusDescription(nextDescription.length);
+  }
+
+  function toggleChecklistLine(lineIndex: number) {
+    setDescription((current) =>
+      current
+        .split('\n')
+        .map((line, index) => {
+          if (index !== lineIndex) return line;
+
+          if (/\[[xX]\]/.test(line)) {
+            return line.replace(/\[[xX]\]/, '[ ]');
+          }
+
+          return line.replace(/\[ \]/, '[x]');
+        })
+        .join('\n'),
+    );
+  }
+
+  function handleDescriptionKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+      event.preventDefault();
+      insertDescriptionAround('**', '**', 'texto em negrito');
+      return;
+    }
+
+    if (event.key !== 'Enter' || event.shiftKey) return;
+
+    const textarea = event.currentTarget;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    if (start !== end) return;
+
+    const beforeCursor = description.slice(0, start);
+    const afterCursor = description.slice(start);
+    const currentLineStart = beforeCursor.lastIndexOf('\n') + 1;
+    const currentLine = beforeCursor.slice(currentLineStart);
+
+    const checklistMatch = currentLine.match(/^(\s*)[-*]\s+\[[ xX]\]\s*(.*)$/);
+
+    if (checklistMatch) {
+      event.preventDefault();
+
+      if (!checklistMatch[2].trim()) {
+        const nextDescription = description.slice(0, currentLineStart) + afterCursor;
+        setDescription(nextDescription);
+        focusDescription(currentLineStart);
+        return;
+      }
+
+      const insertText = `\n${checklistMatch[1]}- [ ] `;
+      const nextDescription = beforeCursor + insertText + afterCursor;
+
+      setDescription(nextDescription);
+      focusDescription(start + insertText.length);
+      return;
+    }
+
+    const listMatch = currentLine.match(/^(\s*)[-*]\s+(.*)$/);
+
+    if (listMatch) {
+      event.preventDefault();
+
+      if (!listMatch[2].trim()) {
+        const nextDescription = description.slice(0, currentLineStart) + afterCursor;
+        setDescription(nextDescription);
+        focusDescription(currentLineStart);
+        return;
+      }
+
+      const insertText = `\n${listMatch[1]}- `;
+      const nextDescription = beforeCursor + insertText + afterCursor;
+
+      setDescription(nextDescription);
+      focusDescription(start + insertText.length);
+    }
+  }
+
 
   async function handleSave() {
     if (!title.trim()) return;
@@ -664,13 +931,31 @@ export default function TaskModal({
                     <Tag className="h-4 w-4 text-violet-400" />
                     Descrição
                   </label>
+
+                  <DescriptionToolbar
+                    disabled={!canEdit}
+                    themeClasses={themeClasses}
+                    onBold={() => insertDescriptionAround('**', '**', 'texto em negrito')}
+                    onChecklist={() => insertDescriptionLine('- [ ] novo item')}
+                    onList={() => insertDescriptionLine('- novo item')}
+                  />
+
                   <textarea
+                    id={descriptionTextareaId}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    onKeyDown={handleDescriptionKeyDown}
                     disabled={!canEdit}
-                    rows={5}
-                    className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary} resize-y min-h-[120px]`}
-                    placeholder="Descreva os detalhes da task..."
+                    rows={6}
+                    className={`${inputBaseClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} ${themeClasses.text.primary} resize-y min-h-[150px] font-mono text-[13px] leading-relaxed`}
+                    placeholder={`Descreva os detalhes da task...\n\nExemplos:\n- [ ] arrumar header\n- [x] arrumar landing page\n**texto em negrito**\n- item de lista`}
+                  />
+
+                  <DescriptionPreview
+                    value={description}
+                    themeClasses={themeClasses}
+                    readOnly={!canEdit}
+                    onToggleChecklistItem={toggleChecklistLine}
                   />
                 </div>
 

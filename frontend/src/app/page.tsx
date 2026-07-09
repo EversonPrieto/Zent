@@ -31,8 +31,21 @@ type ThemeName = 'dark' | 'light';
 
 export default function HomePage() {
   const router = useRouter();
-  const { themeClasses } = useTheme();
+  const { theme, themeClasses } = useTheme();
   const [activeTheme, setActiveTheme] = useState<ThemeName>('dark');
+  const isLightTheme = theme === 'light' || themeClasses.bg.primary === 'bg-white';
+
+  function getCurrentTheme(): ThemeName {
+    if (typeof window === 'undefined') return 'dark';
+
+    const storedTheme = localStorage.getItem('zent_theme');
+
+    if (storedTheme === 'dark' || storedTheme === 'light') {
+      return storedTheme;
+    }
+
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('zent_token');
@@ -41,13 +54,30 @@ export default function HomePage() {
       return;
     }
 
-    setActiveTheme(
-      document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-    );
+    function syncTheme() {
+      setActiveTheme(getCurrentTheme());
+    }
+
+    syncTheme();
+
+    const observer = new MutationObserver(syncTheme);
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    window.addEventListener('theme-changed', syncTheme);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('theme-changed', syncTheme);
+    };
   }, [router]);
 
   function toggleTheme() {
-    const nextTheme: ThemeName = activeTheme === 'dark' ? 'light' : 'dark';
+    const currentTheme = getCurrentTheme();
+    const nextTheme: ThemeName = currentTheme === 'dark' ? 'light' : 'dark';
 
     localStorage.setItem('zent_theme', nextTheme);
     setActiveTheme(nextTheme);
@@ -226,9 +256,9 @@ export default function HomePage() {
             </div>
 
             <h2 className={`mt-7 max-w-4xl text-4xl font-black leading-[1.03] tracking-tight sm:text-6xl lg:text-7xl ${themeClasses.text.primary}`}>
-              Projetos, tasks e time
+              Projetos, Tasks e Time
               <span className="block bg-gradient-to-r from-violet-400 via-indigo-400 to-blue-400 bg-clip-text text-transparent">
-                no mesmo fluxo.
+                no mesmo Fluxo
               </span>
             </h2>
 
@@ -292,8 +322,17 @@ export default function HomePage() {
                   </span>
                   <div className="flex -space-x-2">
                     {['E', 'M', 'L'].map((name) => (
-                      <div key={name} className="flex h-8 w-8 items-center justify-center rounded-full border border-violet-500/30 bg-violet-500/20 text-xs font-bold text-violet-200">
-                        {name}
+                      <div
+                        key={name}
+                        className={`relative isolate flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border text-xs font-black shadow-sm shadow-violet-500/10 ${
+                          isLightTheme
+                            ? 'border-violet-500/40 bg-white text-black'
+                            : 'border-violet-500/30 bg-violet-500/20 text-white'
+                        }`}
+                      >
+                        <span className="relative z-10 leading-none">
+                          {name}
+                        </span>
                       </div>
                     ))}
                   </div>

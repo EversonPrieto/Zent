@@ -13,7 +13,7 @@ export default function DashboardLayout({
   
   return (
     <div className={`min-h-screen ${themeClasses.bg.primary}`}>
-      {/* removed decorative gradient overlay to keep only the background */}
+      
 
       <div className="relative z-10">
         <AppHeader />
