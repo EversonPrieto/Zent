@@ -305,7 +305,7 @@ export default function ProjectBoardPage() {
   const [projectMembers, setProjectMembers] = useState<
     Array<{ id: string; name: string; email: string; avatarUrl: string | null }>
   >([]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   const [currentUser, setCurrentUser] = useState<{
     id: string;
@@ -919,87 +919,102 @@ export default function ProjectBoardPage() {
               </DndContext>
             </div>
 
-            {/* Sidebar */}
-            <div
-              className={`hidden flex-shrink-0 flex-col transition-all duration-300 ease-in-out xl:flex ${
-                sidebarCollapsed ? 'w-16' : 'w-80'
-              }`}
-            >
-              <div className="sticky top-24 h-[calc(100vh-240px)] space-y-4 overflow-y-auto">
-                {/* Toggle Button */}
-                <button
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className={`flex w-full items-center justify-center rounded-xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-2.5 transition-all duration-200 hover:border-violet-500/30 hover:shadow-md`}
-                  title={sidebarCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-                >
-                  {sidebarCollapsed ? (
-                    <ChevronLeft className={`h-5 w-5 ${themeClasses.text.tertiary}`} />
-                  ) : (
-                    <ChevronRight className={`h-5 w-5 ${themeClasses.text.tertiary}`} />
-                  )}
-                </button>
+            {/* Floating Sidebar Button / Drawer - não ocupa espaço no Kanban */}
+            <div className="hidden xl:block">
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(false)}
+                className={`fixed right-4 top-1/2 z-40 flex -translate-y-1/2 items-center gap-2 rounded-2xl border border-violet-500/40 ${themeClasses.bg.secondary} px-4 py-3 text-sm font-semibold text-violet-400 shadow-xl shadow-black/20 backdrop-blur-xl transition-all duration-200 hover:border-violet-500/70 hover:bg-violet-500/10 hover:text-violet-300 ${
+                  sidebarCollapsed
+                    ? 'pointer-events-auto translate-x-0 opacity-100'
+                    : 'pointer-events-none translate-x-2 opacity-0'
+                }`}
+                title="Abrir informações do projeto"
+                aria-hidden={!sidebarCollapsed}
+              >
+                <ChevronLeft className="h-5 w-5" />
+                <span className="whitespace-nowrap leading-none">
+                  Info
+                </span>
+              </button>
 
-                {/* Online Users Card */}
-                <div
-                  className={`${sidebarCardClass} ${themeClasses.border.primary} ${themeClasses.bg.secondary} ${
-                    sidebarCollapsed ? 'hidden' : 'block'
-                  }`}
-                >
-                  <div className={`border-b ${themeClasses.border.primary} px-5 py-4`}>
-                    <div className="flex items-center gap-2.5">
-                      <div className="rounded-lg bg-violet-500/10 p-2">
-                        <Users className="h-4 w-4 text-violet-400" />
-                      </div>
-                      <h3 className={`text-sm font-semibold ${themeClasses.text.primary}`}>
-                        Online
-                      </h3>
+              <aside
+                aria-hidden={sidebarCollapsed}
+                className={`fixed right-4 top-24 z-40 flex h-[calc(100vh-7rem)] w-80 flex-col overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.secondary} shadow-2xl shadow-black/30 backdrop-blur-xl transition-all duration-300 ease-out ${
+                  sidebarCollapsed
+                    ? 'pointer-events-none translate-x-[calc(100%+1.5rem)] opacity-0'
+                    : 'pointer-events-auto translate-x-0 opacity-100'
+                }`}
+              >
+                <div className={`flex items-center justify-between border-b ${themeClasses.border.primary} px-5 py-4`}>
+                  <div className="flex items-center gap-2.5">
+                    <div className="rounded-lg bg-violet-500/10 p-2">
+                      <Activity className="h-4 w-4 text-violet-400" />
                     </div>
+                    <h3 className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                      Info
+                    </h3>
                   </div>
-                  <div className="p-5">
-                    {currentUser && (
-                      <OnlineUsers
-                        users={onlineUsers}
-                        currentUserId={currentUser.id}
-                      />
-                    )}
-                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSidebarCollapsed(true)}
+                    className={`rounded-lg p-2 ${themeClasses.text.tertiary} transition-all hover:bg-violet-500/10 hover:text-violet-400`}
+                    title="Fechar informações"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
                 </div>
 
-                {/* Activity Feed Card */}
-                <div
-                  className={`${sidebarCardClass} ${themeClasses.border.primary} ${themeClasses.bg.secondary} flex-1 ${
-                    sidebarCollapsed ? 'hidden' : 'block'
-                  }`}
-                >
-                  <div className={`border-b ${themeClasses.border.primary} px-5 py-4`}>
-                    <div className="flex items-center gap-2.5">
-                      <div className="rounded-lg bg-violet-500/10 p-2">
-                        <Activity className="h-4 w-4 text-violet-400" />
+                <div className="flex-1 space-y-4 overflow-y-auto p-4 custom-scrollbar">
+                  {/* Online Users Card */}
+                  <div className={`${sidebarCardClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle}`}>
+                    <div className={`border-b ${themeClasses.border.primary} px-5 py-4`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="rounded-lg bg-violet-500/10 p-2">
+                          <Users className="h-4 w-4 text-violet-400" />
+                        </div>
+                        <h3 className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                          Online
+                        </h3>
                       </div>
-                      <h3 className={`text-sm font-semibold ${themeClasses.text.primary}`}>
-                        Atividade recente
-                      </h3>
+                    </div>
+                    <div className="p-5">
+                      {currentUser && (
+                        <OnlineUsers
+                          users={onlineUsers}
+                          currentUserId={currentUser.id}
+                        />
+                      )}
                     </div>
                   </div>
-                  <div className="p-5">
-                    {typeof workspaceId === 'string' &&
-                    workspaceId.length > 0 &&
-                    typeof projectId === 'string' &&
-                    projectId.length > 0 ? (
-                      <>
-                        {console.log('[Kanban ActivityFeed props]', {
-                          workspaceId,
-                          projectId,
-                        })}
+
+                  {/* Activity Feed Card */}
+                  <div className={`${sidebarCardClass} ${themeClasses.border.primary} ${themeClasses.bg.subtle} flex-1`}>
+                    <div className={`border-b ${themeClasses.border.primary} px-5 py-4`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="rounded-lg bg-violet-500/10 p-2">
+                          <Activity className="h-4 w-4 text-violet-400" />
+                        </div>
+                        <h3 className={`text-sm font-semibold ${themeClasses.text.primary}`}>
+                          Atividade recente
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      {typeof workspaceId === 'string' &&
+                      workspaceId.length > 0 &&
+                      typeof projectId === 'string' &&
+                      projectId.length > 0 ? (
                         <ActivityFeed
                           workspaceId={workspaceId}
                           projectId={projectId}
                         />
-                      </>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </aside>
             </div>
           </div>
         )}
