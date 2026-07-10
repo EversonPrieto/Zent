@@ -50,7 +50,7 @@ export function OnlineUsers({ users, currentUserId }: OnlineUsersProps) {
             <Wifi className="h-4 w-4 text-emerald-400" />
           </div>
           <h3 className={`text-sm font-semibold ${themeClasses.text.primary}`}>
-            Online
+            Usuarios Ativos
           </h3>
         </div>
         <span className={`rounded-full ${themeClasses.bg.subtle} px-2.5 py-0.5 text-xs font-semibold ${themeClasses.text.tertiary}`}>

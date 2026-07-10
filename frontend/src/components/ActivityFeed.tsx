@@ -308,7 +308,7 @@ export default function ActivityFeed({
         <div className="flex items-center gap-2">
           <ActivityIcon className="h-4 w-4 flex-shrink-0 text-violet-400" />
           <h3 className={`text-sm font-medium ${themeClasses.text.primary}`}>
-            Atividades
+            N° de Atividades
           </h3>
           {hasActivities && (
             <span className={`rounded-full ${themeClasses.bg.subtle} px-2 py-0.5 text-xs ${themeClasses.text.tertiary}`}>
