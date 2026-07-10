@@ -11,7 +11,11 @@ import {
 
 import { useTheme } from '../hooks/useTheme';
 
-type ConfirmAction = 'delete' | 'warning' | 'confirm';
+type ConfirmAction =
+  | 'delete'
+  | 'remove'
+  | 'warning'
+  | 'confirm';
 
 type ConfirmOptions = {
   title: string;
@@ -105,7 +109,8 @@ export default function ConfirmDialog() {
 
   const isDangerous =
     options.isDangerous ||
-    options.action === 'delete';
+    options.action === 'delete' ||
+    options.action === 'remove';
 
   const Icon = isDangerous
     ? Trash2
