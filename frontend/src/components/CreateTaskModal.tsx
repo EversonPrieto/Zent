@@ -930,8 +930,8 @@ export default function CreateTaskModal({
                     Dica
                   </p>
                   <p className={`text-xs ${themeClasses.text.tertiary} mt-0.5`}>
-                    Use <code className="text-violet-400 font-mono">#</code> para mencionar tasks e{' '}
-                    <code className="text-violet-400 font-mono">@</code> para mencionar membros.
+                    Após você <code className="text-violet-400 font-mono"> Criar Task</code> você pode adicionar{' '}
+                    <code className="text-violet-400 font-mono"> Anexos</code> para visualizar.
                   </p>
                 </div>
               </div>
