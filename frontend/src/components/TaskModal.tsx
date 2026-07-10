@@ -318,6 +318,8 @@ export default function TaskModal({
   const [newComment, setNewComment] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const [commentDeleting, setCommentDeleting] = useState(false);
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
@@ -820,31 +822,40 @@ export default function TaskModal({
     }
   }
 
-  async function handleDeleteComment(commentId: string) {
-    const confirmed = await showConfirm({
-      title: 'Deletar comentário',
-      message: 'Tem certeza que deseja deletar este comentário?',
-      action: 'delete',
-      confirmLabel: 'Deletar',
-      isDangerous: true,
-    });
+  function handleDeleteComment(commentId: string) {
+    setCommentToDelete(commentId);
+  }
 
-    if (!confirmed) return;
+  function closeCommentDeleteConfirm() {
+    if (commentDeleting) return;
+    setCommentToDelete(null);
+  }
+
+  async function confirmDeleteComment() {
+    if (!commentToDelete || commentDeleting) return;
 
     try {
       setError('');
+      setCommentDeleting(true);
 
-      await api(`/comments/${commentId}`, {
+      await api(`/comments/${commentToDelete}`, {
         method: 'DELETE',
         workspaceId,
       });
 
-      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      setComments((prev) =>
+        prev.filter((comment) => comment.id !== commentToDelete),
+      );
+
+      setCommentToDelete(null);
       showToast('Comentário deletado com sucesso', 'success', 3000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao deletar comentário';
+      const message =
+        err instanceof Error ? err.message : 'Erro ao deletar comentário';
       setError(message);
       showToast(message, 'error', 4000);
+    } finally {
+      setCommentDeleting(false);
     }
   }
 
@@ -1545,6 +1556,79 @@ export default function TaskModal({
           </div>
         </div>
       </div>
+
+      {commentToDelete && (
+        <div className="absolute inset-0 z-[1002] isolate flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div
+            className={`relative z-[1003] w-full max-w-md overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl shadow-black/40 animate-in zoom-in-95 slide-in-from-bottom-3 duration-200`}
+          >
+            <div className={`border-b ${themeClasses.border.primary} px-5 py-4`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
+                    <Trash2 className="h-5 w-5" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <h2 className={`text-base font-bold ${themeClasses.text.primary}`}>
+                      Deletar comentário
+                    </h2>
+                    <p className={`mt-0.5 text-xs ${themeClasses.text.tertiary}`}>
+                      Confirme para continuar
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeCommentDeleteConfirm}
+                  disabled={commentDeleting}
+                  className={`rounded-lg p-2 ${themeClasses.text.tertiary} transition-all hover:bg-violet-500/10 hover:text-violet-400 disabled:cursor-not-allowed disabled:opacity-50`}
+                  aria-label="Fechar confirmação"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="px-5 py-5">
+              <p className={`whitespace-pre-line text-sm leading-relaxed ${themeClasses.text.secondary}`}>
+                Tem certeza que deseja deletar este comentário?
+              </p>
+            </div>
+
+            <div className={`flex flex-col-reverse gap-2 border-t ${themeClasses.border.primary} px-5 py-4 sm:flex-row sm:justify-end`}>
+              <button
+                type="button"
+                onClick={closeCommentDeleteConfirm}
+                disabled={commentDeleting}
+                className={`inline-flex items-center justify-center rounded-xl border ${themeClasses.border.primary} px-4 py-2.5 text-sm font-semibold ${themeClasses.text.secondary} transition-all hover:border-violet-500/40 hover:bg-violet-500/10 hover:text-violet-400 disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDeleteComment}
+                disabled={commentDeleting}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition-all hover:bg-red-600 hover:shadow-red-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {commentDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Deletando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Deletar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
