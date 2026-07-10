@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, CheckCircle2, Trash2, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Trash2,
+  X,
+} from 'lucide-react';
+
 import { useTheme } from '../hooks/useTheme';
 
 type ConfirmAction = 'delete' | 'warning' | 'confirm';
@@ -18,22 +24,31 @@ type ConfirmOptions = {
 
 type Resolver = (value: boolean) => void;
 
-let confirmHandler: ((options: ConfirmOptions) => Promise<boolean>) | null = null;
+let confirmHandler:
+  | ((options: ConfirmOptions) => Promise<boolean>)
+  | null = null;
 
-export function showConfirm(options: ConfirmOptions): Promise<boolean> {
+export function showConfirm(
+  options: ConfirmOptions,
+): Promise<boolean> {
   if (confirmHandler) {
     return confirmHandler(options);
   }
 
   const fallbackMessage = `${options.title}\n\n${options.message}`;
-  return Promise.resolve(window.confirm(fallbackMessage));
+
+  return Promise.resolve(
+    window.confirm(fallbackMessage),
+  );
 }
 
 export default function ConfirmDialog() {
   const { themeClasses } = useTheme();
 
   const [mounted, setMounted] = useState(false);
-  const [options, setOptions] = useState<ConfirmOptions | null>(null);
+  const [options, setOptions] =
+    useState<ConfirmOptions | null>(null);
+
   const resolverRef = useRef<Resolver | null>(null);
 
   useEffect(() => {
@@ -41,7 +56,9 @@ export default function ConfirmDialog() {
   }, []);
 
   useEffect(() => {
-    confirmHandler = (nextOptions: ConfirmOptions) => {
+    confirmHandler = (
+      nextOptions: ConfirmOptions,
+    ) => {
       setOptions(nextOptions);
 
       return new Promise<boolean>((resolve) => {
@@ -63,10 +80,16 @@ export default function ConfirmDialog() {
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener(
+      'keydown',
+      handleKeyDown,
+    );
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      );
     };
   }, [options]);
 
@@ -76,9 +99,13 @@ export default function ConfirmDialog() {
     setOptions(null);
   }
 
-  if (!mounted || !options) return null;
+  if (!mounted || !options) {
+    return null;
+  }
 
-  const isDangerous = options.isDangerous || options.action === 'delete';
+  const isDangerous =
+    options.isDangerous ||
+    options.action === 'delete';
 
   const Icon = isDangerous
     ? Trash2
@@ -87,11 +114,13 @@ export default function ConfirmDialog() {
       : CheckCircle2;
 
   return createPortal(
-    <div className="fixed inset-0 z-[2147483647] isolate flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[2000] isolate flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className={`relative z-[2147483647] w-full max-w-md overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl shadow-black/50 animate-in zoom-in-95 slide-in-from-bottom-3 duration-200`}
+        className={`relative z-[2001] w-full max-w-md overflow-hidden rounded-2xl border ${themeClasses.border.primary} ${themeClasses.bg.primary} shadow-2xl shadow-black/40 animate-in zoom-in-95 slide-in-from-bottom-3 duration-200`}
       >
-        <div className={`border-b ${themeClasses.border.primary} px-5 py-4`}>
+        <div
+          className={`border-b ${themeClasses.border.primary} px-5 py-4`}
+        >
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <div
@@ -105,10 +134,15 @@ export default function ConfirmDialog() {
               </div>
 
               <div className="min-w-0">
-                <h2 className={`text-base font-bold ${themeClasses.text.primary}`}>
+                <h2
+                  className={`text-base font-bold ${themeClasses.text.primary}`}
+                >
                   {options.title}
                 </h2>
-                <p className={`mt-0.5 text-xs ${themeClasses.text.tertiary}`}>
+
+                <p
+                  className={`mt-0.5 text-xs ${themeClasses.text.tertiary}`}
+                >
                   Confirme para continuar
                 </p>
               </div>
@@ -126,12 +160,16 @@ export default function ConfirmDialog() {
         </div>
 
         <div className="px-5 py-5">
-          <p className={`whitespace-pre-line text-sm leading-relaxed ${themeClasses.text.secondary}`}>
+          <p
+            className={`whitespace-pre-line text-sm leading-relaxed ${themeClasses.text.secondary}`}
+          >
             {options.message}
           </p>
         </div>
 
-        <div className={`flex flex-col-reverse gap-2 border-t ${themeClasses.border.primary} px-5 py-4 sm:flex-row sm:justify-end`}>
+        <div
+          className={`flex flex-col-reverse gap-2 border-t ${themeClasses.border.primary} px-5 py-4 sm:flex-row sm:justify-end`}
+        >
           <button
             type="button"
             onClick={() => close(false)}
@@ -150,6 +188,7 @@ export default function ConfirmDialog() {
             }`}
           >
             <Icon className="h-4 w-4" />
+
             {options.confirmLabel || 'Confirmar'}
           </button>
         </div>
