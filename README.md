@@ -1,5 +1,7 @@
 # Zent
 
+![Logo do Zent](frontend/public/logo.png)
+
 Zent é uma plataforma de organização de projetos inspirada em ferramentas como Trello e Notion, com foco em produtividade, colaboração e gerenciamento visual de tarefas por Kanban.
 
 O projeto permite criar workspaces, gerenciar projetos, organizar tasks por status, prioridade e responsáveis, acompanhar atividades recentes, comentar em tarefas, anexar arquivos e alternar entre tema claro e escuro.
@@ -242,4 +244,4 @@ pnpm prisma generate
 Desenvolvido por **Everson Prieto**.
 
 - GitHub: [EversonPrieto](https://github.com/EversonPrieto)
-- Linkedin: [Éverson Prieto] (https://www.linkedin.com/in/%C3%A9verson-prieto-115052156/)
+- Linkedin: [Éverson Prieto](https://www.linkedin.com/in/%C3%A9verson-prieto-115052156/)
