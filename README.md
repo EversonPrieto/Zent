@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="frontend/public//logo.png" alt="Zent Logo" width="50" style="vertical-align: middle; margin-right: 10px;" />
+  <img src="frontend/public//logo.png" alt="Zent Logo" width="50" margin-right: 10px;" />
   Zent
 </h1>   
 
