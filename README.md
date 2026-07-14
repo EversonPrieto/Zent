@@ -1,9 +1,9 @@
-<h1 align="center">
-  <img src="frontend/public//logo.png" alt="Zent Logo" width="50" margin-right: 10px;" />
+<h1>
+  <img src="frontend/public//logo.png" alt="Zent Logo" width="100" margin-right: 10px;" />
   Zent
 </h1>   
 
-Zent é uma plataforma de organização de projetos inspirada em ferramentas como Trello e Notion, com foco em produtividade, colaboração e gerenciamento visual de tarefas por Kanban.
+Zent é uma plataforma de organização de projetos inspirada em ferramentas baseada no Kanban da platadorma MIRO, com foco em produtividade, colaboração e gerenciamento visual de tarefas por Kanban.
 
 O projeto permite criar workspaces, gerenciar projetos, organizar tasks por status, prioridade e responsáveis, acompanhar atividades recentes, comentar em tarefas, anexar arquivos e alternar entre tema claro e escuro.
 
