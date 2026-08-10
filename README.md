@@ -1,3 +1,8 @@
+<h1>
+  <img src="./frontend/public/logo.png" alt="Zent Logo" width="48" align="center" />
+  &nbsp;Zent
+</h1>
+=======
 <table>
   <tr>
     <td>

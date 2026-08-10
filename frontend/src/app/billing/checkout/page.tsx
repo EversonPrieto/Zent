@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useTheme } from '../../../hooks/useTheme';
-import { Loader2, AlertCircle, CheckCircle2, ArrowLeft, Shield, Zap, CreditCard } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, ArrowLeft, Shield, Zap, CreditCard, LogIn, UserPlus } from 'lucide-react';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -17,12 +17,16 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     name: '',
   });
 
   useEffect(() => {
+    const token = localStorage.getItem('zent_token');
+    setIsAuthenticated(Boolean(token));
+
     const userRaw = localStorage.getItem('zent_user');
     if (userRaw) {
       try {
@@ -37,6 +41,10 @@ function CheckoutContent() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      return;
+    }
 
     if (!stripe || !elements) {
       setError('Stripe não carregou. Tente novamente.');
@@ -318,6 +326,53 @@ function CheckoutContent() {
           </form>
         </div>
       </div>
+
+      {isAuthenticated === null && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <Loader2 className="h-6 w-6 animate-spin text-violet-400" aria-label="Verificando autenticação" />
+        </div>
+      )}
+
+      {isAuthenticated === false && (
+        <div
+          className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-required-title"
+          aria-describedby="auth-required-description"
+        >
+          <div className={`w-full max-w-md rounded-3xl border ${themeClasses.border.primary} ${themeClasses.bg.subtle} p-6 shadow-2xl sm:p-8`}>
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10">
+              <Shield className="h-6 w-6 text-violet-400" />
+            </div>
+            <h2 id="auth-required-title" className={`text-2xl font-bold tracking-tight ${themeClasses.text.primary}`}>
+              Entre para continuar
+            </h2>
+            <p id="auth-required-description" className={`mt-2 text-sm leading-relaxed ${themeClasses.text.tertiary}`}>
+              Para contratar o Plano Pro com segurança, faça login ou crie sua conta gratuitamente.
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <LogIn className="h-4 w-4" />
+                Fazer login
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/signup')}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl border ${themeClasses.border.primary} ${themeClasses.text.secondary} px-4 py-3 text-sm font-semibold transition-colors hover:border-violet-500/40 hover:text-violet-400`}
+              >
+                <UserPlus className="h-4 w-4" />
+                Criar conta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
