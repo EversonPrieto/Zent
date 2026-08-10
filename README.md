@@ -2,6 +2,17 @@
   <img src="./frontend/public/logo.png" alt="Zent Logo" width="48" align="center" />
   &nbsp;Zent
 </h1>
+=======
+<table>
+  <tr>
+    <td>
+      <img src="./frontend/public/logo.png" alt="Zent Logo" width="60" />
+    </td>
+    <td>
+      <h1>Zent</h1>
+    </td>
+  </tr>
+</table>
 
 Zent é uma plataforma de organização de projetos inspirada em ferramentas baseada no Kanban da platadorma MIRO, com foco em produtividade, colaboração e gerenciamento visual de tarefas por Kanban.
 
