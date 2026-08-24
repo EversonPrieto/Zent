@@ -13,7 +13,7 @@
   </tr>
 </table>
 
-Zent é uma plataforma de organização de projetos inspirada em ferramentas baseada no Kanban da platadorma MIRO, com foco em produtividade, colaboração e gerenciamento visual de tarefas por Kanban.
+Zent é uma plataforma de organização de projetos inspirada em ferramentas baseada no Kanban da plataforma MIRO, com foco em produtividade, colaboração e gerenciamento visual de tarefas por Kanban.
 
 O projeto permite criar workspaces, gerenciar projetos, organizar tasks por status, prioridade e responsáveis, acompanhar atividades recentes, comentar em tarefas, anexar arquivos e alternar entre tema claro e escuro.
 
